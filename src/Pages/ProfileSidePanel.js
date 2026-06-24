@@ -1,3 +1,4 @@
+// ProfileSidePanel.js - Fixed version
 import { useState, useEffect, useRef, useCallback } from "react";
 
 /* ─────────── Constants ─────────── */
@@ -106,7 +107,6 @@ export function AvatarSVG({ shape = "square", eyes = "oval", color = "#FFD93D", 
       style={{ overflow: "visible", filter: `drop-shadow(0 ${sw}px ${sw * 1.8}px rgba(0,0,0,0.16))` }}
     >
       <Body />
-      {/* Sheen */}
       <ellipse
         cx={cx - s * 0.2} cy={cy - s * 0.28} rx={s * 0.075} ry={s * 0.045}
         fill="rgba(255,255,255,0.45)"
@@ -648,7 +648,9 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
 
   const handleClose = useCallback(() => {
     setClosing(true);
-    onClose?.();
+    setTimeout(() => {
+      onClose?.();
+    }, 220); // Wait for animation to complete
   }, [onClose]);
 
   useEffect(() => {
@@ -679,6 +681,27 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
     onUpdateProfile?.(updated);
     setShowEditor(false);
     setPop(p => p + 1);
+  };
+
+  const handleLogout = () => {
+    setShowLogout(false);
+    // Clear all auth data from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("profile");
+    
+    // Close the panel first
+    handleClose();
+    
+    // Call the logout function after a small delay to ensure panel closes
+    setTimeout(() => {
+      if (onLogout) {
+        onLogout();
+      } else {
+        // Fallback: reload the page if no onLogout provided
+        window.location.reload();
+      }
+    }, 250);
   };
 
   return (
@@ -786,11 +809,7 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
               </button>
               <button
                 className="psp-modalBtn ok"
-                onClick={() => {
-                  setShowLogout(false);
-                  handleClose();
-                  onLogout?.();
-                }}
+                onClick={handleLogout}
               >
                 Sign Out
               </button>

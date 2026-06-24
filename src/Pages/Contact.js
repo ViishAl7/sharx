@@ -283,10 +283,10 @@ export default function ContactPage() {
           <nav className="navbar">
             <div className="nav-logo" onClick={() => navigate("/")}>
               <img
-                src="/playvora.png" alt="Playvora"
+                src="/sharx.png" alt="Sharx"
                 onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="block"; }}
               />
-              <span className="nav-logo-text" style={{ display:"none" }}>playvora</span>
+              <span className="nav-logo-text" style={{ display:"none" }}>Sharx</span>
             </div>
             <button className="nav-back" onClick={() => navigate(-1)}>
               <ArrowLeft size={12} strokeWidth={2.5} /> Back
@@ -301,9 +301,9 @@ export default function ContactPage() {
 
             <div
               className={`email-wrap${visible ? " vis" : ""}`}
-              onClick={() => window.location.href = "mailto:playvora.help@gmail.com"}
+              onClick={() => window.location.href = "mailto:sharx.help@gmail.com"}
             >
-              <span className="email-text">playvora.help@gmail.com</span>
+              <span className="email-text">sharx.help@gmail.com</span>
               <span className="email-line" />
             </div>
           </div>
@@ -321,7 +321,7 @@ export default function ContactPage() {
             <div className="footer-content">
               <div className="footer-main">
                 <div className="footer-logo" onClick={() => navigate("/")}>
-                  <img src="/playvora.png" alt="Playvora" draggable={false} />
+                  <img src="/sharx.png" alt="Sharx" draggable={false} />
                 </div>
 
                 <div className="footer-socials">
@@ -350,7 +350,7 @@ export default function ContactPage() {
               </div>
 
               <div className="footer-bottom">
-                <span className="footer-copyright">© {year} Playvora. All rights reserved.</span>
+                <span className="footer-copyright">© {year} Sharx. All rights reserved.</span>
               </div>
             </div>
           </div>

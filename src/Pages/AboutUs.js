@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+
 import {
   ArrowLeft, ChevronDown, Send, Mail, MessageCircle,
   Camera, Play, Gamepad2, Bug, Handshake,
   Lightbulb, CheckCircle2
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { API_BASE } from "../config";
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
@@ -14,7 +14,6 @@ export default function Contact() {
   const [activeSection, setActiveSection] = useState(0);
   const [seenSections, setSeenSections] = useState(new Set([0]));
   const sectionRefs = [useRef(), useRef(), useRef(), useRef()];
-
 const handleSubmit = async () => {
   if (!formData.name || !formData.email || !formData.message) return;
 
@@ -103,19 +102,19 @@ const handleSubmit = async () => {
   ];
 
  const faqs = [
-  { q: "Are all Playvora games free?", a: "Yes — every game on Playvora is 100% free. No hidden charges, no subscriptions, nothing." },
+  { q: "Are all Sharx games free?", a: "Yes — every game on Sharx is 100% free. No hidden charges, no subscriptions, nothing." },
   { q: "Do I need an account to play?", a: "No. You can play any game without signing up. An account is only needed for leaderboards and tracking your score." },
   { q: "How quickly will I get support?", a: "We try to respond as fast as possible. Send us a message using the form and we will get back to you shortly." },
   { q: "How do I report a bug or request a game?", a: "Use the form above — select Bug Report or Game Request, describe the issue or game you want, and we will look into it." },
 ];
 
   const connects = [
-    { icon: <Mail        size={20} strokeWidth={1.8} />, name: "Email",     handle: "hello@playvora.com",  pill: "Reply in 24hrs", bg: "#E8FFF8", accent: "#00C896" },
-    { icon: <MessageCircle size={20} strokeWidth={1.8}/>, name: "Discord",   handle: "discord.gg/playvora", pill: "10k+ Gamers",   bg: "#EEEEFF", accent: "#5865F2" },
-    { icon: <Gamepad2    size={20} strokeWidth={1.8} />, name: "Twitter",   handle: "@playvora",           pill: "Follow us",     bg: "#E8F5FF", accent: "#1DA1F2" },
-    { icon: <Camera      size={20} strokeWidth={1.8} />, name: "Instagram", handle: "@playvora.gg",        pill: "Follow us",     bg: "#FFF0F5", accent: "#E1306C" },
-    { icon: <Play        size={20} strokeWidth={1.8} />, name: "YouTube",   handle: "Playvora Official",   pill: "Subscribe",     bg: "#FFF0F0", accent: "#FF0000" },
-    { icon: <Gamepad2    size={20} strokeWidth={1.8} />, name: "TikTok",    handle: "@playvora",           pill: "Follow us",     bg: "#E8FFFE", accent: "#00D4CB" },
+    { icon: <Mail        size={20} strokeWidth={1.8} />, name: "Email",     handle: "hello@Sharx.com",  pill: "Reply in 24hrs", bg: "#E8FFF8", accent: "#00C896" },
+    { icon: <MessageCircle size={20} strokeWidth={1.8}/>, name: "Discord",   handle: "discord.gg/Sharx", pill: "10k+ Gamers",   bg: "#EEEEFF", accent: "#5865F2" },
+    { icon: <Gamepad2    size={20} strokeWidth={1.8} />, name: "Twitter",   handle: "@Sharx",           pill: "Follow us",     bg: "#E8F5FF", accent: "#1DA1F2" },
+    { icon: <Camera      size={20} strokeWidth={1.8} />, name: "Instagram", handle: "@Sharx.gg",        pill: "Follow us",     bg: "#FFF0F5", accent: "#E1306C" },
+    { icon: <Play        size={20} strokeWidth={1.8} />, name: "YouTube",   handle: "Sharx Official",   pill: "Subscribe",     bg: "#FFF0F0", accent: "#FF0000" },
+    { icon: <Gamepad2    size={20} strokeWidth={1.8} />, name: "TikTok",    handle: "@Sharx",           pill: "Follow us",     bg: "#E8FFFE", accent: "#00D4CB" },
   ];
 
   return (
@@ -142,6 +141,16 @@ const handleSubmit = async () => {
   --radius-pill: 999px;
   --radius-card: 24px;
   --radius-input: 16px;
+}
+  .logo{
+  display:flex;
+  align-items:center;
+}
+
+.logo img{
+  height:100px;
+  width:auto;
+  object-fit:contain;
 }
 
 /* ─── SCROLL CONTAINER ─── */
@@ -265,6 +274,8 @@ const handleSubmit = async () => {
   border: 1px solid rgba(255,255,255,0.6);
   box-shadow: 0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
   z-index: 999;
+  height: 60px;
+  background: transparent;
 }
 .logo {
   font-size: 20px;
@@ -275,6 +286,8 @@ const handleSubmit = async () => {
   -webkit-background-clip: text;
   color: transparent;
   user-select: none;
+            background: transparent;
+
 }
 .nav-btn {
   height: 36px;
@@ -528,13 +541,13 @@ const handleSubmit = async () => {
   color: var(--navy60);
   margin-bottom: 36px;
 }
-.connect-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  max-width: 840px;
-  margin: 0 auto;
-}
+// .connect-grid {
+//   display: grid;
+//   grid-template-columns: repeat(3, 1fr);
+//   gap: 14px;
+//   max-width: 840px;
+//   margin: 0 auto;
+// }
 .connect-card {
   background: rgba(255,255,255,0.65);
   backdrop-filter: blur(12px);
@@ -662,7 +675,7 @@ const handleSubmit = async () => {
   .faq-left .cta { display: none; }
   .faq-right { width: 100%; max-width: 560px; }
 
-  .connect-grid { grid-template-columns: repeat(2, 1fr); max-width: 560px; }
+  // .connect-grid { grid-template-columns: repeat(2, 1fr); max-width: 560px; }
 }
 
 /* ═══════════════════════════════
@@ -713,11 +726,13 @@ const handleSubmit = async () => {
 
         {/* ── NAVBAR ── */}
         <nav className="navbar">
-          <div className="logo">playvora</div>
-          <button className="nav-btn" onClick={() => window.history.back()}>
-            <ArrowLeft size={12} strokeWidth={2.5} /> Back
-          </button>
-        </nav>
+<div className="logo">
+  <img src="/sharxbg.png" alt="SHARX Logo" />
+</div>
+        <button className="nav-btn" onClick={() => window.history.back()}>
+          <ArrowLeft size={12} strokeWidth={2.5} /> Back
+        </button>
+      </nav>
 
         {/* ── SIDE DOTS (desktop only via CSS) ── */}
         <div className="dots">
@@ -733,8 +748,8 @@ const handleSubmit = async () => {
         {/* ── FIXED FOOTER ── */}
         <div className="footer">
           <p>
-            © 2026 playvora · All rights reserved.
-            {/* <a href="#">hello@playvora.com</a> · */}
+            © 2026 Sharx · All rights reserved.
+            {/* <a href="#">hello@Sharx.com</a> · */}
             <Link to="/privacy">Privacy</Link>
           </p>
         </div>
@@ -847,8 +862,8 @@ const handleSubmit = async () => {
           <div className="connect-wrap">
             <div className="connect-content">
               <h2>Find us<br />everywhere.</h2>
-              <p>Join the Playvora community across platforms</p>
-              <div className="connect-grid">
+              <p>Join the Sharx community across platforms</p>
+              {/* <div className="connect-grid">
                 {connects.map(c => (
                   <div key={c.name} className="connect-card">
                     <div className="c-ico" style={{ background: c.bg }}>
@@ -861,7 +876,7 @@ const handleSubmit = async () => {
                     </div>
                   </div>
                 ))}
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -879,7 +894,7 @@ const handleSubmit = async () => {
           <div className="faq-layout">
             <div className="faq-left">
               <h2>Quick<br />answers.</h2>
-              <p>Everything you need to know about Playvora.</p>
+              <p>Everything you need to know about Sharx.</p>
               <button className="cta" onClick={() => goTo(0)}>
                 Back to top
                 <span className="cta-icon" style={{ transform: "rotate(180deg)" }}>

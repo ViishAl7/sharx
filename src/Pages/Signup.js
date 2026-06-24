@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
-import { API_BASE } from "../config";
 function Signup() {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -573,7 +571,7 @@ body {
 
       <div className="page">
         <div className="left">
-          <div className="left-logo" onClick={() => navigate("/")}>Playvora</div>
+          <div className="left-logo" onClick={() => navigate("/")}>Sharx</div>
           <div className="left-title">
             Forge<br />
             Your<br />

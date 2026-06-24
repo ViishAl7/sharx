@@ -1,4 +1,3 @@
-// src/Pages/Home.js
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
@@ -54,7 +53,6 @@ export default function Home() {
   };
 
   const openGame = useCallback((game) => { addToHistory(game); setActiveGame(game); }, []);
-  const logout   = useCallback((e) => { e.stopPropagation(); authLogout(); }, [authLogout]);
 
   const fetchGames = useCallback(async (pageNum, isFirst) => {
     if (isFirst) setLoading(true); else setLoadingMore(true);
@@ -132,29 +130,15 @@ export default function Home() {
           min-height: 100vh;
           font-family: 'Nunito', sans-serif;
           color: #1E293B;
-          background: #f0f2f7;
+          background: #FFFFFF;
           position: relative;
           overflow-x: hidden;
         }
 
-        body::before {
-          content: "";
-          position: fixed;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          z-index: -1;
-          background:
-            radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 80% 10%, rgba(244, 114, 182, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 60%),
-            radial-gradient(circle at 10% 80%, rgba(45, 212, 191, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 90% 90%, rgba(251, 191, 36, 0.1) 0%, transparent 40%);
-          background-color: #f8fafc;
-          filter: blur(80px);
-          transform: scale(1.2);
-        }
+        ::-webkit-scrollbar{width:5px;}
+        ::-webkit-scrollbar-track{background:#FFFFFF;}
+        ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px;}
 
-        ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px;}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
         @keyframes shimmer{0%{background-position:-700px 0}100%{background-position:700px 0}}
@@ -164,7 +148,20 @@ export default function Home() {
         @keyframes easterEggPulse{0%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.15) rotate(-10deg)}50%{transform:scale(1.2) rotate(10deg)}75%{transform:scale(1.15) rotate(-5deg)}100%{transform:scale(1) rotate(0deg)}}
         @keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
         @keyframes rainbowShift{0%{background:linear-gradient(45deg,#FF6B6B,#4ECDC4)}20%{background:linear-gradient(45deg,#4ECDC4,#45B7D1)}40%{background:linear-gradient(45deg,#45B7D1,#FFA07A)}60%{background:linear-gradient(45deg,#FFA07A,#98D8C8)}80%{background:linear-gradient(45deg,#98D8C8,#FF6B6B)}100%{background:linear-gradient(45deg,#FF6B6B,#4ECDC4)}}
+        @keyframes cardEntrance{from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 
+        /* ── FOOTER ANIMATIONS ── */
+        @keyframes footerFadeUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes softBounce {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.12); }
+          100% { transform: scale(1); }
+        }
+
+        /* ── EASTER EGG ── */
         .easter-egg-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);animation:fadeIn .3s ease forwards}
         .easter-egg-content{position:relative;background:#fff;border-radius:32px;padding:40px;text-align:center;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:fadeUp .4s cubic-bezier(.23,1,.32,1) forwards}
         .easter-egg-emoji{font-size:80px;margin-bottom:20px;display:inline-block;animation:easterEggPulse .6s ease-in-out infinite}
@@ -180,64 +177,118 @@ export default function Home() {
 
         /* ── NAV ── */
         .nav-outer{display:flex;justify-content:center;position:sticky;top:20px;z-index:300;padding:0 24px}
-        .nav-wrap{width:100%;max-width:1100px;padding:8px 24px;background:rgba(255,255,255,.4);backdrop-filter:blur(16px) saturate(180%);border-radius:80px;border:1px solid rgba(255,255,255,.6);box-shadow:0 8px 32px rgba(0,0,0,.05);animation:fadeScale .5s ease forwards,liquidGlow 3s ease-in-out infinite;transition:all .4s cubic-bezier(.2,.9,.4,1.1)}
+        .nav-wrap{
+          width:100%;max-width:1100px;
+          height:56px;               /* ✅ FIXED HEIGHT — navbar kabhi mota nahi hoga */
+          padding:0 24px;
+          background:rgba(255,255,255,.4);
+          backdrop-filter:blur(16px) saturate(180%);
+          border-radius:80px;
+          border:1px solid rgba(255,255,255,.6);
+          box-shadow:0 8px 32px rgba(0,0,0,.05);
+          animation:fadeScale .5s ease forwards,liquidGlow 3s ease-in-out infinite;
+          transition:all .4s cubic-bezier(.2,.9,.4,1.1);
+          display:flex;align-items:center;
+        }
         .nav-wrap:hover{background:rgba(255,255,255,.55);border-color:rgba(255,255,255,.8)}
-        .nav{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
-        .nav-logo{display:flex;align-items:center;cursor:pointer;transition:all .3s ease}
-        .nav-logo img{height:36px;width:auto;object-fit:contain;transition:all .3s ease}
-        .nav-logo:hover{opacity:.7;transform:scale(1.02)}
+        .nav{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;width:100%;}
+
+        /* ✅ LOGO FIX — container clips the oversized image */
+        .nav-logo{
+          display:flex;align-items:center;
+          height:40px;               /* container height — navbar ke andar fit */
+          overflow:hidden;           /* bahar nahi jaayega */
+          flex-shrink:0;
+          cursor:pointer;
+          transition:opacity .3s ease;
+        }
+        .nav-logo:hover{opacity:.7;}
+        .nav-logo img{
+          height:90px;               /* logo ki actual height — badi dikhegi */
+          width:auto;
+          object-fit:contain;
+          display:block;
+          flex-shrink:0;
+        }
+
         .nav-search{flex:1;min-width:180px;max-width:400px}
-        .nav-si-wrap{display:flex;align-items:center;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.5);border-radius:100px;padding:0 18px;gap:10px;height:44px;transition:all .3s ease}
+        .nav-si-wrap{display:flex;align-items:center;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.5);border-radius:100px;padding:0 18px;gap:10px;height:40px;transition:all .3s ease}
         .nav-si-wrap:focus-within{background:rgba(255,255,255,.95);border-color:rgba(100,116,139,.3);box-shadow:0 0 0 4px rgba(0,0,0,.02)}
         .nav-si-wrap svg{flex-shrink:0;color:#64748B;width:16px;height:16px}
         .nav-si{flex:1;border:none;outline:none;background:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:500;color:#1E293B}
         .nav-si::placeholder{color:#94A3B8;font-weight:400}
         .nav-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-        .btn-login,.btn-signup{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;padding:8px 24px;border-radius:100px;cursor:pointer;transition:all .3s ease;position:relative;overflow:hidden}
-        .btn-login{background:#1E293B;color:#fff;border:none}
-        .btn-login:hover{background:#0F172A;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
-        .btn-signup{background:rgba(255,255,255,.8);backdrop-filter:blur(4px);color:#1E293B;border:1px solid rgba(226,232,240,.8)}
-        .btn-signup:hover{background:#fff;border-color:#CBD5E1;transform:translateY(-2px)}
+
+        .login-icon-container {
+          display: flex;align-items: center;justify-content: center;
+          cursor: pointer;width: 40px;height: 40px;
+          border-radius: 50%;background: transparent;
+          backdrop-filter: blur(8px);border: 1px solid rgba(255,255,255,.6);
+          transition: all .3s cubic-bezier(.23,1,.32,1);
+          animation: pulse 2s infinite ease-in-out;
+        }
+        .login-icon-container:hover {
+          background: rgba(255,255,255,.9);transform: scale(1.05);
+          box-shadow: 0 4px 14px rgba(0,0,0,.09);
+        }
+        @keyframes pulse {
+          0% { transform: scale(1); }50% { transform: scale(1.1); }100% { transform: scale(1); }
+        }
 
         .user-logged{display:flex;align-items:center;gap:8px}
         .profile-btn{background:rgba(255,255,255,.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.6);border-radius:100px;cursor:pointer;display:flex;align-items:center;gap:7px;padding:7px 16px 7px 7px;transition:all .3s ease;color:#1E293B;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;position:relative;overflow:hidden}
         .profile-btn:hover{background:rgba(255,255,255,.9);border-color:rgba(100,116,139,.3);transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.09)}
         .profile-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#F1F5F9}
 
-        /* ── Content ── */
+        /* ── HERO ── */
         .hero{padding:100px 48px 22px;max-width:1200px;margin:0 auto;animation:fadeUp .5s ease forwards}
         .hero-title{font-family:'Righteous',cursive;font-size:clamp(30px,4.5vw,52px);line-height:1.08;color:#1E293B;margin-bottom:10px}
         .hero-title em{font-style:normal;background:linear-gradient(135deg,#1E293B 0%,#64748B 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .hero-sub{font-size:13px;font-weight:500;color:#475569;max-width:440px;opacity:0;animation:fadeUp .5s ease .1s forwards}
+
+        /* ── CATEGORIES ── */
         .cats{padding:0 48px 18px;opacity:0;animation:fadeUp .5s ease .13s forwards;max-width:1200px;margin:0 auto}
         .cats-row{display:flex;gap:7px;flex-wrap:wrap}
         .cat{font-size:12px;font-weight:700;color:#475569;padding:6px 16px;border-radius:100px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.85);border-bottom-color:rgba(0,0,0,.06);backdrop-filter:blur(8px);cursor:pointer;transition:all .3s cubic-bezier(.23,1,.32,1)}
         .cat:hover{background:rgba(255,255,255,.9);transform:translateY(-2px);color:#1E293B}
         .cat.on{background:#1E293B;border-color:#1E293B;color:#fff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
-        .grid{padding:0 48px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;max-width:1200px;margin:0 auto}
-        .gc{position:relative;border-radius:20px;overflow:hidden;cursor:pointer;background:rgba(216,221,230,0.5);aspect-ratio:1;transition:transform .32s cubic-bezier(.23,1,.32,1),box-shadow .32s cubic-bezier(.23,1,.32,1);animation:fadeUp .4s ease both;box-shadow:0 2px 8px rgba(0,0,0,.08);contain:layout style paint;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.3)}
-        .gc.featured{grid-column:span 2;grid-row:span 2}
-        .gc:hover{transform:scale(1.02) translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.18);z-index:2}
+
+        /* ── GRID ── */
+        .grid{padding:0 48px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;max-width:1200px;margin:0 auto;background:transparent}
+
+        /* ── GAME CARD ── */
+        .gc{position:relative;border-radius:24px;overflow:hidden;cursor:pointer;background:rgba(255,255,255,0.35);aspect-ratio:1;transition:transform .32s cubic-bezier(.23,1,.32,1),box-shadow .32s cubic-bezier(.23,1,.32,1);animation:cardEntrance .4s ease both;box-shadow:0 2px 8px rgba(0,0,0,.08);contain:layout style paint;backdrop-filter:blur(6px) saturate(140%);-webkit-backdrop-filter:blur(6px) saturate(140%);border:1px solid rgba(255,255,255,0.55);}
+        .gc::before{content:"";position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 100%);border-radius:24px 24px 0 0;z-index:2;pointer-events:none;}
+        .gc.featured{grid-column:span 2;grid-row:span 2;border-radius:28px}
+        .gc.featured::before{border-radius:28px 28px 0 0}
+        .gc:hover{transform:scale(1.02) translateY(-4px);box-shadow:0 20px 44px rgba(0,0,0,.16);z-index:2}
         .gc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s cubic-bezier(.23,1,.32,1)}
         .gc:hover .gc-img{transform:scale(1.06)}
-        .gc-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.08) 50%,transparent 100%);opacity:0;transition:opacity .28s ease}
-        .gc-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%) scale(.45);width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;opacity:0;transition:all .32s cubic-bezier(.2,.9,.4,1.1);box-shadow:0 4px 16px rgba(0,0,0,.28);pointer-events:none}
-        .gc.featured .gc-play-btn{width:52px;height:52px}
+        .gc-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.08) 50%,transparent 100%);opacity:0;transition:opacity .28s ease;z-index:3}
+        .gc:hover .gc-overlay{opacity:1}
+        .gc-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%) scale(.45);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;transition:all .32s cubic-bezier(.2,.9,.4,1.1);box-shadow:0 4px 16px rgba(0,0,0,.28);pointer-events:none;z-index:4}
+        .gc.featured .gc-play-btn{width:54px;height:54px}
         .gc:hover .gc-play-btn{opacity:1;transform:translate(-50%,-50%) scale(1)}
         .gc-play-btn svg{width:12px;height:14px;fill:#1E293B;margin-left:2px}
-        .gc-label{position:absolute;bottom:0;left:0;right:0;padding:26px 10px 10px;transform:translateY(5px);opacity:0;transition:opacity .26s ease,transform .26s ease;pointer-events:none}
+        .gc-label{position:absolute;bottom:0;left:0;right:0;padding:26px 12px 12px;transform:translateY(5px);opacity:0;transition:opacity .26s ease,transform .26s ease;pointer-events:none;z-index:4}
         .gc:hover .gc-label{opacity:1;transform:translateY(0)}
-        .gc-label-text{font-size:14px;font-weight:800;color:#fff;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+        .gc-label-text{font-size:13px;font-weight:800;color:#fff;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 4px rgba(0,0,0,.5)}
         .gc.featured .gc-label{padding:44px 14px 14px}
         .gc.featured .gc-label-text{font-size:18px}
-        .gc-cat-chip{position:absolute;top:11px;left:11px;background:rgba(0,0,0,.42);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);border-radius:100px;padding:3px 10px;font-size:10px;font-weight:800;color:rgba(255,255,255,.92);pointer-events:none}
+        .gc-cat-chip{position:absolute;top:11px;left:11px;background:rgba(0,0,0,.42);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);border-radius:100px;padding:3px 10px;font-size:10px;font-weight:800;color:rgba(255,255,255,.92);pointer-events:none;z-index:5}
+
+        /* ── SKELETONS ── */
         .skels{padding:0 48px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;max-width:1200px;margin:0 auto}
-        .skel{aspect-ratio:1;border-radius:20px;background:linear-gradient(90deg,rgba(255,255,255,.35) 25%,rgba(255,255,255,.65) 50%,rgba(255,255,255,.35) 75%);background-size:800px 100%;animation:shimmer 1.6s ease infinite}
-        .skel.featured{grid-column:span 2;grid-row:span 2;border-radius:20px}
+        .skel{aspect-ratio:1;border-radius:24px;background:linear-gradient(90deg,rgba(220,225,235,.6) 25%,rgba(240,243,248,.9) 50%,rgba(220,225,235,.6) 75%);background-size:800px 100%;animation:shimmer 1.6s ease infinite}
+        .skel.featured{grid-column:span 2;grid-row:span 2;border-radius:28px}
+
+        /* ── EMPTY ── */
         .empty{text-align:center;padding:80px 24px;animation:fadeUp .4s ease forwards}
         .empty-t{font-family:'Righteous',cursive;font-size:24px;color:#1E293B;margin-bottom:8px}
         .empty-b{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#fff;background:#1E293B;border:none;border-radius:14px;padding:11px 28px;cursor:pointer;transition:all .3s ease}
         .empty-b:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15);background:#0F172A}
+
+        /* ── LOAD MORE ── */
         .load-more-wrap{text-align:center;padding:40px 0 20px}
         .load-more-btn{background:linear-gradient(135deg,#1E293B,#334155);color:#fff;border:none;border-radius:30px;padding:14px 48px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .35s cubic-bezier(.23,1,.32,1);box-shadow:0 4px 20px rgba(0,0,0,.15);display:inline-flex;align-items:center;gap:8px}
         .load-more-btn:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.2)}
@@ -258,68 +309,208 @@ export default function Home() {
         .modal-x:hover{background:#fee2e2;border-color:#fecaca;transform:rotate(90deg)}
         .modal-game{flex:1;background:#000;position:relative;min-height:0;overflow:hidden}
         .modal-iframe{width:100%;height:100%;border:none;display:block}
-
-        /* ── AD NUCLEAR BLOCK ── */
-        .modal-game > iframe ~ iframe{display:none !important;width:0 !important;height:0 !important;pointer-events:none !important;visibility:hidden !important;opacity:0 !important;}
-        .modal-game [id*="ad"],
-        .modal-game [class*="ad-"],
-        .modal-game [class*="-ad"],
-        .modal-game [id*="banner"],
-        .modal-game [class*="banner"],
-        .modal-game [id*="overlay"],
-        .modal-game [id*="popup"],
-        .modal-game [class*="popup"]{display:none !important;visibility:hidden !important;pointer-events:none !important;width:0 !important;height:0 !important;opacity:0 !important;}
-
         .modal-loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#000}
         .modal-spin{width:36px;height:36px;border-radius:50%;border:3px solid #334155;border-top-color:#fff;animation:spin .8s linear infinite}
         .modal-lt{font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#94A3B8}
 
-        /* ── FOOTER ── (Original structure, only style refined) */
-        .site-footer{position:relative;background:transparent;margin-top:80px;}
-        .footer-wave-wrap{display:block;line-height:0;overflow:hidden;}
-        .footer-wave-wrap svg{display:block;width:100%;height:90px;}
-        .footer-body{background:#ffffff;border-radius:32px 32px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,0.02);}
-        .footer-content{max-width:1100px;margin:0 auto;padding:0 48px 48px;}
-        .footer-main{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0 36px;border-bottom:1px solid #F1F5F9;gap:28px;text-align:center;}
-        .footer-logo{cursor:pointer;transition:all .3s ease;display:inline-block;}
-        .footer-logo img{height:42px;width:auto;display:block;transition:opacity .2s;}
-        .footer-logo:hover{opacity:.7;transform:translateY(-2px);}
-        .footer-socials{display:flex;gap:24px;justify-content:center;align-items:center;}
-        .social-icon{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#F1F5F9;cursor:pointer;transition:all .25s ease;border:1px solid transparent;}
-        .social-icon svg{width:20px;height:20px;fill:#64748B;transition:all .25s ease;}
-        .social-icon:hover{background:#1E293B;transform:translateY(-3px);border-color:#1E293B;}
-        .social-icon:hover svg{fill:#ffffff;}
-        .footer-links{display:flex;justify-content:center;padding:32px 0 0;}
-        .footer-col{text-align:center;}
-        .footer-col-title{font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#CBD5E1;margin:0 0 16px;}
-        .footer-link{display:inline-block;font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;color:#64748B;text-decoration:none;margin:0 12px;cursor:pointer;transition:all .22s ease;}
-        .footer-link:hover{color:#1E293B;transform:translateY(-1px);}
-        .footer-bottom{padding-top:32px;display:flex;align-items:center;justify-content:center;text-align:center;}
-        .footer-copyright{font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:#c1c5ce;}
+        /* ── FOOTER ── */
+        .site-footer {
+          position: relative;margin-top: 90px;
+          background: transparent;
+          animation: footerFadeUp 0.8s ease forwards;opacity: 0;
+        }
+        .footer-body { background: transparent;border-top: 1px solid rgba(226,232,240,.5);position: relative; }
+        .footer-content { max-width: 1100px;margin: 0 auto;padding: 0 48px 52px;position: relative;z-index: 1; }
+        .footer-main {
+          display: flex;flex-direction: column;align-items: center;
+          justify-content: center;padding: 56px 0 36px;
+          border-bottom: 1px solid rgba(226,232,240,.8);gap: 30px;text-align: center;
+        }
 
+        /* ✅ Footer logo — clip container so big image fits */
+        .footer-logo {
+          display: flex;align-items: center;justify-content: center;
+          height: 36px;overflow: hidden;           /* clip container */
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(.2,.9,.4,1.1);
+        }
+        .footer-logo img {
+          height: 80px;width: auto;               /* badi image, clipped */
+          display: block;object-fit: contain;
+          transition: all 0.4s cubic-bezier(.2,.9,.4,1.1);
+        }
+        .footer-logo:hover { transform: scale(1.05); }
+        .footer-logo:hover img { filter: drop-shadow(0 6px 14px rgba(0,0,0,.15)); }
+
+        /* ── 🦈 REALISTIC SHARK SWIM EFFECT ── */
+        .shark-tank{
+          position:relative;display:flex;align-items:center;justify-content:center;
+          height:64px;overflow:visible;cursor:pointer;
+        }
+        .shark-tank .footer-logo{ position:relative; z-index:4; }
+
+        /* underwater reflection — mirrored, blurred, fades into depth */
+        .shark-reflection{
+          position:absolute;top:56%;left:50%;transform:translateX(-50%) scaleY(-1);
+          width:54px;height:34px;overflow:hidden;opacity:0;z-index:1;
+          filter:blur(1px) brightness(.7);pointer-events:none;
+          -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.55),transparent);
+          mask-image:linear-gradient(to bottom,rgba(0,0,0,.55),transparent);
+          transition:opacity .4s ease;
+        }
+        .shark-reflection img{ height:80px;width:auto;display:block;margin:0 auto; }
+        .shark-tank:hover .shark-reflection{ opacity:1; }
+        .shark-tank:hover .shark-reflection img{ animation:sharkSwim 1.15s ease-in-out infinite; }
+
+        /* water body — real sine-curve SVG waves, seamless infinite scroll */
+        .water-wrap{
+          position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+          width:120px;height:26px;overflow:hidden;border-radius:0 0 60px 60px;
+          opacity:0;transition:opacity .35s ease;z-index:2;pointer-events:none;
+        }
+        .shark-tank:hover .water-wrap{ opacity:1; }
+
+        .wave-svg{ position:absolute;top:0;left:0;width:170%;height:100%; }
+        .wave-back{ fill:#7dd3fc;opacity:.55;animation:waveScroll 5s linear infinite; }
+        .wave-front{ fill:#0ea5e9;opacity:.9;animation:waveScroll 3.2s linear infinite reverse; }
+        @keyframes waveScroll{ 0%{transform:translateX(0)} 100%{transform:translateX(-12.5%)} }
+
+        .foam-line{
+          position:absolute;top:1px;left:-10%;width:120%;height:3px;
+          background:rgba(255,255,255,.7);border-radius:100px;filter:blur(1.5px);
+          animation:waveScroll 3.2s linear infinite reverse;
+        }
+
+        /* splash rings — one-shot ripple burst right when cursor enters */
+        .splash-rings{ position:absolute;bottom:20px;left:50%;width:0;height:0;z-index:3;pointer-events:none; }
+        .ring{
+          position:absolute;top:0;left:0;width:8px;height:8px;margin:-4px;
+          border:1.5px solid rgba(125,211,252,.9);border-radius:50%;
+          transform:translate(-50%,-50%) scale(0);opacity:0;
+        }
+        .shark-tank:hover .ring{ animation:ringPop .7s ease-out forwards; }
+        .shark-tank:hover .ring.r2{ animation-delay:.08s; }
+        .shark-tank:hover .ring.r3{ animation-delay:.16s; }
+        @keyframes ringPop{
+          0%{ transform:translate(-50%,-50%) scale(0); opacity:.9; }
+          100%{ transform:translate(-50%,-50%) scale(5); opacity:0; }
+        }
+
+        /* splash droplets — fling outward once on hover-in */
+        .droplets{ position:absolute;bottom:22px;left:50%;width:0;height:0;z-index:5;pointer-events:none; }
+        .drop{ position:absolute;top:0;left:0;width:3px;height:3px;border-radius:50%;background:#bae6fd;opacity:0; }
+        .shark-tank:hover .drop{ animation:dropFly .55s ease-out forwards; }
+        .shark-tank:hover .drop.d1{ --dx:-14px;--dy:-16px; }
+        .shark-tank:hover .drop.d2{ --dx:-5px;--dy:-20px;animation-delay:.05s; }
+        .shark-tank:hover .drop.d3{ --dx:6px;--dy:-19px;animation-delay:.1s; }
+        .shark-tank:hover .drop.d4{ --dx:15px;--dy:-15px;animation-delay:.05s; }
+        @keyframes dropFly{
+          0%{ opacity:1;transform:translate(0,0) scale(1); }
+          100%{ opacity:0;transform:translate(var(--dx,0),var(--dy,-18px)) scale(.4); }
+        }
+
+        /* bubbles — natural rise with gentle side drift */
+        .bubble{
+          position:absolute;bottom:12px;width:4px;height:4px;
+          background:rgba(255,255,255,.85);border-radius:50%;
+          opacity:0;z-index:3;pointer-events:none;
+        }
+        .bubble.b1{ left:32%; }
+        .bubble.b2{ left:46%; }
+        .bubble.b3{ left:58%; }
+        .bubble.b4{ left:70%; }
+        .shark-tank:hover .bubble{ animation:bubbleRise 2s ease-in infinite; }
+        .shark-tank:hover .bubble.b2{ animation-delay:.45s; }
+        .shark-tank:hover .bubble.b3{ animation-delay:.9s; }
+        .shark-tank:hover .bubble.b4{ animation-delay:1.3s; }
+        @keyframes bubbleRise{
+          0%{opacity:0;transform:translate(0,0) scale(.5)}
+          15%{opacity:.9}
+          100%{opacity:0;transform:translate(6px,-38px) scale(1.1)}
+        }
+
+        /* swim — organic squash-stretch wiggle, like real fish thrust (not a robotic shake) */
+        .shark-tank:hover .footer-logo img{
+          animation:sharkSwim 1.15s ease-in-out infinite;
+          transform-origin:50% 70%;
+        }
+        @keyframes sharkSwim{
+          0%{ transform:translate(0,0) rotate(0deg) scale(1,1); }
+          15%{ transform:translate(5px,-3px) rotate(-5deg) scale(1.02,.98); }
+          35%{ transform:translate(2px,1px) rotate(-1deg) scale(1,1); }
+          50%{ transform:translate(0,2px) rotate(0deg) scale(.98,1.02); }
+          65%{ transform:translate(-2px,1px) rotate(1deg) scale(1,1); }
+          85%{ transform:translate(-5px,-3px) rotate(5deg) scale(1.02,.98); }
+          100%{ transform:translate(0,0) rotate(0deg) scale(1,1); }
+        }
+
+        .footer-socials {
+          display: flex;gap: 6px;padding: 6px;
+          border-radius: 100px;background: #F1F5F9;
+          border: 1px solid rgba(226,232,240,.9);
+        }
+        .social-icon {
+          display: flex;align-items: center;justify-content: center;
+          width: 42px;height: 42px;border-radius: 50%;
+          background: transparent;cursor: pointer;
+          transition: all 0.4s cubic-bezier(.2,.9,.4,1.1);border: 1px solid transparent;
+        }
+        .social-icon svg { width: 18px;height: 18px;fill: #1E293B;transition: all 0.4s cubic-bezier(.2,.9,.4,1.1); }
+        .social-icon:hover { background: #1E293B;transform: translateY(-6px) scale(1.15) rotate(6deg);box-shadow: 0 12px 28px rgba(30,41,59,.2);border-color: #1E293B; }
+        .social-icon:hover svg { fill: #fff;transform: rotate(-6deg) scale(1.1); }
+        .social-icon:nth-child(1) { animation: softBounce 0.6s ease 0.2s both; }
+        .social-icon:nth-child(2) { animation: softBounce 0.6s ease 0.3s both; }
+
+        .footer-links { display: flex;justify-content: center;gap: 72px;padding: 40px 0 0;flex-wrap: wrap; }
+        .footer-col { text-align: center; }
+        .footer-col-title { font-family: 'Nunito', sans-serif;font-size: 11px;font-weight: 900;text-transform: uppercase;letter-spacing: 2.5px;color: #94A3B8;margin: 0 0 12px 0; }
+        .footer-col-links { display: flex;justify-content: center;align-items: center;gap: 30px;flex-wrap: wrap; }
+        .footer-link { display: inline-block;margin: 0;font-family: 'Nunito', sans-serif;font-size: 14px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: all 0.3s ease;position: relative; }
+        .footer-link::after { content: '';position: absolute;bottom: -4px;left: 0;width: 0;height: 2px;background: #1E293B;transition: width 0.3s cubic-bezier(.2,.9,.4,1.1);border-radius: 2px; }
+        .footer-link:hover { color: #1E293B;transform: translateY(-2px); }
+        .footer-link:hover::after { width: 100%; }
+        .footer-link:nth-child(1) { animation: footerFadeUp 0.5s ease 0.4s both; }
+        .footer-link:nth-child(2) { animation: footerFadeUp 0.5s ease 0.5s both; }
+        .footer-link:nth-child(3) { animation: footerFadeUp 0.5s ease 0.6s both; }
+
+        .footer-bottom { padding-top: 34px;display: flex;align-items: center;justify-content: center;text-align: center; }
+        .footer-copyright { font-family: 'Nunito', sans-serif;font-size: 12px;font-weight: 600;color: #94A3B8;letter-spacing: .3px;animation: footerFadeUp 0.8s ease 0.7s both;transition: color 0.3s ease; }
+        .footer-copyright:hover { color: #1E293B; }
+
+        /* ── RESPONSIVE ── */
         @media(max-width:768px){
           .hero,.cats,.grid,.skels{padding-left:20px;padding-right:20px;}
           .nav{gap:12px;}.nav-search{min-width:140px;}
+          .nav-wrap{height:48px;padding:0 18px;}
+          .nav-logo{height:34px;}
+          .nav-logo img{height:75px;}
           .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
           .footer-content{padding:0 24px 40px;}
-          .footer-link{margin:0 8px;font-size:13px;}
-          .social-icon{width:36px;height:36px;}.social-icon svg{width:18px;height:18px;}
+          .footer-links{gap:48px;}
+          .footer-col-links{gap:20px;}
+          .footer-link{font-size:13px;}
+          .social-icon{width:36px;height:36px;}.social-icon svg{width:16px;height:16px;}
+          .footer-logo{height:30px;}
+          .footer-logo img{height:65px;}
         }
         @media(max-width:560px){
-          .hero{padding-top:80px;}.nav-wrap{padding:6px 16px;}.nav-logo img{height:28px;}
-          .nav-search{min-width:120px;}.btn-signup{display:none;}
+          .hero{padding-top:80px;}
+          .nav-wrap{height:44px;padding:0 14px;}
+          .nav-logo{height:30px;}
+          .nav-logo img{height:65px;}
+          .nav-search{min-width:120px;}
           .grid{gap:12px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
           .gc.featured,.skel.featured{grid-column:span 1;grid-row:span 1;}
-          .footer-wave-wrap svg{height:60px;}
-          .footer-links{flex-direction:column;align-items:center;}
-          .footer-link{display:block;margin:8px 0;}
-          .footer-bottom{padding-top:24px;}
         }
         @media(max-width:480px){
           .hero-title{font-size:28px;}
           .profile-btn{padding:5px 12px 5px 5px;font-size:11px;}
           .profile-avatar{width:24px;height:24px;}
           .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+          .gc{border-radius:18px;}.gc.featured{border-radius:22px;}
+          .nav-wrap{height:40px;padding:0 12px;}
+          .nav-logo{height:26px;}
+          .nav-logo img{height:58px;}
         }
       `}</style>
 
@@ -330,7 +521,7 @@ export default function Home() {
         <div className="nav-wrap">
           <nav className="nav">
             <div className="nav-logo" onClick={() => { handleNavLogoClick(); navigate("/"); }}>
-              <img src="/playvora.png" alt="Playvora Logo" />
+              <img src="/sharx.png" alt="Sharx Logo" />
             </div>
             <div className="nav-search">
               <div className="nav-si-wrap">
@@ -344,17 +535,17 @@ export default function Home() {
               {isLoggedIn ? (
                 <div className="user-logged">
                   <button className="profile-btn" onClick={() => setShowProfile(true)}>
-                    <div className="profile-avatar">
-                      {renderMiniAvatar()}
-                    </div>
+                    <div className="profile-avatar">{renderMiniAvatar()}</div>
                     {profile?.stylishUsername || "Profile"}
                   </button>
                 </div>
               ) : (
-                <>
-                  <button className="btn-signup" onClick={() => setPanelMode("signup")}>Sign Up</button>
-                  <button className="btn-login"  onClick={() => setPanelMode("login")}>Login</button>
-                </>
+                <div className="login-icon-container" onClick={() => setPanelMode("login")} title="Login">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
               )}
             </div>
           </nav>
@@ -398,7 +589,7 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <div className="grid">
+          <div className="grid" id="games-grid">
             {displayedGames.map((game,i)=>(
               <GameCard key={game.id||i} game={game} index={i} featured={isFeatured(i)} onClick={()=>openGame(game)}/>
             ))}
@@ -415,7 +606,6 @@ export default function Home() {
 
       {activeGame && <GameModal game={activeGame} onClose={() => setActiveGame(null)} />}
       {panelMode  && <SidePanel mode={panelMode} onClose={() => setPanelMode(null)} />}
-
       {showProfile && (
         <ProfileSidePanel
           profile={profile}
@@ -425,18 +615,22 @@ export default function Home() {
         />
       )}
 
-      {/* ── FOOTER ── (Original structure, only visual polish) */}
+      {/* ── FOOTER ── */}
       <footer className="site-footer">
-        <div className="footer-wave-wrap">
-          <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            <path d="M0,58 C120,82 240,22 360,52 C480,82 600,16 720,46 C840,76 960,20 1080,50 C1200,80 1320,24 1440,54 L1440,90 L0,90 Z" fill="#ffffff"/>
-          </svg>
-        </div>
         <div className="footer-body">
           <div className="footer-content">
             <div className="footer-main">
-              <div className="footer-logo" onClick={() => navigate("/")}>
-                <img src="/playvora.png" alt="Playvora" draggable={false} />
+              <div className="shark-tank" onClick={() => navigate("/")}>
+                <div className="footer-logo">
+                  <img src="/sharx.png" alt="Sharx" draggable={false} />
+                </div>
+                <div className="water-wrap">
+                  <span className="wave wave-1"></span>
+                  <span className="wave wave-2"></span>
+                </div>
+                <span className="bubble b1"></span>
+                <span className="bubble b2"></span>
+                <span className="bubble b3"></span>
               </div>
               <div className="footer-socials">
                 <div className="social-icon" onClick={() => navigate("/instagram")} title="Instagram">
@@ -454,9 +648,11 @@ export default function Home() {
             <div className="footer-links">
               <div className="footer-col">
                 <p className="footer-col-title">Company</p>
-                <a className="footer-link" onClick={() => navigate("/about")}>About Us</a>
-                <a className="footer-link" onClick={() => navigate("/contact")}>Contact</a>
-                <a className="footer-link" onClick={() => navigate("/privacy")}>Privacy Policy</a>
+                <div className="footer-col-links">
+                  <a className="footer-link" onClick={() => navigate("/about")}>About Us</a>
+                  <a className="footer-link" onClick={() => navigate("/contact")}>Contact</a>
+                  <a className="footer-link" onClick={() => navigate("/privacy")}>Privacy Policy</a>
+                </div>
               </div>
             </div>
             <div className="footer-bottom">
@@ -504,7 +700,6 @@ function EasterEggModal({ gameCount, onClose }) {
 /* ─── GAME CARD ─── */
 const GameCard = React.memo(function GameCard({ game, index, featured, onClick }) {
   const [preloaded, setPreloaded] = useState(false);
-
   return (
     <div
       className={`gc${featured ? " featured" : ""}`}
@@ -514,14 +709,9 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
     >
       {featured && game.category && <span className="gc-cat-chip">{game.category}</span>}
       <img
-        className="gc-img"
-        src={game.thumb}
-        alt={game.title}
-        loading="lazy"
-        decoding="async"
-        onError={e => {
-          e.target.src = `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`;
-        }}
+        className="gc-img" src={game.thumb} alt={game.title}
+        loading="lazy" decoding="async"
+        onError={e => { e.target.src = `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`; }}
       />
       <div className="gc-overlay" />
       <div className="gc-play-btn">
@@ -530,23 +720,10 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
       <div className="gc-label">
         <div className="gc-label-text">{game.title}</div>
       </div>
-
       {preloaded && (
-        <iframe
-          src={game.url}
-          title={`preload-${game.id}`}
-          style={{
-            position: "absolute",
-            width: "1px",
-            height: "1px",
-            opacity: 0,
-            pointerEvents: "none",
-            border: "none",
-          }}
-          sandbox="allow-scripts allow-same-origin allow-forms"
-          tabIndex={-1}
-          aria-hidden="true"
-        />
+        <iframe src={game.url} title={`preload-${game.id}`}
+          style={{position:"absolute",width:"1px",height:"1px",opacity:0,pointerEvents:"none",border:"none"}}
+          sandbox="allow-scripts allow-same-origin allow-forms" tabIndex={-1} aria-hidden="true"/>
       )}
     </div>
   );
@@ -556,12 +733,10 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
 function GameModal({ game, onClose }) {
   const [loaded, setLoaded] = useState(false);
   const frameRef = useRef(null);
-
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
-
   return (
     <div className="modal-bg" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-top">
@@ -577,7 +752,6 @@ function GameModal({ game, onClose }) {
           <button className="modal-x" onClick={onClose}>✕</button>
         </div>
       </div>
-
       <div className="modal-game">
         {!loaded && (
           <div className="modal-loader">
@@ -585,13 +759,8 @@ function GameModal({ game, onClose }) {
             <div className="modal-lt">Loading game...</div>
           </div>
         )}
-        <iframe
-          ref={frameRef}
-          className="modal-iframe"
-          src={game.url}
-          title={game.title}
-          allowFullScreen
-          allow="autoplay; fullscreen; gamepad"
+        <iframe ref={frameRef} className="modal-iframe" src={game.url} title={game.title}
+          allowFullScreen allow="autoplay; fullscreen; gamepad"
           sandbox="allow-scripts allow-same-origin allow-forms allow-downloads"
           onLoad={() => setLoaded(true)}
           style={{ opacity: loaded ? 1 : 0, transition: "opacity .3s ease" }}

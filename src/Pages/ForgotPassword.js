@@ -676,7 +676,7 @@ body {
       <div className="page">
         {/* LEFT SIDE */}
         <div className="left">
-          <div className="left-logo" onClick={() => navigate("/")}>Playvora</div>
+          <div className="left-logo" onClick={() => navigate("/")}>Sharx</div>
           <div className="left-title">
             Reset<br />
             Your<br />
@@ -874,7 +874,7 @@ body {
 
                     <button className="btn" onClick={handleResetPassword} disabled={loading}>
                       {loading ? (
-                        <>Resetting <div className="spin" /></>
+                        <>Resetting<div className="spin" /></>
                       ) : (
                         <>Reset Password →</>
                       )}

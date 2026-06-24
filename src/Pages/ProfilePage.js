@@ -571,7 +571,7 @@ export default function ProfilePage() {
 
         {/* ── NAV ──────────────────────────────────────────────────── */}
         <nav className="pp-nav">
-          <div className="pp-nav-logo" onClick={() => navigate('/')}>Playvora</div>
+          <div className="pp-nav-logo" onClick={() => navigate('/')}>Sharx</div>
           <div className="pp-nav-btns">
             <button className="pp-nav-btn" onClick={() => navigate('/')}>← Home</button>
             <button

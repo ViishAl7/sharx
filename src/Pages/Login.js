@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
-import { API_BASE } from "../config";
 function Login() {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
@@ -554,8 +553,8 @@ body {
       <div className="page">
         <div className="left">
           <div className="left-logo" onClick={() => navigate("/")} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <img src="/playvora.png" alt="Playvora Logo" style={{ height: '43px', width: 'auto' }} />
-            <span style={{ fontFamily: "'Righteous', cursive", fontSize: '20px', color: '#1E293B' }}>Playvora</span>
+            <img src="/sharx.png" alt="Sharx Logo" style={{ height: '43px', width: 'auto' }} />
+            <span style={{ fontFamily: "'Righteous', cursive", fontSize: '20px', color: '#1E293B' }}>Sharx</span>
           </div>
           <div className="left-title">
             Continue <br />
@@ -654,7 +653,7 @@ body {
                   </svg>
                   Continue with Google
                 </button>
-                <button
+                {/* <button
                   className="g-btn"
                   style={{ marginTop: "12px" }}
                   onClick={() => {
@@ -668,7 +667,7 @@ body {
                     <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
                   </svg>
                   Continue with Microsoft
-                </button>
+                </button> */}
 
                 <div className="btm"></div>
 

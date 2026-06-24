@@ -124,9 +124,9 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="G" width="20"/>
                   Continue with Google
                 </button>
-                <button className="social-btn microsoft" onClick={() => alert("Microsoft login coming soon")}>
+                {/* <button className="social-btn microsoft" onClick={() => alert("Microsoft login coming soon")}>
                   <span>🪟</span> Continue with Microsoft
-                </button>
+                </button> */}
               </div>
 
               <div className="divider"><span>OR</span></div>

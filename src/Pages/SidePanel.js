@@ -25,7 +25,6 @@ export default function SidePanel({ mode: initialMode, onClose }) {
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyError, setPasskeyError] = useState("");
 
-  // ✅ FIX: Email state for passkey registration
   const [passkeyEmail, setPasskeyEmail] = useState("");
   const [showEmailInput, setShowEmailInput] = useState(false);
 
@@ -37,17 +36,13 @@ export default function SidePanel({ mode: initialMode, onClose }) {
   // ── PASSKEY REGISTER ────────────────────────────────────
   const handlePasskeyRegister = async () => {
     setPasskeyError("");
-
-    // ✅ FIX: Show email input first if not filled
     if (!passkeyEmail || !passkeyEmail.includes("@")) {
       setShowEmailInput(true);
       setPasskeyError("Enter your email to register a passkey.");
       return;
     }
-
     setPasskeyLoading(true);
     try {
-      // 1. Get registration options — ✅ FIX: send email in body
       const optRes = await fetch(`${API_BASE}/passkey/register/options`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,44 +54,35 @@ export default function SidePanel({ mode: initialMode, onClose }) {
         throw new Error(err.error || "Could not start passkey registration");
       }
       const options = await optRes.json();
-
-      // 2. Convert challenge + user.id from base64url → ArrayBuffer
       options.challenge = base64urlToBuffer(options.challenge);
-      options.user.id  = base64urlToBuffer(options.user.id);
+      options.user.id = base64urlToBuffer(options.user.id);
       if (options.excludeCredentials) {
         options.excludeCredentials = options.excludeCredentials.map((c) => ({
           ...c,
           id: base64urlToBuffer(c.id),
         }));
       }
-
-      // 3. Trigger browser passkey prompt
       const credential = await navigator.credentials.create({ publicKey: options });
-
-      // 4. Send result to backend — ✅ FIX: include email + credential fields
       const verifyRes = await fetch(`${API_BASE}/passkey/register/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           email: passkeyEmail,
-          id:    credential.id,
+          id: credential.id,
           rawId: bufferToBase64url(credential.rawId),
-          type:  credential.type,
+          type: credential.type,
           response: {
-            clientDataJSON:    bufferToBase64url(credential.response.clientDataJSON),
+            clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
             attestationObject: bufferToBase64url(credential.response.attestationObject),
           },
         }),
       });
-
       if (!verifyRes.ok) {
         const err = await verifyRes.json();
         throw new Error(err.error || "Passkey registration failed");
       }
-
       const data = await verifyRes.json();
-      // ✅ FIX: backend now returns token + user
       if (data.token) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
@@ -105,11 +91,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
         throw new Error("Registration verified but login failed. Try logging in.");
       }
     } catch (err) {
-      if (err.name === "NotAllowedError") {
-        setPasskeyError("Passkey cancelled. Try again.");
-      } else {
-        setPasskeyError(err.message || "Something went wrong");
-      }
+      setPasskeyError(err.name === "NotAllowedError" ? "Passkey cancelled. Try again." : err.message);
     } finally {
       setPasskeyLoading(false);
     }
@@ -120,8 +102,6 @@ export default function SidePanel({ mode: initialMode, onClose }) {
     setPasskeyError("");
     setPasskeyLoading(true);
     try {
-      // 1. Get auth options — ✅ FIX: no email needed (discoverable credentials)
-      //    Browser will show all saved passkeys for this site automatically
       const optRes = await fetch(`${API_BASE}/passkey/login/options`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -130,8 +110,6 @@ export default function SidePanel({ mode: initialMode, onClose }) {
       });
       if (!optRes.ok) throw new Error("Could not start passkey login");
       const options = await optRes.json();
-
-      // 2. Convert challenge → ArrayBuffer
       options.challenge = base64urlToBuffer(options.challenge);
       if (options.allowCredentials) {
         options.allowCredentials = options.allowCredentials.map((c) => ({
@@ -139,37 +117,30 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           id: base64urlToBuffer(c.id),
         }));
       }
-
-      // 3. Browser shows passkey picker — user selects their passkey
       const assertion = await navigator.credentials.get({ publicKey: options });
-
-      // 4. Send to backend — ✅ FIX: no email in body, backend extracts from userHandle
       const verifyRes = await fetch(`${API_BASE}/passkey/login/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          id:    assertion.id,
+          id: assertion.id,
           rawId: bufferToBase64url(assertion.rawId),
-          type:  assertion.type,
+          type: assertion.type,
           response: {
-            clientDataJSON:    bufferToBase64url(assertion.response.clientDataJSON),
+            clientDataJSON: bufferToBase64url(assertion.response.clientDataJSON),
             authenticatorData: bufferToBase64url(assertion.response.authenticatorData),
-            signature:         bufferToBase64url(assertion.response.signature),
+            signature: bufferToBase64url(assertion.response.signature),
             userHandle: assertion.response.userHandle
               ? bufferToBase64url(assertion.response.userHandle)
               : null,
           },
         }),
       });
-
       if (!verifyRes.ok) {
         const err = await verifyRes.json();
         throw new Error(err.error || "Passkey login failed");
       }
-
       const data = await verifyRes.json();
-      // ✅ FIX: backend now returns token + user
       if (data.token) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
@@ -178,11 +149,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
         throw new Error("Login failed. Please try again.");
       }
     } catch (err) {
-      if (err.name === "NotAllowedError") {
-        setPasskeyError("Passkey cancelled. Try again.");
-      } else {
-        setPasskeyError(err.message || "Something went wrong");
-      }
+      setPasskeyError(err.name === "NotAllowedError" ? "Passkey cancelled. Try again." : err.message);
     } finally {
       setPasskeyLoading(false);
     }
@@ -205,136 +172,172 @@ export default function SidePanel({ mode: initialMode, onClose }) {
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Plus Jakarta Sans',sans-serif; }
 
+        /* Overlay fade */
         .pv-overlay {
           position:fixed; inset:0;
-          background:rgba(8,14,30,0.52);
-          backdrop-filter:blur(10px);
-          -webkit-backdrop-filter:blur(10px);
+          background:rgba(0,0,0,0.5);
+          backdrop-filter:blur(12px);
+          -webkit-backdrop-filter:blur(12px);
           z-index:999;
           animation:fadeIn .28s ease;
         }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
+        /* Panel slide in */
         .pv-panel {
           position:fixed; left:0; top:0; bottom:0;
           width:500px;
-          background:linear-gradient(160deg,#ffffff 0%,#f5f8ff 100%);
+          background: rgba(255, 255, 255, 0.3);
+          backdrop-filter: blur(30px);
+          -webkit-backdrop-filter: blur(30px);
           z-index:1000;
           display:flex; align-items:center; justify-content:center;
           overflow:hidden;
-          box-shadow:2px 0 80px rgba(0,0,0,0.16);
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.2) inset, 0 20px 60px rgba(0,0,0,0.1);
+          border-right: 1px solid rgba(255,255,255,0.2);
           animation:slideIn .42s cubic-bezier(.19,1,.22,1);
+          border-radius: 0 40px 40px 0;
         }
         @keyframes slideIn {
           from{transform:translateX(-60px);opacity:0}
           to{transform:translateX(0);opacity:1}
         }
 
-        .shape {
-          position:absolute; border-radius:50%;
-          filter:blur(90px); opacity:.45; pointer-events:none;
-        }
-        .shape1 { width:280px;height:280px;background:#bfdbfe;top:-80px;left:-80px; }
-        .shape2 { width:300px;height:300px;background:#ede9fe;bottom:-120px;right:-100px; }
-        .shape3 { width:200px;height:200px;background:#d1fae5;bottom:140px;left:60px;opacity:.35; }
-
+        /* Close button with a subtle grow on hover */
         .pv-close {
           position:absolute; top:22px; right:22px;
           width:42px; height:42px; border-radius:50%;
-          background:rgba(241,245,249,0.9);
-          backdrop-filter:blur(4px);
-          border:none; color:#334155;
+          background:rgba(255,255,255,0.7);
+          border:1px solid rgba(255,255,255,0.8);
+          color:#0f172a;
           font-size:16px; font-weight:700;
           cursor:pointer;
-          transition:transform .3s ease,background .2s ease;
+          transition:transform .25s cubic-bezier(.2,.9,.4,1.1), background .2s ease;
           z-index:5;
           display:flex; align-items:center; justify-content:center;
         }
-        .pv-close:hover { transform:rotate(90deg); background:#e2e8f0; }
+        .pv-close:hover {
+          transform:scale(1.12) rotate(90deg);
+          background:rgba(255,255,255,0.9);
+          border-color: rgba(255,255,255,1);
+        }
 
+        /* Card wrapper with child stagger */
         .pv-card {
           width:360px; position:relative; z-index:2;
-          animation:cardFade .5s ease;
         }
-        @keyframes cardFade {
-          from{opacity:0;transform:translateY(22px)}
-          to{opacity:1;transform:translateY(0)}
+        /* All direct children of .pv-card will animate in sequence */
+        .pv-card > * {
+          opacity: 0;
+          animation: fadeUp 0.5s ease forwards;
+        }
+        .pv-card > *:nth-child(1) { animation-delay: 0.1s; } /* logo */
+        .pv-card > *:nth-child(2) { animation-delay: 0.2s; } /* tabs */
+        .pv-card > *:nth-child(3) { animation-delay: 0.3s; } /* google btn */
+        // .pv-card > *:nth-child(4) { animation-delay: 0.38s; } /* microsoft btn */
+        .pv-card > *:nth-child(5) { animation-delay: 0.46s; } /* email input (if shown) */
+        .pv-card > *:nth-child(6) { animation-delay: 0.54s; } /* passkey btn */
+        .pv-card > *:nth-child(7) { animation-delay: 0.62s; } /* error msg */
+        .pv-card > *:nth-child(8) { animation-delay: 0.7s; } /* footer */
+
+        @keyframes fadeUp {
+          from { opacity:0; transform: translateY(16px); }
+          to { opacity:1; transform: translateY(0); }
         }
 
         .pv-logo {
           display:flex; align-items:center; justify-content:center;
           margin-bottom:32px;
+        
         }
-        .pv-logo img {
-          width:112px; height:112px;
-          object-fit:contain; border-radius:30px;
-          padding:12px;
-        }
+       .pv-logo img {
+  width:150px;
+  height:150px;
+  object-fit:contain;
+  border-radius:30px;
+  padding:12px;
+}
 
+        /* Tabs with sliding indicator feel */
         .pv-tabs {
-          display:flex; background:#eef2f7;
-          padding:5px; border-radius:20px;
+          display:flex; background:rgba(255,255,255,0.4);
+          border: 1px solid rgba(255,255,255,0.5);
+          padding:5px; border-radius:50px;
           margin-bottom:24px; gap:4px;
         }
         .pv-tab {
           flex:1; height:50px; border:none;
-          border-radius:15px; background:transparent;
-          color:#94a3b8;
+          border-radius:50px; background:transparent;
+          color:#334155;
           font-family:'Plus Jakarta Sans',sans-serif;
           font-size:15px; font-weight:700;
-          cursor:pointer; transition:all .25s ease;
+          cursor:pointer;
+          transition: background 0.25s, color 0.25s, transform 0.2s;
           letter-spacing:-0.1px;
         }
         .pv-tab.active {
-          background:#ffffff; color:#0f172a;
+          background:#ffffff;
+          color:#0f172a;
           box-shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.05);
+          transform: scale(1.02);
+        }
+        .pv-tab:hover:not(.active) {
+          background: rgba(255,255,255,0.5);
+          transform: translateY(-1px);
         }
 
+        /* Buttons with hover lift and slight scale */
         .pv-btn {
           width:100%; height:64px;
-          border-radius:18px; background:#ffffff;
-          border:1.5px solid #e8edf4;
+          border-radius:50px;
+          background: rgba(255, 255, 255, 0.55);
+          border:1px solid rgba(255,255,255,0.7);
           display:flex; align-items:center; justify-content:center;
           gap:13px; color:#0f172a;
           font-family:'Plus Jakarta Sans',sans-serif;
           font-size:16px; font-weight:700;
           cursor:pointer; margin-bottom:13px;
-          transition:all .25s cubic-bezier(.2,.9,.4,1.1);
-          box-shadow:0 2px 8px rgba(0,0,0,0.04);
+          transition: transform 0.25s cubic-bezier(.2,.9,.4,1.1), box-shadow 0.25s, background 0.2s, border-color 0.2s;
           letter-spacing:-0.1px;
+          will-change: transform;
         }
         .pv-btn:hover {
-          transform:translateY(-2px);
-          border-color:#c8d5e8;
-          box-shadow:0 8px 20px rgba(0,0,0,0.07),0 2px 6px rgba(0,0,0,0.04);
+          transform: translateY(-3px) scale(1.01);
+          background: rgba(255,255,255,0.75);
+          border-color: rgba(255,255,255,1);
+          box-shadow:0 12px 28px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.04);
         }
-        .pv-btn:active { transform:translateY(0); box-shadow:0 2px 8px rgba(0,0,0,0.04); }
-        .pv-btn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+        .pv-btn:active { transform:translateY(0) scale(0.99); }
+        .pv-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
         .pv-btn svg { flex-shrink:0; }
 
-        /* ✅ Email input for passkey register */
         .pv-input {
           width:100%;
-          height:54px;
-          border-radius:16px;
-          border:1.5px solid #e8edf4;
+          height:60px;
+          border-radius:30px;
+          border:1px solid rgba(255,255,255,0.6);
           padding:0 16px;
           font-family:'Plus Jakarta Sans',sans-serif;
           font-size:15px;
           font-weight:500;
           color:#0f172a;
-          background:#ffffff;
+          background: rgba(255,255,255,0.55);
           margin-bottom:13px;
           outline:none;
-          transition:border-color .2s;
+          transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
         }
-        .pv-input:focus { border-color:#6366f1; }
-        .pv-input::placeholder { color:#cbd5e1; }
+        .pv-input:focus {
+          border-color:#6366f1;
+          background: rgba(255,255,255,0.8);
+          box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+        .pv-input::placeholder { color:#64748b; }
 
+        /* Spinner */
         .pv-spin {
           width:18px; height:18px;
-          border:2.5px solid rgba(255,255,255,0.3);
-          border-top-color:#fff;
+          border:2.5px solid rgba(15,23,42,0.2);
+          border-top-color:#0f172a;
           border-radius:50%;
           animation:spin .65s linear infinite;
           flex-shrink:0;
@@ -345,37 +348,45 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           display:flex; align-items:center; gap:10px;
           margin:2px 0 13px;
           font-size:11.5px; font-weight:700;
-          color:#cbd5e1; letter-spacing:1.2px;
+          color:#64748b; letter-spacing:1.2px;
           text-transform:uppercase;
         }
         .pv-or::before,.pv-or::after {
-          content:''; flex:1; height:1px; background:#e8edf4;
+          content:''; flex:1; height:1px;
+          background: rgba(0,0,0,0.1);
         }
 
+        /* Error message with fade in */
         .pv-error {
           font-size:12.5px; font-weight:600;
           color:#ef4444; text-align:center;
           margin-bottom:12px;
           padding:9px 12px;
-          background:#fef2f2;
+          background: rgba(255,255,255,0.7);
           border-radius:12px;
-          border:1px solid #fecaca;
+          border:1px solid rgba(255,255,255,0.8);
+          animation: fadeIn .3s ease;
         }
 
+        /* Footer text */
         .pv-footer {
           margin-top:12px; text-align:center;
           font-size:12.5px; line-height:1.7;
-          color:#94a3b8; font-weight:500;
+          color:#64748b; font-weight:500;
         }
         .pv-footer span {
-          color:#475569; font-weight:700; cursor:pointer;
-          border-bottom:1.5px solid #cbd5e1; padding-bottom:1px;
-          transition:color .18s,border-color .18s;
+          color:#0f172a; font-weight:700; cursor:pointer;
+          border-bottom:1.5px solid #0f172a; padding-bottom:1px;
+          transition: color 0.2s, border-color 0.2s;
         }
-        .pv-footer span:hover { color:#0f172a; border-color:#0f172a; }
+        .pv-footer span:hover {
+          color:#6366f1;
+          border-color:#6366f1;
+        }
 
+        /* Mobile responsive */
         @media(max-width:700px) {
-          .pv-panel { width:100%; }
+          .pv-panel { width:100%; border-radius:0; }
           .pv-card  { width:86%; }
           .pv-logo img { width:96px; height:96px; }
         }
@@ -385,19 +396,15 @@ export default function SidePanel({ mode: initialMode, onClose }) {
       <div className="pv-overlay" onClick={onClose} />
 
       <div className="pv-panel">
-
-        <div className="shape shape1" />
-        <div className="shape shape2" />
-        <div className="shape shape3" />
-
         <button className="pv-close" onClick={onClose}>✕</button>
 
         <div className="pv-card">
-
+          {/* Logo - no extra class needed, staggered via CSS */}
           <div className="pv-logo">
-            <img src="/playvora.png" alt="logo" />
+            <img src="/sharx.png" alt="logo" />
           </div>
 
+          {/* Tabs */}
           <div className="pv-tabs">
             <button
               className={`pv-tab ${mode === "signup" ? "active" : ""}`}
@@ -425,7 +432,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           </button>
 
           {/* Microsoft */}
-          <button className="pv-btn" onClick={() => { window.location.href = `${API_BASE}/auth/microsoft`; }}>
+          {/* <button className="pv-btn" onClick={() => { window.location.href = `${API_BASE}/auth/microsoft`; }}>
             <svg width="22" height="22" viewBox="0 0 21 21">
               <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
               <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
@@ -433,9 +440,9 @@ export default function SidePanel({ mode: initialMode, onClose }) {
               <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
             </svg>
             Continue with Microsoft
-          </button>
+          </button> */}
 
-          {/* ✅ FIX: Email input shown when registering via passkey */}
+          {/* Email input for passkey register */}
           {mode === "signup" && showEmailInput && (
             <input
               className="pv-input"
@@ -451,7 +458,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           {/* Passkey */}
           <button className="pv-btn" onClick={handlePasskey} disabled={passkeyLoading}>
             {passkeyLoading ? (
-              <><span className="pv-spin" style={{borderColor:"rgba(15,23,42,0.2)",borderTopColor:"#0f172a"}} /> Verifying...</>
+              <><span className="pv-spin" /> Verifying...</>
             ) : (
               <>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -472,7 +479,6 @@ export default function SidePanel({ mode: initialMode, onClose }) {
             By continuing you agree to our{" "}
             <span onClick={() => { onClose(); navigate("/privacy"); }}>Privacy Policy</span>
           </div>
-
         </div>
       </div>
     </>

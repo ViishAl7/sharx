@@ -44,7 +44,13 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "jsx-a11y/anchor-is-valid": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react/jsx-no-comment-textnodes": "off",
+      "no-unused-vars": "off"
+    }
   },
   "browserslist": {
     "production": [

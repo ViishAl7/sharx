@@ -207,7 +207,7 @@ export default function PageLayout({ title, subtitle, children }) {
       {/* Navbar */}
       <div className="nav-wrap">
         <nav className="nav">
-          <div className="nav-logo" onClick={() => navigate("/")}>Playvora</div>
+          <div className="nav-logo" onClick={() => navigate("/")}>Sharx</div>
           <div className="nav-search">
             <div className="nav-si-wrap">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
@@ -297,7 +297,7 @@ function SiteFooter() {
       <div className="footer-content">
         <div className="footer-top">
           <div className="footer-brand">
-            <div className="footer-logo"><span>Playvora</span></div>
+            <div className="footer-logo"><span>Sharx</span></div>
           </div>
           <div className="footer-links-group">
             <div className="footer-links">
@@ -324,7 +324,7 @@ function SiteFooter() {
           </div>
         </div>
         <div className="footer-bottom">
-          <div className="footer-copyright">© {currentYear} Playvora. All rights reserved.</div>
+          <div className="footer-copyright">© {currentYear} Sharx. All rights reserved.</div>
         </div>
       </div>
     </footer>

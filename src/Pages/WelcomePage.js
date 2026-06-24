@@ -166,7 +166,7 @@ export default function WelcomePage({ onComplete }) {
             letterSpacing: '-1px',
           }}
         >
-          Playvora
+          Sharx
         </motion.h1>
 
         {/* animated underline */}
@@ -243,7 +243,7 @@ export default function WelcomePage({ onComplete }) {
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}
             >
               <button className="wv-btn" onClick={onComplete}>
-                Enter Playvora →
+                Enter Sharx →
               </button>
               <motion.p
                 initial={{ opacity: 0 }}

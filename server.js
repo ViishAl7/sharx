@@ -50,62 +50,55 @@ async function fetchGameMonetize() {
   return allGames;
 }
 
-// ─── GamePix public feed (no key needed) ───
-async function fetchGamePix() {
-  const allGames = [];
-  const totalPages = 5;
-
-  for (let p = 1; p <= totalPages; p++) {
-    try {
-      const url = `https://www.gamepix.com/api/games?per_page=100&page=${p}`;
-      const res = await fetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0'
-        }
-      });
-      const text = await res.text();
-      if (text.trim().startsWith('<')) break;
-
-      const json = JSON.parse(text);
-      const data = json.data || json;
-      if (!Array.isArray(data) || data.length === 0) break;
-
-      const games = data.map(g => ({
-        id: `gp_${g.id || g.title}`,
-        title: g.title,
-        thumb: g.thumbnail || g.thumb,
-        url: g.url,
-        category: g.category || 'Other',
-        source: 'gamepix'
-      }));
-
-      allGames.push(...games);
-      console.log(`GamePix page ${p}: ${games.length} games`);
-
-      if (data.length < 100) break;
-    } catch (e) {
-      console.error(`GamePix page ${p} error:`, e.message);
-      break;
-    }
-  }
-
-  return allGames;
-}
+// ─── GamePix public feed (no key needed) ─── (commented out for now)
+// async function fetchGamePix() {
+//   const allGames = [];
+//   const totalPages = 5;
+//
+//   for (let p = 1; p <= totalPages; p++) {
+//     try {
+//       const url = `https://www.gamepix.com/api/games?per_page=100&page=${p}`;
+//       const res = await fetch(url, {
+//         headers: {
+//           'Accept': 'application/json',
+//           'User-Agent': 'Mozilla/5.0'
+//         }
+//       });
+//       const text = await res.text();
+//       if (text.trim().startsWith('<')) break;
+//
+//       const json = JSON.parse(text);
+//       const data = json.data || json;
+//       if (!Array.isArray(data) || data.length === 0) break;
+//
+//       const games = data.map(g => ({
+//         id: `gp_${g.id || g.title}`,
+//         title: g.title,
+//         thumb: g.thumbnail || g.thumb,
+//         url: g.url,
+//         category: g.category || 'Other',
+//         source: 'gamepix'
+//       }));
+//
+//       allGames.push(...games);
+//       console.log(`GamePix page ${p}: ${games.length} games`);
+//
+//       if (data.length < 100) break;
+//     } catch (e) {
+//       console.error(`GamePix page ${p} error:`, e.message);
+//       break;
+//     }
+//   }
+//
+//   return allGames;
+// }
 
 // ─── Sab fetch karke merge karo ───
 async function fetchAllGames() {
   console.log('Fetching all games from all sources...');
 
-  const [gamemonetize, gamepix] = await Promise.allSettled([
-    fetchGameMonetize(),
-    fetchGamePix(),
-  ]);
-
-  let allGames = [];
-
-  if (gamemonetize.status === 'fulfilled') allGames.push(...gamemonetize.value);
-  if (gamepix.status === 'fulfilled') allGames.push(...gamepix.value);
+  const gamemonetize = await fetchGameMonetize();
+  let allGames = [...gamemonetize];
 
   // Duplicates hata do title ke basis pe
   const seen = new Set();
@@ -183,11 +176,19 @@ app.get('/stats', (req, res) => {
   });
 });
 
-app.listen(4000, "0.0.0.0", () => {
-  console.log('✅ Server running at http://localhost:4000');
-  console.log('📊 Stats: http://localhost:4000/stats');
+// Start server
+const PORT = 4000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`📊 Stats: http://localhost:${PORT}/stats`);
+  console.log(`🎮 Games API: http://localhost:${PORT}/games`);
+  console.log(`🏷️  Categories API: http://localhost:${PORT}/categories`);
+  
+  // Preload games on startup
   fetchAllGames().then(games => {
     cache.allGames = { data: games, time: Date.now() };
-    console.log(`🎮 Preloaded ${games.length} games!`);
+    console.log(`🎮 Preloaded ${games.length} games successfully!`);
+  }).catch(err => {
+    console.error('❌ Failed to preload games:', err.message);
   });
 });
