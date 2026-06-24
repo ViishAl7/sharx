@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from './Pages/Login';
 import Signup from './Pages/Signup';
@@ -6,7 +6,6 @@ import Home from './Pages/Home';
 import AuthCallback from './Pages/AuthCallback';
 import ForgotPassword from './Pages/ForgotPassword';
 import Privacy from './Pages/Privacy';
-import WelcomePage from './Pages/WelcomePage';
 
 import { AuthProvider } from './Context/AuthContext';
 import { ProfileProvider } from './Context/ProfileContext';
@@ -22,8 +21,8 @@ function App() {
         <Router>
           <Routes>
 
-            {/* Welcome Page */}
-            <Route path="/" element={<WelcomePage />} />
+            {/* Redirect root URL to Home */}
+            <Route path="/" element={<Navigate to="/home" replace />} />
 
             {/* Main Website */}
             <Route path="/home" element={<Home />} />
