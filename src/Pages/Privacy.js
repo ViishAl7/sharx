@@ -74,17 +74,17 @@ export default function Privacy() {
 
   const cookieItems = [
     { q: "Essential cookies", a: "These are required for login sessions. They store your authentication token so you stay logged in. You cannot opt out without losing access to your account." },
-    { q: "How to manage cookies", a: "You can clear all cookies through your browser settings at any time. Clearing essential cookies will log you out of Playvora." },
+    { q: "How to manage cookies", a: "You can clear all cookies through your browser settings at any time. Clearing essential cookies will log you out of Sharx." },
   ];
 
   const rightsItems = [
-    { q: "Access your data", a: "You can request a copy of your personal data by emailing us at playvora.help@gmail.com." },
-    { q: "Correct your data", a: "You can update your name directly in your profile. For other corrections, email us at playvora.help@gmail.com." },
-    { q: "Delete your account", a: "To delete your account, email us at playvora.help@gmail.com and we will remove your data." },
-    { q: "Children under 13", a: "Playvora is not intended for children under 13. If you believe a child has signed up, contact us at playvora.help@gmail.com." },
+    { q: "Access your data", a: "You can request a copy of your personal data by emailing us at Sharx.help@gmail.com." },
+    { q: "Correct your data", a: "You can update your name directly in your profile. For other corrections, email us at Sharx.help@gmail.com." },
+    { q: "Delete your account", a: "To delete your account, email us at Sharx.help@gmail.com and we will remove your data." },
+    { q: "Children under 13", a: "Sharx is not intended for children under 13. If you believe a child has signed up, contact us at Sharx.help@gmail.com." },
     { q: "Security", a: "We protect your data with HTTPS encryption, bcrypt password hashing, and JWT authentication tokens." },
     { q: "Changes to this policy", a: "We may update this policy from time to time. Last updated: May 2026." },
-    { q: "Contact us", a: "Any privacy questions? Email us at playvora.help@gmail.com." },
+    { q: "Contact us", a: "Any privacy questions? Email us at Sharx.help@gmail.com." },
   ];
 
   const quickCards = [
@@ -544,7 +544,7 @@ export default function Privacy() {
                 </div>
               </div>
               <div className="footer-bottom">
-                <span className="footer-copyright">© {new Date().getFullYear()} Playvora. All rights reserved.</span>
+                <span className="footer-copyright">© {new Date().getFullYear()} Sharx. All rights reserved.</span>
               </div>
             </div>
           </div>

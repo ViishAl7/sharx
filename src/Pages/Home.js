@@ -656,7 +656,7 @@ export default function Home() {
               </div>
             </div>
             <div className="footer-bottom">
-              <span className="footer-copyright">© {new Date().getFullYear()} Playvora. All rights reserved.</span>
+              <span className="footer-copyright">© {new Date().getFullYear()} Sharx. All rights reserved.</span>
             </div>
           </div>
         </div>
@@ -684,7 +684,7 @@ function EasterEggModal({ gameCount, onClose }) {
       ))}
       <div className="easter-egg-content">
         <div className="easter-egg-emoji">🎮</div>
-        <div className="easter-egg-title">PLAYVORA UNLOCKED!</div>
+        <div className="easter-egg-title">Sharx UNLOCKED!</div>
         <div className="easter-egg-text">You've discovered the secret! You're one of the true gaming enthusiasts!</div>
         <div className="easter-egg-stats">
           <div className="easter-egg-stat"><div className="easter-egg-stat-num">∞</div><div className="easter-egg-stat-label">Fun Awaits</div></div>
