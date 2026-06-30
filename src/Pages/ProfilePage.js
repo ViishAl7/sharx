@@ -21,12 +21,8 @@ const EYE_STYLES = [
 ];
 
 const AVATAR_COLORS = [
-  '#34d399', // green
-  '#fbbf24', // yellow
-  '#f9a8d4', // pink
-  '#c084fc', // purple
-  '#60a5fa', // blue
-  '#fb923c', // orange
+  '#34d399', '#fbbf24', '#f9a8d4',
+  '#c084fc', '#60a5fa', '#fb923c',
 ];
 
 // ─── AvatarSVG ──────────────────────────────────────────────────────────────
@@ -52,9 +48,7 @@ function AvatarSVG({ shape = 'heart', eyes = 'round', color = '#c084fc', size = 
 
       case 'star': {
         const pts = [];
-        const n = 5;
-        const r1 = s * 0.44;
-        const r2 = s * 0.2;
+        const n = 5, r1 = s * 0.44, r2 = s * 0.2;
         for (let i = 0; i < n * 2; i++) {
           const r = i % 2 === 0 ? r1 : r2;
           const a = (Math.PI / n) * i - Math.PI / 2;
@@ -74,20 +68,16 @@ function AvatarSVG({ shape = 'heart', eyes = 'round', color = '#c084fc', size = 
 
       case 'heart':
       default: {
-        const hx = cx;
-        const hy = cy + s * 0.06;
-        const r  = s * 0.22;
+        const hx = cx, hy = cy + s * 0.06, r = s * 0.22;
         return (
           <path
-            d={`
-              M ${hx} ${hy + s * 0.28}
+            d={`M ${hx} ${hy + s * 0.28}
               C ${hx - s * 0.38} ${hy - s * 0.05},
                 ${hx - r * 2.1}  ${hy - s * 0.32},
                 ${hx}            ${hy - s * 0.08}
               C ${hx + r * 2.1}  ${hy - s * 0.32},
                 ${hx + s * 0.38} ${hy - s * 0.05},
-                ${hx}            ${hy + s * 0.28} Z
-            `}
+                ${hx}            ${hy + s * 0.28} Z`}
             fill={color}
           />
         );
@@ -96,11 +86,9 @@ function AvatarSVG({ shape = 'heart', eyes = 'round', color = '#c084fc', size = 
   };
 
   const eyeNodes = () => {
-    const ey  = cy - s * 0.04;
-    const ex1 = cx - s * 0.14;
-    const ex2 = cx + s * 0.14;
-    const er  = s * 0.065;
-
+    const ey = cy - s * 0.04;
+    const ex1 = cx - s * 0.14, ex2 = cx + s * 0.14;
+    const er = s * 0.065;
     switch (eyes) {
       case 'oval':
         return (
@@ -109,51 +97,35 @@ function AvatarSVG({ shape = 'heart', eyes = 'round', color = '#c084fc', size = 
             <ellipse cx={ex2} cy={ey} rx={er * 0.75} ry={er * 1.2} fill="#1a1a2e" />
           </>
         );
-
       case 'sleepy':
         return (
           <>
-            <path
-              d={`M ${ex1 - er} ${ey} Q ${ex1} ${ey + er * 1.2} ${ex1 + er} ${ey}`}
-              stroke="#1a1a2e" strokeWidth={s * 0.025} fill="none" strokeLinecap="round"
-            />
-            <path
-              d={`M ${ex2 - er} ${ey} Q ${ex2} ${ey + er * 1.2} ${ex2 + er} ${ey}`}
-              stroke="#1a1a2e" strokeWidth={s * 0.025} fill="none" strokeLinecap="round"
-            />
+            <path d={`M ${ex1-er} ${ey} Q ${ex1} ${ey+er*1.2} ${ex1+er} ${ey}`} stroke="#1a1a2e" strokeWidth={s*0.025} fill="none" strokeLinecap="round"/>
+            <path d={`M ${ex2-er} ${ey} Q ${ex2} ${ey+er*1.2} ${ex2+er} ${ey}`} stroke="#1a1a2e" strokeWidth={s*0.025} fill="none" strokeLinecap="round"/>
           </>
         );
-
       case 'wink':
         return (
           <>
             <circle cx={ex1} cy={ey} r={er} fill="#1a1a2e" />
-            <path
-              d={`M ${ex2 - er} ${ey} Q ${ex2} ${ey + er * 1.3} ${ex2 + er} ${ey}`}
-              stroke="#1a1a2e" strokeWidth={s * 0.025} fill="none" strokeLinecap="round"
-            />
+            <path d={`M ${ex2-er} ${ey} Q ${ex2} ${ey+er*1.3} ${ex2+er} ${ey}`} stroke="#1a1a2e" strokeWidth={s*0.025} fill="none" strokeLinecap="round"/>
           </>
         );
-
       case 'round':
       default:
         return (
           <>
-            <circle cx={ex1} cy={ey} r={er}                          fill="#1a1a2e" />
-            <circle cx={ex2} cy={ey} r={er}                          fill="#1a1a2e" />
-            <circle cx={ex1 + er * 0.3} cy={ey - er * 0.3} r={er * 0.3} fill="white" />
-            <circle cx={ex2 + er * 0.3} cy={ey - er * 0.3} r={er * 0.3} fill="white" />
+            <circle cx={ex1} cy={ey} r={er} fill="#1a1a2e" />
+            <circle cx={ex2} cy={ey} r={er} fill="#1a1a2e" />
+            <circle cx={ex1+er*0.3} cy={ey-er*0.3} r={er*0.3} fill="white" />
+            <circle cx={ex2+er*0.3} cy={ey-er*0.3} r={er*0.3} fill="white" />
           </>
         );
     }
   };
 
   return (
-    <svg
-      width={s} height={s}
-      viewBox={`0 0 ${s} ${s}`}
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} xmlns="http://www.w3.org/2000/svg">
       {bodyPath()}
       {eyeNodes()}
     </svg>
@@ -162,20 +134,16 @@ function AvatarSVG({ shape = 'heart', eyes = 'round', color = '#c084fc', size = 
 
 // ─── ProfilePage ────────────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const navigate        = useNavigate();
-  const { logout }      = useAuth();
+  const navigate   = useNavigate();
+  const { logout } = useAuth();
   const { profile, updateProfile, updateStatus, isProfileLoading } = useProfile();
 
-  // ── FIX: localAvatar — editor mein sab changes real-time dikhne ke liye ─
-  // Context se aa raha profile = source of truth
-  // localAvatar = editor ke andar ki live preview state
   const [localAvatar, setLocalAvatar] = useState({
     avatarShape: 'heart',
     avatarEyes:  'round',
     avatarColor: '#c084fc',
   });
 
-  // Sync localAvatar jab profile context se aaye
   useEffect(() => {
     if (profile) {
       setLocalAvatar({
@@ -192,56 +160,46 @@ export default function ProfilePage() {
   const [avatarTab,      setAvatarTab]      = useState('body');
   const [showAvatarEdit, setShowAvatarEdit] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
-  // FIX: Track unsaved changes
   const [hasUnsavedAvatar, setHasUnsavedAvatar] = useState(false);
 
   const statusMenuRef = useRef(null);
 
-  // ── Sync edit name whenever profile loads/changes ─────────────────────
   useEffect(() => {
     if (profile) setEditName(profile.stylishUsername || '');
   }, [profile]);
 
-  // ── Close status menu on outside click ───────────────────────────────
   useEffect(() => {
     if (!showStatusMenu) return;
     const handler = (e) => {
-      if (statusMenuRef.current && !statusMenuRef.current.contains(e.target)) {
+      if (statusMenuRef.current && !statusMenuRef.current.contains(e.target))
         setShowStatusMenu(false);
-      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showStatusMenu]);
 
-  // ── Auth guard ────────────────────────────────────────────────────────
   const isLoggedIn = !!localStorage.getItem('token');
   useEffect(() => {
     if (!isLoggedIn) navigate('/login');
   }, [isLoggedIn, navigate]);
 
-  // ── Loading state ─────────────────────────────────────────────────────
   if (isProfileLoading || !profile) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: '#F5F7FA',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        minHeight:'100vh', background:'linear-gradient(135deg,#F0F4FF,#E8EDF5)',
+        display:'flex', alignItems:'center', justifyContent:'center',
       }}>
         <div style={{
-          width: 48, height: 48,
-          border: '3px solid rgba(0,0,0,0.1)',
-          borderTopColor: '#1E293B',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite',
-        }} />
+          width:44, height:44,
+          border:'3px solid rgba(0,0,0,0.08)',
+          borderTopColor:'#1E293B',
+          borderRadius:'50%',
+          animation:'spin 0.7s linear infinite',
+        }}/>
       </div>
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────
   const loginBadge = () => {
     switch (profile.loginMethod) {
       case 'google':  return '🔑 Signed in with Google';
@@ -254,9 +212,7 @@ export default function ProfilePage() {
 
   const formatDate = (d) => {
     if (!d) return 'Just joined';
-    return new Date(d).toLocaleDateString('en-US', {
-      month: 'long', day: 'numeric', year: 'numeric',
-    });
+    return new Date(d).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
   };
 
   const handleSaveName = () => {
@@ -265,13 +221,11 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  // FIX: Avatar change — sirf local state update karo, save button pe backend call
   const handleAvatarChange = (key, value) => {
-    setLocalAvatar((prev) => ({ ...prev, [key]: value }));
+    setLocalAvatar(prev => ({ ...prev, [key]: value }));
     setHasUnsavedAvatar(true);
   };
 
-  // FIX: Save avatar — tab backend/context ko update karo
   const handleSaveAvatar = () => {
     updateProfile({
       avatarShape: localAvatar.avatarShape,
@@ -282,7 +236,6 @@ export default function ProfilePage() {
     setShowAvatarEdit(false);
   };
 
-  // FIX: Cancel avatar edit — local changes discard karo
   const handleCancelAvatar = () => {
     setLocalAvatar({
       avatarShape: profile.avatarShape || 'heart',
@@ -293,72 +246,94 @@ export default function ProfilePage() {
     setShowAvatarEdit(false);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
 
+        /* ══════════════════════════════════════════
+           GLOBAL — No blue tap highlight
+        ══════════════════════════════════════════ */
+        *, *::before, *::after {
+          box-sizing: border-box;
+          margin: 0; padding: 0;
+          -webkit-tap-highlight-color: transparent !important;
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          user-select: none;
+          outline: none !important;
+        }
+        input, textarea {
+          -webkit-user-select: text !important;
+          user-select: text !important;
+        }
+
         @keyframes spin    { to { transform: rotate(360deg); } }
-        @keyframes fadeUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeUp  { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        /* ── PAGE ── */
         .pp-page {
           min-height: 100vh;
           background: linear-gradient(135deg, #F0F4FF 0%, #E8EDF5 100%);
           font-family: 'Inter', sans-serif;
         }
 
-        /* ── NAV ── */
+        /* ══════════════════════════════════════════
+           FIX: NAV — Back & Logout side by side, NOT overlapping save
+        ══════════════════════════════════════════ */
         .pp-nav {
-          background: rgba(255,255,255,0.85);
+          background: rgba(255,255,255,0.88);
           backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0,0,0,0.06);
-          padding: 14px 32px;
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+          padding: 12px 24px;
           position: sticky; top: 0; z-index: 200;
           display: flex; align-items: center; justify-content: space-between;
+          gap: 12px;
         }
         .pp-nav-logo {
-          font-size: 22px; font-weight: 800; color: #1E293B; cursor: pointer;
-          user-select: none;
+          font-size: 20px; font-weight: 800; color: #1E293B; cursor: pointer;
         }
-        .pp-nav-btns { display: flex; gap: 10px; }
+        .pp-nav-btns {
+          display: flex; gap: 8px; align-items: center;
+          /* ✅ FIX: buttons always stay right, never overlap save */
+          flex-shrink: 0;
+        }
         .pp-nav-btn {
-          padding: 8px 18px; border-radius: 40px; border: none;
+          padding: 8px 16px; border-radius: 40px; border: none;
           font-size: 13px; font-weight: 600; cursor: pointer;
           background: rgba(0,0,0,0.05); color: #334155;
-          transition: background 0.2s;
+          transition: background 0.2s, transform 0.15s;
+          white-space: nowrap;
         }
-        .pp-nav-btn:hover { background: rgba(0,0,0,0.1); }
-        .pp-nav-btn.danger { background: rgba(239,68,68,0.1); color: #EF4444; }
-        .pp-nav-btn.danger:hover { background: rgba(239,68,68,0.18); }
+        .pp-nav-btn:hover { background: rgba(0,0,0,0.09); transform: translateY(-1px); }
+        .pp-nav-btn.danger { background: rgba(239,68,68,0.08); color: #EF4444; }
+        .pp-nav-btn.danger:hover { background: rgba(239,68,68,0.15); }
 
-        /* ── CONTAINER ── */
-        .pp-wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        .pp-wrap { max-width: 860px; margin: 0 auto; padding: 36px 20px; }
 
-        /* ── HERO CARD ── */
+        /* ══ HERO CARD ══ */
         .pp-hero {
           background: white;
-          border-radius: 40px;
-          padding: 40px;
-          margin-bottom: 28px;
-          box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+          border-radius: 36px;
+          padding: 36px;
+          margin-bottom: 24px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
           animation: fadeUp 0.4s ease;
         }
         .pp-hero-inner {
-          display: flex; gap: 40px;
+          display: flex; gap: 36px;
           align-items: flex-start; flex-wrap: wrap;
         }
 
-        /* ── AVATAR ── */
+        /* ══ AVATAR ══ */
         .pp-avatar-wrap { position: relative; flex-shrink: 0; }
         .pp-avatar-img {
-          width: 130px; height: 130px;
+          width: 120px; height: 120px;
           border-radius: 50%; overflow: hidden;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 18px rgba(0,0,0,0.09);
           transition: transform 0.2s;
         }
         .pp-avatar-img:hover { transform: scale(1.03); }
@@ -366,161 +341,171 @@ export default function ProfilePage() {
 
         .pp-edit-avatar-btn {
           position: absolute; bottom: 4px; right: 4px;
-          width: 32px; height: 32px; border-radius: 50%;
+          width: 30px; height: 30px; border-radius: 50%;
           background: #1E293B; color: white; border: 2px solid white;
           font-size: 13px; cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-          transition: background 0.2s;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+          transition: background 0.2s, transform 0.15s;
         }
-        .pp-edit-avatar-btn:hover { background: #334155; }
+        .pp-edit-avatar-btn:hover { background: #334155; transform: scale(1.1); }
 
         .pp-status-dot {
-          position: absolute; bottom: 36px; right: 4px;
-          width: 16px; height: 16px; border-radius: 50%;
+          position: absolute; bottom: 34px; right: 4px;
+          width: 15px; height: 15px; border-radius: 50%;
           border: 2px solid white; cursor: pointer;
           transition: transform 0.15s;
         }
         .pp-status-dot:hover { transform: scale(1.2); }
 
         .pp-status-menu {
-          position: absolute; top: 140px; left: 0;
-          background: white; border-radius: 18px; padding: 6px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-          z-index: 50; min-width: 150px;
+          position: absolute; top: 128px; left: 0;
+          background: white; border-radius: 16px; padding: 5px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+          z-index: 50; min-width: 145px;
         }
         .pp-status-opt {
-          padding: 10px 14px; border-radius: 12px; cursor: pointer;
+          padding: 9px 13px; border-radius: 11px; cursor: pointer;
           font-size: 13px; font-weight: 500;
-          display: flex; align-items: center; gap: 8px;
+          display: flex; align-items: center; gap: 7px;
           transition: background 0.15s;
         }
         .pp-status-opt:hover { background: #F8FAFC; }
 
-        /* ── INFO ── */
-        .pp-info { flex: 1; min-width: 220px; }
+        /* ══ INFO ══ */
+        .pp-info { flex: 1; min-width: 200px; }
         .pp-username-row {
-          display: flex; align-items: center; gap: 12px;
+          display: flex; align-items: center; gap: 10px;
           flex-wrap: wrap; margin-bottom: 6px;
         }
-        .pp-username { font-size: 32px; font-weight: 800; color: #1E293B; }
+        .pp-username { font-size: 28px; font-weight: 800; color: #1E293B; }
         .pp-edit-btn {
-          padding: 6px 14px; border-radius: 40px; border: none;
+          padding: 5px 12px; border-radius: 40px; border: none;
           background: #F1F5F9; color: #475569;
           font-size: 12px; font-weight: 600; cursor: pointer;
-          transition: background 0.2s;
+          transition: background 0.15s, transform 0.15s;
         }
-        .pp-edit-btn:hover { background: #E2E8F0; }
+        .pp-edit-btn:hover { background: #E2E8F0; transform: translateY(-1px); }
         .pp-edit-input {
-          font-size: 26px; font-weight: 700;
-          padding: 6px 14px; border: 2px solid #E2E8F0;
-          border-radius: 16px; outline: none;
+          font-size: 22px; font-weight: 700;
+          padding: 6px 12px; border: 2px solid #E2E8F0;
+          border-radius: 14px; outline: none;
           font-family: 'Inter', sans-serif; width: 100%;
           transition: border-color 0.2s;
         }
         .pp-edit-input:focus { border-color: #6366F1; }
         .pp-save-btn {
-          padding: 8px 20px; background: #1E293B; color: white;
+          padding: 7px 18px; background: #1E293B; color: white;
           border: none; border-radius: 40px;
           font-weight: 600; font-size: 13px; cursor: pointer;
-          transition: background 0.2s;
+          transition: background 0.2s, transform 0.15s;
         }
-        .pp-save-btn:hover { background: #334155; }
+        .pp-save-btn:hover { background: #334155; transform: translateY(-1px); }
 
-        .pp-email   { font-size: 14px; color: #64748B; margin-bottom: 6px; }
+        .pp-email   { font-size: 14px; color: #64748B; margin-bottom: 5px; }
         .pp-login-badge {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 4px 12px; border-radius: 40px;
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 4px 11px; border-radius: 40px;
           background: #F0FDF4; color: #16A34A;
-          font-size: 12px; font-weight: 600; margin-bottom: 16px;
+          font-size: 12px; font-weight: 600; margin-bottom: 14px;
         }
-        .pp-join { font-size: 12px; color: #94A3B8; margin-bottom: 20px; }
+        .pp-join { font-size: 12px; color: #94A3B8; margin-bottom: 18px; }
 
-        /* ── STATS ── */
-        .pp-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+        .pp-stats { display: flex; gap: 12px; flex-wrap: wrap; }
         .pp-stat {
-          background: #F8FAFC; border-radius: 20px;
-          padding: 16px 24px; text-align: center; min-width: 90px;
+          background: #F8FAFC; border-radius: 18px;
+          padding: 14px 20px; text-align: center; min-width: 82px;
         }
-        .pp-stat-num { font-size: 28px; font-weight: 800; color: #1E293B; }
-        .pp-stat-lbl { font-size: 11px; font-weight: 600; color: #94A3B8; margin-top: 4px; }
+        .pp-stat-num { font-size: 26px; font-weight: 800; color: #1E293B; }
+        .pp-stat-lbl { font-size: 10px; font-weight: 600; color: #94A3B8; margin-top: 3px; }
 
-        /* ── AVATAR EDITOR ── */
+        /* ══════════════════════════════════════════
+           FIX: AVATAR EDITOR — Save button proper position, no overlap
+        ══════════════════════════════════════════ */
         .pp-avatar-editor {
-          background: white; border-radius: 32px; padding: 32px;
-          margin-bottom: 28px; box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-          animation: fadeUp 0.3s ease;
+          background: white; border-radius: 28px; padding: 28px;
+          margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+          animation: slideUp 0.3s ease;
         }
         .pp-editor-header {
           display: flex; align-items: center;
-          justify-content: space-between; margin-bottom: 24px;
+          justify-content: space-between; margin-bottom: 22px;
+          flex-wrap: wrap; gap: 10px;
         }
-        .pp-editor-title { font-size: 18px; font-weight: 700; color: #1E293B; }
-        .pp-editor-actions { display: flex; gap: 8px; align-items: center; }
-        .pp-close-btn {
-          width: 32px; height: 32px; border-radius: 50%; border: none;
-          background: #F1F5F9; color: #64748B; font-size: 16px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          transition: background 0.2s;
+        .pp-editor-title-row {
+          display: flex; align-items: center; gap: 8px;
         }
-        .pp-close-btn:hover { background: #E2E8F0; }
+        .pp-editor-title { font-size: 17px; font-weight: 700; color: #1E293B; }
+        .pp-unsaved-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          background: #F59E0B; display: inline-block;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        /* ✅ FIX: Action buttons in a row, clearly separated */
+        .pp-editor-actions {
+          display: flex; gap: 8px; align-items: center;
+          flex-shrink: 0; /* Don't shrink */
+        }
         .pp-save-avatar-btn {
           padding: 8px 18px; background: #6366F1; color: white;
           border: none; border-radius: 40px;
           font-weight: 700; font-size: 13px; cursor: pointer;
           transition: background 0.2s, transform 0.15s;
           font-family: 'Inter', sans-serif;
+          white-space: nowrap;
         }
         .pp-save-avatar-btn:hover { background: #4F46E5; transform: translateY(-1px); }
-        .pp-unsaved-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: #F59E0B; display: inline-block; margin-left: 4px;
-          animation: pulse 1.5s ease-in-out infinite;
+        .pp-close-btn {
+          width: 32px; height: 32px; border-radius: 50%; border: none;
+          background: #F1F5F9; color: #64748B; font-size: 16px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.15s, transform 0.15s;
+          flex-shrink: 0;
         }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        .pp-close-btn:hover { background: #FEE2E2; color: #EF4444; transform: scale(1.1); }
 
         .pp-editor-body {
-          display: flex; gap: 32px;
+          display: flex; gap: 28px;
           align-items: flex-start; flex-wrap: wrap;
         }
         .pp-avatar-preview {
-          width: 160px; height: 160px; border-radius: 50%;
+          width: 150px; height: 150px; border-radius: 50%;
           background: #F8FAFC; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          box-shadow: 0 4px 18px rgba(0,0,0,0.07);
           transition: background 0.3s;
         }
-        .pp-editor-controls { flex: 1; min-width: 200px; }
-        .pp-editor-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+        .pp-editor-controls { flex: 1; min-width: 190px; }
+        .pp-editor-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
         .pp-editor-tab {
-          flex: 1; padding: 8px; border-radius: 12px; border: none;
-          font-size: 13px; font-weight: 600; cursor: pointer;
+          flex: 1; padding: 7px; border-radius: 11px; border: none;
+          font-size: 12px; font-weight: 600; cursor: pointer;
           background: #F1F5F9; color: #64748B; transition: all 0.2s;
           font-family: 'Inter', sans-serif;
         }
         .pp-editor-tab.active { background: #1E293B; color: white; }
 
-        .pp-options { display: flex; gap: 10px; flex-wrap: wrap; }
+        .pp-options { display: flex; gap: 9px; flex-wrap: wrap; }
         .pp-option-btn {
-          width: 52px; height: 52px; border-radius: 14px;
+          width: 50px; height: 50px; border-radius: 13px;
           border: 2px solid transparent; background: #F8FAFC; cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          transition: all 0.2s;
+          transition: all 0.18s;
         }
-        .pp-option-btn:hover  { border-color: #CBD5E1; transform: scale(1.05); }
-        .pp-option-btn.active { border-color: #6366F1; background: #EEF2FF; transform: scale(1.08); }
+        .pp-option-btn:hover  { border-color: #CBD5E1; transform: scale(1.04); }
+        .pp-option-btn.active { border-color: #6366F1; background: #EEF2FF; transform: scale(1.07); }
 
         .pp-color-btn {
-          width: 40px; height: 40px; border-radius: 50%;
-          border: 3px solid transparent; cursor: pointer; transition: all 0.2s;
+          width: 38px; height: 38px; border-radius: 50%;
+          border: 3px solid transparent; cursor: pointer; transition: all 0.18s;
         }
         .pp-color-btn:hover  { transform: scale(1.1); }
-        .pp-color-btn.active { border-color: #1E293B; transform: scale(1.18); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .pp-color-btn.active { border-color: #1E293B; transform: scale(1.18); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
 
-        /* ── TABS ── */
-        .pp-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        /* ══ TABS ══ */
+        .pp-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
         .pp-tab {
-          padding: 10px 24px; border-radius: 40px; border: none;
+          padding: 9px 22px; border-radius: 40px; border: none;
           font-size: 14px; font-weight: 600; cursor: pointer;
           background: white; color: #64748B; transition: all 0.2s;
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -528,42 +513,42 @@ export default function ProfilePage() {
         }
         .pp-tab.active { background: #1E293B; color: white; }
 
-        /* ── CONTENT CARD ── */
+        /* ══ CONTENT CARD ══ */
         .pp-card {
-          background: white; border-radius: 32px; padding: 32px;
-          box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-          animation: fadeUp 0.4s ease;
+          background: white; border-radius: 28px; padding: 28px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+          animation: fadeUp 0.35s ease;
         }
         .pp-card-title {
-          font-size: 18px; font-weight: 700;
-          color: #1E293B; margin-bottom: 20px;
+          font-size: 17px; font-weight: 700;
+          color: #1E293B; margin-bottom: 18px;
         }
-        .pp-empty { text-align: center; padding: 48px; color: #94A3B8; }
-        .pp-empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .pp-empty { text-align: center; padding: 44px; color: #94A3B8; }
+        .pp-empty-icon { font-size: 44px; margin-bottom: 14px; }
         .pp-browse-btn {
-          margin-top: 16px; padding: 10px 24px; border-radius: 40px;
+          margin-top: 14px; padding: 9px 22px; border-radius: 40px;
           border: none; background: #1E293B; color: white;
           font-weight: 600; cursor: pointer; font-size: 14px;
-          transition: background 0.2s;
+          transition: background 0.2s, transform 0.15s;
         }
-        .pp-browse-btn:hover { background: #334155; }
+        .pp-browse-btn:hover { background: #334155; transform: translateY(-1px); }
 
-        .pp-setting-row { margin-bottom: 20px; }
-        .pp-setting-label {
-          font-weight: 600; color: #1E293B;
-          margin-bottom: 4px; font-size: 14px;
-        }
-        .pp-setting-val { color: #64748B; font-size: 14px; }
+        .pp-setting-row { margin-bottom: 18px; }
+        .pp-setting-label { font-weight: 600; color: #1E293B; margin-bottom: 3px; font-size: 14px; }
+        .pp-setting-val   { color: #64748B; font-size: 14px; }
 
-        /* ── RESPONSIVE ── */
-        @media (max-width: 700px) {
-          .pp-hero { padding: 24px; border-radius: 28px; }
+        /* ══ RESPONSIVE ══ */
+        @media (max-width: 640px) {
+          .pp-wrap { padding: 24px 16px; }
+          .pp-hero { padding: 22px; border-radius: 24px; }
           .pp-hero-inner { flex-direction: column; align-items: center; text-align: center; }
           .pp-username-row { justify-content: center; }
           .pp-stats { justify-content: center; }
-          .pp-username { font-size: 26px; }
-          .pp-avatar-editor { padding: 20px; }
+          .pp-username { font-size: 24px; }
+          .pp-avatar-editor { padding: 18px; border-radius: 20px; }
           .pp-status-menu { left: 50%; transform: translateX(-50%); }
+          .pp-nav { padding: 10px 16px; }
+          .pp-nav-btn { padding: 7px 13px; font-size: 12px; }
         }
       `}</style>
 
@@ -573,6 +558,7 @@ export default function ProfilePage() {
         <nav className="pp-nav">
           <div className="pp-nav-logo" onClick={() => navigate('/')}>Sharx</div>
           <div className="pp-nav-btns">
+            {/* ✅ FIX: Both buttons side by side, always visible */}
             <button className="pp-nav-btn" onClick={() => navigate('/')}>← Home</button>
             <button
               className="pp-nav-btn danger"
@@ -595,12 +581,11 @@ export default function ProfilePage() {
                   {profile.avatarType === 'google' && profile.avatarUrl ? (
                     <img src={profile.avatarUrl} alt={profile.username} />
                   ) : (
-                    // FIX: Hero preview bhi localAvatar use karta hai — turant dikhta hai
                     <AvatarSVG
                       shape={localAvatar.avatarShape}
                       eyes={localAvatar.avatarEyes}
                       color={localAvatar.avatarColor}
-                      size={130}
+                      size={120}
                     />
                   )}
                 </div>
@@ -609,7 +594,7 @@ export default function ProfilePage() {
                 <div
                   className="pp-status-dot"
                   style={{ backgroundColor: statusColor[profile.status] || '#94A3B8' }}
-                  onClick={() => setShowStatusMenu((v) => !v)}
+                  onClick={() => setShowStatusMenu(v => !v)}
                   title="Change status"
                 />
 
@@ -632,11 +617,11 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {/* Edit avatar button (custom only) */}
+                {/* Edit avatar button */}
                 {profile.avatarType !== 'google' && (
                   <button
                     className="pp-edit-avatar-btn"
-                    onClick={() => setShowAvatarEdit((v) => !v)}
+                    onClick={() => setShowAvatarEdit(v => !v)}
                     title="Customize avatar"
                   >
                     ✎
@@ -652,9 +637,9 @@ export default function ProfilePage() {
                       <input
                         className="pp-edit-input"
                         value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
+                        onChange={e => setEditName(e.target.value)}
                         autoFocus
-                        onKeyDown={(e) => {
+                        onKeyDown={e => {
                           if (e.key === 'Enter')  handleSaveName();
                           if (e.key === 'Escape') setIsEditing(false);
                         }}
@@ -689,16 +674,16 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
 
           {/* ── AVATAR EDITOR ────────────────────────────────────── */}
           {showAvatarEdit && profile.avatarType !== 'google' && (
             <div className="pp-avatar-editor">
+              {/* ✅ FIX: Header row — title left, [Save Changes] [✕] right — no overlap */}
               <div className="pp-editor-header">
-                <div className="pp-editor-title">
-                  Customize Avatar
+                <div className="pp-editor-title-row">
+                  <span className="pp-editor-title">Customize Avatar</span>
                   {hasUnsavedAvatar && <span className="pp-unsaved-dot" title="Unsaved changes" />}
                 </div>
                 <div className="pp-editor-actions">
@@ -707,12 +692,12 @@ export default function ProfilePage() {
                       Save Changes
                     </button>
                   )}
-                  <button className="pp-close-btn" onClick={handleCancelAvatar}>✕</button>
+                  {/* ✅ This close/back button is always last, clearly after save */}
+                  <button className="pp-close-btn" onClick={handleCancelAvatar} title="Cancel">✕</button>
                 </div>
               </div>
 
               <div className="pp-editor-body">
-                {/* FIX: Live preview — localAvatar use karo, turant dikhta hai */}
                 <div
                   className="pp-avatar-preview"
                   style={{ background: `${localAvatar.avatarColor}22` }}
@@ -721,11 +706,10 @@ export default function ProfilePage() {
                     shape={localAvatar.avatarShape}
                     eyes={localAvatar.avatarEyes}
                     color={localAvatar.avatarColor}
-                    size={140}
+                    size={130}
                   />
                 </div>
 
-                {/* Controls */}
                 <div className="pp-editor-controls">
                   <div className="pp-editor-tabs">
                     {[
@@ -737,13 +721,10 @@ export default function ProfilePage() {
                         key={t}
                         className={`pp-editor-tab ${avatarTab === t ? 'active' : ''}`}
                         onClick={() => setAvatarTab(t)}
-                      >
-                        {lbl}
-                      </button>
+                      >{lbl}</button>
                     ))}
                   </div>
 
-                  {/* FIX: Har option click pe localAvatar update hota hai — turant preview mein dikhta hai */}
                   {avatarTab === 'body' && (
                     <div className="pp-options">
                       {BODY_SHAPES.map(({ id }) => (
@@ -753,12 +734,7 @@ export default function ProfilePage() {
                           onClick={() => handleAvatarChange('avatarShape', id)}
                           title={id}
                         >
-                          <AvatarSVG
-                            shape={id}
-                            eyes="round"
-                            color={localAvatar.avatarColor}
-                            size={34}
-                          />
+                          <AvatarSVG shape={id} eyes="round" color={localAvatar.avatarColor} size={32} />
                         </button>
                       ))}
                     </div>
@@ -773,12 +749,7 @@ export default function ProfilePage() {
                           onClick={() => handleAvatarChange('avatarEyes', id)}
                           title={id}
                         >
-                          <AvatarSVG
-                            shape={localAvatar.avatarShape}
-                            eyes={id}
-                            color={localAvatar.avatarColor}
-                            size={34}
-                          />
+                          <AvatarSVG shape={localAvatar.avatarShape} eyes={id} color={localAvatar.avatarColor} size={32} />
                         </button>
                       ))}
                     </div>
@@ -786,7 +757,7 @@ export default function ProfilePage() {
 
                   {avatarTab === 'color' && (
                     <div className="pp-options">
-                      {AVATAR_COLORS.map((c) => (
+                      {AVATAR_COLORS.map(c => (
                         <button
                           key={c}
                           className={`pp-color-btn ${localAvatar.avatarColor === c ? 'active' : ''}`}
@@ -805,27 +776,24 @@ export default function ProfilePage() {
           {/* ── TABS ─────────────────────────────────────────────── */}
           <div className="pp-tabs">
             {[
-              ['profile',  'About'       ],
-              ['games',    '🎮 Games'    ],
-              ['settings', '⚙️ Settings' ],
+              ['profile',  'About'      ],
+              ['games',    '🎮 Games'   ],
+              ['settings', '⚙️ Settings'],
             ].map(([id, lbl]) => (
               <button
                 key={id}
                 className={`pp-tab ${activeTab === id ? 'active' : ''}`}
                 onClick={() => setActiveTab(id)}
-              >
-                {lbl}
-              </button>
+              >{lbl}</button>
             ))}
           </div>
 
           {/* ── CONTENT ──────────────────────────────────────────── */}
           <div className="pp-card">
-
             {activeTab === 'profile' && (
               <>
                 <div className="pp-card-title">About Me</div>
-                <p style={{ color: '#64748B', lineHeight: 1.7 }}>
+                <p style={{ color:'#64748B', lineHeight:1.7 }}>
                   Passionate gamer enjoying the best free online games.<br />
                   Always ready for the next adventure! 🎮✨
                 </p>
@@ -837,21 +805,16 @@ export default function ProfilePage() {
                 <div className="pp-card-title">Recently Played</div>
                 {(profile.favoriteGames || []).length > 0 ? (
                   <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
-                    gap: 12,
+                    display:'grid',
+                    gridTemplateColumns:'repeat(auto-fill, minmax(100px, 1fr))',
+                    gap:10,
                   }}>
                     {profile.favoriteGames.map((g, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          background: '#F8FAFC', borderRadius: 14,
-                          padding: 12, textAlign: 'center',
-                          fontSize: 13, color: '#475569',
-                        }}
-                      >
-                        {g}
-                      </div>
+                      <div key={i} style={{
+                        background:'#F8FAFC', borderRadius:12,
+                        padding:'10px 8px', textAlign:'center',
+                        fontSize:13, color:'#475569',
+                      }}>{g}</div>
                     ))}
                   </div>
                 ) : (
@@ -883,7 +846,6 @@ export default function ProfilePage() {
                 </div>
               </>
             )}
-
           </div>
         </div>
       </div>

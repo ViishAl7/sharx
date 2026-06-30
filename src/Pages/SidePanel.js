@@ -372,11 +372,11 @@ export default function SidePanel({ mode: initialMode, onClose }) {
         .pv-footer {
           margin-top:12px; text-align:center;
           font-size:12.5px; line-height:1.7;
-          color:#64748b; font-weight:500;
+          color:#475569; font-weight:500;
         }
         .pv-footer span {
           color:#0f172a; font-weight:700; cursor:pointer;
-          border-bottom:1.5px solid #0f172a; padding-bottom:1px;
+          border-bottom:1.5px solid #03060cff; padding-bottom:1px;
           transition: color 0.2s, border-color 0.2s;
         }
         .pv-footer span:hover {
