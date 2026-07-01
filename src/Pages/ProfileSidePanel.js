@@ -1,4 +1,4 @@
-// ProfileSidePanel.js - Fixed with proper mobile responsive
+// ProfileSidePanel.js - ONLY EDITOR BUTTONS FIXED
 import { useState, useEffect, useRef, useCallback } from "react";
 
 /* ─────────── Constants ─────────── */
@@ -425,7 +425,7 @@ const STYLES = `
   padding: 68px 24px 18px;
 }
 
-/* ✅ FIXED: Action buttons now properly positioned without overlap */
+/* ── Editor Actions (FIXED) ── */
 .psp-edActions {
   position: absolute;
   top: 20px;
@@ -460,90 +460,78 @@ const STYLES = `
   box-shadow: 0 4px 0 #1379b3, 0 6px 20px rgba(31,169,245,0.42);
 }
 
-/* ── Responsive fixes for mobile ── */
-@media (max-width: 520px) {
-  .psp-edActions {
-    padding: 0 12px;
-    top: 14px;
-  }
-  .psp-edAction {
-    width: 42px;
-    height: 42px;
-  }
-  .psp-editTop {
-    padding: 60px 16px 10px;
-  }
-  .psp-unameField {
-    width: min(320px, 92%);
-    height: 44px;
-  }
-  .psp-unameInput {
-    font-size: 14px;
-  }
-  .psp-sheet {
-    padding: 4px 0 12px;
-  }
-  .psp-tabs {
-    padding: 0 4px;
-  }
-  .psp-tab {
-    font-size: 11px;
-    padding: 10px 0;
-  }
-  .psp-tabPanel {
-    padding: 12px 10px 4px;
-    gap: 8px;
-  }
-  .psp-pickBtn {
-    padding: 4px;
-  }
-  .psp-colorDot {
-    width: 34px;
-    height: 34px;
-  }
-  .psp-title {
-    font-size: 24px;
-  }
-  .psp-sub {
-    font-size: 11px;
-  }
-  .psp-hero {
-    padding: 50px 16px 20px;
-  }
-  .psp-avatarRing {
-    width: 200px;
-    height: 200px;
-  }
-  .psp-avatarRing2 {
-    width: 240px;
-    height: 240px;
-  }
+.psp-unameLabel {
+  font-size: 11px; font-weight: 800; letter-spacing: 3.5px;
+  opacity: 0.48; margin-top: 18px; text-transform: uppercase;
 }
+.psp-unameField {
+  margin-top: 8px; width: min(380px, 90%); height: 48px; border-radius: 24px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 2px solid rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; padding: 0 16px; gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s;
+}
+.psp-unameField:focus-within { border-color: rgba(255, 255, 255, 0.96); }
+.psp-unameInput {
+  flex: 1; border: none; background: transparent; outline: none;
+  font: 800 15px/1 'Nunito', sans-serif;
+  color: ${STROKE}; text-align: center;
+}
+.psp-unameInput::placeholder { color: rgba(15, 46, 92, 0.35); }
+.psp-unameInput:disabled { opacity: 0.48; cursor: not-allowed; }
+.psp-lockNote { font-size: 11px; font-weight: 700; opacity: 0.46; margin-top: 5px; }
 
-@media (max-width: 380px) {
-  .psp-edAction {
-    width: 36px;
-    height: 36px;
-  }
-  .psp-edActions {
-    top: 10px;
-    padding: 0 8px;
-  }
-  .psp-editTop {
-    padding: 50px 10px 6px;
-  }
-  .psp-tab {
-    font-size: 10px;
-    padding: 8px 0;
-  }
-  .psp-tab svg {
-    width: 12px;
-    height: 12px;
-  }
-  .psp-colorDot {
-    width: 28px;
-    height: 28px;
-  }
+/* ── Bottom sheet ── */
+.psp-sheet {
+  background: #fff; border-radius: 24px 24px 0 0;
+  padding: 6px 0 20px;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.07);
+  flex-shrink: 0; position: relative; z-index: 2;
+}
+.psp-tabs {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 0 8px;
+}
+.psp-tab {
+  background: none; border: none; cursor: pointer; padding: 13px 0;
+  font: 800 13px 'Nunito', sans-serif; color: #9aa3b2;
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; position: relative; transition: color 0.16s;
+}
+.psp-tab.active { color: ${ACCENT}; }
+.psp-tab.active::after {
+  content: ''; position: absolute; left: 22%; right: 22%; bottom: 0;
+  height: 2.5px; background: ${ACCENT}; border-radius: 2px;
+}
+.psp-tabPanel {
+  padding: 18px 18px 6px; min-height: 88px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; flex-wrap: wrap;
+}
+.psp-pickBtn {
+  background: none; border: none; cursor: pointer; padding: 8px;
+  border-radius: 14px;
+  transition: transform 0.14s, background 0.14s, box-shadow 0.14s;
+  display: flex; align-items: center; justify-content: center;
+}
+.psp-pickBtn:hover { transform: scale(1.12); }
+.psp-pickBtn.active {
+  background: #EAF6FF;
+  box-shadow: inset 0 0 0 2.5px ${ACCENT};
+  transform: scale(1.05);
+}
+.psp-colorDot {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 1.5px transparent, 0 3px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.14px, box-shadow 0.18s;
+}
+.psp-colorDot:hover { transform: scale(1.1); }
+.psp-colorDot.active {
+  box-shadow: 0 0 0 3px ${ACCENT}, 0 5px 14px rgba(0, 0, 0, 0.13);
+  transform: scale(1.12);
 }
 
 /* ── Modal ── */
@@ -594,7 +582,7 @@ function Editor({ shape, eyes, color, username, locked, onSave, onCancel }) {
       <div className="psp-blob psp-blob2" />
 
       <div className="psp-editTop">
-        {/* ✅ FIXED: Actions now use flex container with space-between */}
+        {/* ✅ FIXED: Buttons properly positioned side by side */}
         <div className="psp-edActions">
           <button className="psp-edAction x" onClick={onCancel} aria-label="Cancel">
             <I.X />
