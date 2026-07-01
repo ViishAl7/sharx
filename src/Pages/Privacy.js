@@ -107,9 +107,11 @@ export default function Privacy() {
           background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
           scroll-behavior: smooth;
         }
+        .prv-root { scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; -webkit-font-smoothing: antialiased; }
         .prv-root::-webkit-scrollbar { width: 5px; }
         .prv-root::-webkit-scrollbar-track { background: transparent; }
         .prv-root::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        .prv-root::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
         /* ── Crystals ── */
         .crystals-layer { position: fixed;inset: 0;pointer-events: none;z-index: 0;overflow: hidden; }
@@ -217,7 +219,8 @@ export default function Privacy() {
           transform: translateY(-50%);z-index: 500;
           display: flex;flex-direction: column;gap: 10px;
         }
-        .nav-dot { width: 8px;height: 8px;border-radius: 50%;background: rgba(26,46,68,0.25);cursor: pointer;transition: all 0.2s; }
+        .nav-dot { width: 8px;height: 8px;border-radius: 50%;background: rgba(26,46,68,0.25);cursor: pointer;transition: background 0.2s ease, transform 0.2s ease; }
+        .nav-dot:hover { background: rgba(26,46,68,0.5); }
         .nav-dot.active { background: #1a2e44;transform: scale(1.6); }
 
         @media (max-width: 768px) { .nav-dots { right: 12px;gap: 8px; } .nav-dot { width: 6px;height: 6px; } }

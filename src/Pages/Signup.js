@@ -98,41 +98,32 @@ body {
   color: #1E293B;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ========== ANIMATIONS ========== */
 @keyframes fadeScale {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-40px); }
+  from { opacity: 0; transform: translateX(-32px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(40px); }
+  from { opacity: 0; transform: translateX(32px); }
   to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes floatY {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-@keyframes gentlePulse {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.05); }
 }
 
 /* ========== BUBBLES BACKGROUND ========== */
@@ -171,7 +162,7 @@ body {
   z-index: 1;
 }
 
-/* ========== LEFT SIDE - LIQUID GLASS ========== */
+/* ========== LEFT SIDE ========== */
 .left {
   background: linear-gradient(145deg, rgba(30,41,59,0.92) 0%, rgba(15,23,42,0.88) 100%);
   backdrop-filter: blur(10px);
@@ -180,7 +171,7 @@ body {
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  animation: slideInLeft 0.6s ease forwards;
+  animation: slideInLeft 0.55s ease forwards;
 }
 
 .left::before {
@@ -213,13 +204,13 @@ body {
   cursor: pointer;
   position: relative;
   z-index: 1;
-  transition: all 0.3s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
   width: fit-content;
 }
 
 .left-logo:hover {
   transform: scale(1.02);
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 .left-title {
@@ -232,12 +223,11 @@ body {
   position: relative;
   z-index: 1;
   text-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  animation: fadeUp 0.8s ease 0.2s forwards;
+  animation: fadeUp 0.7s ease 0.15s forwards;
   opacity: 0;
-  animation-fill-mode: forwards;
 }
 
-/* ========== RIGHT SIDE - LIQUID GLASS ========== */
+/* ========== RIGHT SIDE ========== */
 .right {
   background: rgba(255,255,255,0.85);
   backdrop-filter: blur(20px);
@@ -245,7 +235,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 40px 24px;
-  animation: slideInRight 0.6s ease forwards;
+  animation: slideInRight 0.55s ease forwards;
 }
 
 .form {
@@ -257,9 +247,8 @@ body {
   max-width: 460px;
   box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6);
   border: 1px solid rgba(255,255,255,0.4);
-  animation: fadeScale 0.5s cubic-bezier(0.2,0.9,0.4,1.1) 0.1s forwards;
+  animation: fadeScale 0.45s cubic-bezier(0.2,0.9,0.4,1.1) 0.08s forwards;
   opacity: 0;
-  animation-fill-mode: forwards;
 }
 
 .form-heading {
@@ -299,7 +288,7 @@ body {
   font-weight: 600;
   color: #94A3B8;
   pointer-events: none;
-  transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  transition: top 0.22s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.22s cubic-bezier(0.2, 0.9, 0.4, 1.1), color 0.22s ease, background 0.22s ease;
   background: transparent;
   padding: 0 4px;
   z-index: 2;
@@ -324,7 +313,7 @@ body {
   font-weight: 500;
   color: #1E293B;
   outline: none;
-  transition: all 0.25s ease;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
   font-family: 'Nunito', sans-serif;
 }
 
@@ -349,7 +338,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .fl-show:hover { color: #1E293B; }
@@ -387,7 +376,7 @@ body {
   border-radius: 4px;
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.35s cubic-bezier(0.2,0.9,0.4,1.1);
+  transition: transform 0.35s cubic-bezier(0.2,0.9,0.4,1.1), background 0.25s ease;
 }
 
 .s-fill.on {
@@ -417,7 +406,7 @@ body {
   justify-content: center;
   gap: 10px;
   margin-top: 12px;
-  transition: all 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+  transition: transform 0.25s cubic-bezier(0.2,0.9,0.4,1.1), box-shadow 0.25s ease;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -426,7 +415,7 @@ body {
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-.btn:active { transform: translateY(0); }
+.btn:active { transform: translateY(0) scale(0.99); }
 
 .btn.loading {
   opacity: 0.7;
@@ -458,6 +447,9 @@ body {
   content: '';
   flex: 1;
   height: 1px;
+}
+
+.divider::before {
   background: linear-gradient(90deg, #E2E8F0 0%, transparent 100%);
 }
 
@@ -481,7 +473,7 @@ body {
   justify-content: center;
   gap: 12px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s cubic-bezier(0.2,0.9,0.4,1.1), box-shadow 0.25s ease;
   color: #1E293B;
 }
 
@@ -493,7 +485,7 @@ body {
 }
 
 .g-btn:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.99);
 }
 
 /* ========== FOOTER ========== */
@@ -508,7 +500,7 @@ body {
   color: #1E293B;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
   text-decoration: none;
   border-bottom: 1.5px solid #1E293B;
 }
@@ -549,12 +541,22 @@ body {
 .success-message {
   font-size: 14px;
   color: #64748B;
+  line-height: 1.6;
+}
+
+/* ========== SERVER ERROR ========== */
+.server-err {
+  color: #EF4444;
+  font-size: 13px;
+  margin: 12px 0;
+  font-weight: 600;
+  padding-left: 8px;
 }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 860px) {
   .page { grid-template-columns: 1fr; }
-  .left { padding: 40px 32px; min-height: 260px; }
+  .left { padding: 40px 32px; min-height: 240px; }
   .left-title { font-size: 42px; margin-top: 40px; }
   .form { padding: 36px 28px; margin: 20px; }
   .form-heading { font-size: 34px; }
@@ -667,9 +669,7 @@ body {
                 </div>
 
                 {errors.server && (
-                  <div style={{ color: "#EF4444", fontSize: "13px", margin: "12px 0", fontWeight: "600", paddingLeft: "8px" }}>
-                    {errors.server}
-                  </div>
+                  <div className="server-err">{errors.server}</div>
                 )}
 
                 <button className={`btn ${loading ? "loading" : ""}`} onClick={handleSignup}>

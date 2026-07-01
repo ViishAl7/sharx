@@ -41,6 +41,7 @@ export default function Profile() {
 
   if (loading) return (
     <div style={css.center}>
+      <style>{spinKeyframes}</style>
       <div style={css.spinner} />
       <p style={css.loadText}>Loading profile...</p>
     </div>
@@ -48,7 +49,7 @@ export default function Profile() {
 
   if (error) return (
     <div style={css.center}>
-      <p style={{ color: "#f87171", fontSize: 14 }}>{error}</p>
+      <p style={css.errorText}>{error}</p>
       <button style={css.retryBtn} onClick={() => window.location.reload()}>Try Again</button>
     </div>
   );
@@ -71,7 +72,7 @@ export default function Profile() {
               <div className="pv-name">{profile.name}</div>
               <div className="pv-email">{profile.email}</div>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
+            <div className="pv-header-actions">
               <button className="pv-btn-ghost" onClick={() => navigate("/")}>Home</button>
               <button className="pv-btn-danger" onClick={logout}>Logout</button>
             </div>
@@ -114,7 +115,7 @@ export default function Profile() {
               <span className="pv-info-key">Login Type</span>
               <span className="pv-info-val">{profile.googleId ? "Google" : "Email"}</span>
             </div>
-            <div className="pv-info-row" style={{ borderBottom: "none" }}>
+            <div className="pv-info-row pv-info-row-last">
               <span className="pv-info-key">User ID</span>
               <span className="pv-info-val">#{profile.id}</span>
             </div>
@@ -125,23 +126,23 @@ export default function Profile() {
             <div className="pv-card-title">Performance</div>
             <div className="pv-info-row">
               <span className="pv-info-key">Total Score</span>
-              <span className="pv-info-val" style={{ color: "#818cf8", fontWeight: 600 }}>{profile.score ?? 0}</span>
+              <span className="pv-info-val pv-val-indigo">{profile.score ?? 0}</span>
             </div>
             <div className="pv-info-row">
               <span className="pv-info-key">Wins</span>
-              <span className="pv-info-val" style={{ color: "#4ade80" }}>
+              <span className="pv-info-val pv-val-green">
                 {profile.matches?.filter((m) => m.result?.toLowerCase() === "win").length ?? 0}
               </span>
             </div>
             <div className="pv-info-row">
               <span className="pv-info-key">Losses</span>
-              <span className="pv-info-val" style={{ color: "#f87171" }}>
+              <span className="pv-info-val pv-val-red">
                 {profile.matches?.filter((m) => m.result?.toLowerCase() === "loss").length ?? 0}
               </span>
             </div>
-            <div className="pv-info-row" style={{ borderBottom: "none" }}>
+            <div className="pv-info-row pv-info-row-last">
               <span className="pv-info-key">Draws</span>
-              <span className="pv-info-val" style={{ color: "#94a3b8" }}>
+              <span className="pv-info-val pv-val-slate">
                 {profile.matches?.filter((m) => m.result?.toLowerCase() === "draw").length ?? 0}
               </span>
             </div>
@@ -154,7 +155,7 @@ export default function Profile() {
               <div className="pv-empty">No matches played yet.</div>
             ) : (
               profile.matches.map((match, i) => (
-                <div className="pv-match-row" key={match.id} style={{ animationDelay: `${i * 40}ms` }}>
+                <div className="pv-match-row" key={match.id} style={{ animationDelay: `${i * 35}ms` }}>
                   <span className="pv-match-idx">#{i + 1}</span>
                   <span className={`pv-badge ${badgeClass(match.result)}`}>{match.result}</span>
                   <span className="pv-match-score">{match.score} pts</span>
@@ -176,23 +177,27 @@ const css = {
     flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16,
   },
   spinner: {
-    width: 36, height: 36, border: "3px solid #1e293b",
+    width: 34, height: 34, border: "3px solid #1a2235",
     borderTop: "3px solid #6366f1", borderRadius: "50%",
-    animation: "spin 0.8s linear infinite",
+    animation: "pv-spin 0.75s cubic-bezier(0.5, 0.2, 0.5, 0.8) infinite",
   },
-  loadText: { color: "#475569", fontSize: 13, fontFamily: "Inter, sans-serif" },
+  loadText: { color: "#475569", fontSize: 13, fontFamily: "Inter, sans-serif", letterSpacing: "0.2px" },
+  errorText: { color: "#f87171", fontSize: 14, fontFamily: "Inter, sans-serif" },
   retryBtn: {
-    background: "#1e293b", color: "#94a3b8", border: "none",
+    background: "#141b2b", color: "#94a3b8", border: "1px solid #1e293b",
     padding: "10px 24px", borderRadius: 10, cursor: "pointer", fontSize: 13,
+    fontFamily: "Inter, sans-serif", fontWeight: 500, transition: "all 0.2s ease",
   },
 };
+
+const spinKeyframes = `@keyframes pv-spin { to { transform: rotate(360deg); } }`;
 
 const rawCSS = `
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@300;400;500;600&display=swap');
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pv-spin { to { transform: rotate(360deg); } }
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -201,7 +206,8 @@ const rawCSS = `
   background: #090c12;
   color: #e2e8f0;
   font-family: 'Inter', sans-serif;
-  padding-bottom: 60px;
+  padding-bottom: 64px;
+  -webkit-font-smoothing: antialiased;
 }
 
 .pv-banner {
@@ -232,7 +238,7 @@ const rawCSS = `
   max-width: 920px;
   margin: 0 auto;
   padding: 0 24px;
-  animation: fadeUp 0.5s ease both;
+  animation: fadeUp 0.45s ease both;
 }
 .pv-avatar {
   width: 88px;
@@ -255,7 +261,7 @@ const rawCSS = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 0 28px;
+  padding: 16px 0 28px;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -265,25 +271,28 @@ const rawCSS = `
   font-weight: 700;
   color: #f1f5f9;
   letter-spacing: 0.4px;
-  line-height: 1;
+  line-height: 1.15;
   margin-bottom: 5px;
 }
 .pv-email { font-size: 13px; color: #475569; }
+
+.pv-header-actions { display: flex; gap: 10px; }
 
 .pv-btn-ghost, .pv-btn-danger {
   background: transparent;
   border: 1px solid #1e293b;
   color: #64748b;
-  padding: 8px 18px;
+  padding: 9px 18px;
   border-radius: 10px;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 .pv-btn-ghost:hover { border-color: #334155; color: #94a3b8; }
-.pv-btn-danger:hover { border-color: #ef4444; color: #f87171; background: rgba(239,68,68,0.05); }
+.pv-btn-danger:hover { border-color: #ef4444; color: #f87171; background: rgba(239,68,68,0.06); }
+.pv-btn-ghost:active, .pv-btn-danger:active { transform: scale(0.98); }
 
 .pv-stats-row {
   max-width: 920px;
@@ -292,7 +301,7 @@ const rawCSS = `
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  animation: fadeUp 0.5s ease 0.1s both;
+  animation: fadeUp 0.45s ease 0.06s both;
 }
 .pv-stat {
   background: #0f1623;
@@ -301,7 +310,7 @@ const rawCSS = `
   padding: 18px 22px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s, border-color 0.2s;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 .pv-stat:hover { transform: translateY(-2px); border-color: #253047; }
 .pv-stat::after {
@@ -339,7 +348,7 @@ const rawCSS = `
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  animation: fadeUp 0.5s ease 0.15s both;
+  animation: fadeUp 0.45s ease 0.1s both;
 }
 .pv-card {
   background: #0f1623;
@@ -363,11 +372,16 @@ const rawCSS = `
   align-items: center;
   padding: 13px 22px;
   border-bottom: 1px solid #0d1117;
-  transition: background 0.15s;
+  transition: background 0.15s ease;
 }
 .pv-info-row:hover { background: rgba(255,255,255,0.015); }
+.pv-info-row-last { border-bottom: none; }
 .pv-info-key { font-size: 13px; color: #475569; }
 .pv-info-val { font-size: 13px; color: #cbd5e1; font-weight: 500; }
+.pv-val-indigo { color: #818cf8; font-weight: 600; }
+.pv-val-green  { color: #4ade80; }
+.pv-val-red    { color: #f87171; }
+.pv-val-slate  { color: #94a3b8; }
 
 .pv-match-row {
   display: flex;
@@ -375,8 +389,8 @@ const rawCSS = `
   gap: 16px;
   padding: 13px 22px;
   border-bottom: 1px solid #0d1117;
-  animation: fadeUp 0.4s ease both;
-  transition: background 0.15s;
+  animation: fadeUp 0.35s ease both;
+  transition: background 0.15s ease;
 }
 .pv-match-row:last-child { border-bottom: none; }
 .pv-match-row:hover { background: rgba(255,255,255,0.015); }
@@ -401,12 +415,14 @@ const rawCSS = `
   flex: 1;
 }
 .pv-match-date { font-size: 11px; color: #334155; }
-.pv-empty { padding: 36px 22px; text-align: center; color: #253047; font-size: 13px; }
+.pv-empty { padding: 40px 22px; text-align: center; color: #253047; font-size: 13px; }
 
 @media (max-width: 640px) {
   .pv-stats-row { grid-template-columns: 1fr; }
   .pv-grid { grid-template-columns: 1fr; }
   .pv-card-full { grid-column: 1; }
   .pv-header-row { flex-direction: column; align-items: flex-start; }
+  .pv-header-actions { width: 100%; }
+  .pv-btn-ghost, .pv-btn-danger { flex: 1; text-align: center; }
 }
 `;

@@ -125,51 +125,70 @@ export default function PageLayout({ title, subtitle, children }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Righteous&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #9CC3D5; font-family: 'Nunito', sans-serif; color: #1e293b; min-height: 100vh; }
-        
+        body { background: #9CC3D5; font-family: 'Nunito', sans-serif; color: #1e293b; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
         /* Navbar */
         .nav-wrap { position: sticky; top: 0; z-index: 300; padding: 12px 24px; background: rgba(255,255,255,0.98); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
         .nav { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 150px 1fr 220px; align-items: center; gap: 20px; }
-        .nav-logo { font-family: 'Righteous', cursive; font-size: 24px; background: linear-gradient(135deg, #0063B2 0%, #1e293b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
-        .nav-si-wrap { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 100px; padding: 0 16px; gap: 10px; height: 44px; }
+        .nav-logo { font-family: 'Righteous', cursive; font-size: 24px; background: linear-gradient(135deg, #0063B2 0%, #1e293b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; transition: opacity .2s ease; }
+        .nav-logo:hover { opacity: .75; }
+        .nav-si-wrap { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 100px; padding: 0 16px; gap: 10px; height: 44px; transition: border-color .2s ease, box-shadow .2s ease; }
         .nav-si-wrap:focus-within { border-color: #0063B2; box-shadow: 0 0 0 3px rgba(0,99,178,0.1); }
-        .nav-si { flex: 1; border: none; outline: none; background: none; font-size: 14px; }
+        .nav-si-wrap svg { color: #94a3b8; flex-shrink: 0; }
+        .nav-si { flex: 1; border: none; outline: none; background: none; font-size: 14px; color: #1e293b; }
+        .nav-si::placeholder { color: #94a3b8; }
         .nav-r { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
-        .btn-login { font-size: 13px; font-weight: 800; color: #fff; padding: 8px 24px; border-radius: 100px; background: #0063B2; border: none; cursor: pointer; }
-        .btn-signup { font-size: 13px; font-weight: 700; color: #0063B2; padding: 8px 22px; border-radius: 100px; background: #eff6ff; border: 1px solid #bfdbfe; cursor: pointer; }
-        .prof-btn { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 100px; padding: 4px 16px 4px 6px; cursor: pointer; }
-        .prof-name { font-size: 13px; font-weight: 800; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
-        
+        .btn-login { font-size: 13px; font-weight: 800; color: #fff; padding: 9px 24px; border-radius: 100px; background: #0063B2; border: none; cursor: pointer; transition: background .2s ease, transform .15s ease; }
+        .btn-login:hover { background: #00589e; }
+        .btn-login:active { transform: scale(0.97); }
+        .btn-signup { font-size: 13px; font-weight: 700; color: #0063B2; padding: 9px 22px; border-radius: 100px; background: #eff6ff; border: 1px solid #bfdbfe; cursor: pointer; transition: background .2s ease, transform .15s ease; }
+        .btn-signup:hover { background: #dbeafe; }
+        .btn-signup:active { transform: scale(0.97); }
+        .prof-btn { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 100px; padding: 4px 16px 4px 6px; cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease; }
+        .prof-btn:hover { border-color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .prof-name { font-size: 13px; font-weight: 800; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .prof-chevron { font-size: 9px; color: #94a3b8; transition: transform .2s ease; }
+
         /* Profile Panel */
-        .prof-panel { position: absolute; top: calc(100% + 10px); right: 0; width: 360px; background: #fff; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); z-index: 500; animation: popIn 0.25s ease both; overflow: hidden; }
+        .prof-panel { position: absolute; top: calc(100% + 10px); right: 0; width: 360px; background: #fff; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); z-index: 500; animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; overflow: hidden; }
         .pp-top { position: relative; padding: 28px 20px 20px; display: flex; flex-direction: column; align-items: center; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .pp-close { position: absolute; top: 12px; left: 12px; width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 1px solid #e2e8f0; cursor: pointer; }
-        .pp-done { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; background: #0063B2; border: none; cursor: pointer; color: #fff; }
+        .pp-close, .pp-done { position: absolute; top: 12px; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: background .2s ease, transform .15s ease; }
+        .pp-close { left: 12px; background: #fff; border: 1px solid #e2e8f0; color: #64748b; }
+        .pp-close:hover { background: #f1f5f9; }
+        .pp-done { right: 12px; background: #0063B2; border: none; color: #fff; }
+        .pp-done:hover { background: #00589e; }
+        .pp-close:active, .pp-done:active { transform: scale(0.92); }
+        .pp-info-name { margin-top: 10px; font-size: 15px; font-weight: 800; color: #1e293b; }
         .pp-name-wrap { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; }
-        .pp-input { width: 100%; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 100px; background: #f8fafc; text-align: center; }
+        .pp-input { width: 100%; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 100px; background: #f8fafc; text-align: center; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; outline: none; transition: border-color .2s ease; }
+        .pp-input:focus { border-color: #0063B2; background: #fff; }
         .pp-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .pp-tab { flex: 1; padding: 12px 6px; font-size: 12px; font-weight: 800; color: #64748b; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; }
+        .pp-tab { flex: 1; padding: 12px 6px; font-size: 12px; font-weight: 800; color: #64748b; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color .2s ease, border-color .2s ease, background .2s ease; }
+        .pp-tab:hover { color: #1e293b; }
         .pp-tab.on { color: #0063B2; border-bottom-color: #0063B2; background: #fff; }
         .pp-opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 16px; }
-        .pp-opt { aspect-ratio: 1; border-radius: 16px; border: 2px solid #e2e8f0; background: #f8fafc; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 8px; }
+        .pp-opt { aspect-ratio: 1; border-radius: 16px; border: 2px solid #e2e8f0; background: #f8fafc; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 8px; transition: border-color .2s ease, background .2s ease, transform .15s ease; }
+        .pp-opt:hover { border-color: #94a3b8; transform: translateY(-1px); }
         .pp-opt.on { border-color: #0063B2; background: #eff6ff; }
         .pp-swatch { width: 100%; height: 100%; border-radius: 12px; }
         .pp-foot { padding: 0 16px 18px; }
-        .pp-logout { width: 100%; padding: 12px; border-radius: 100px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .pp-logout { width: 100%; padding: 12px; border-radius: 100px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: #475569; transition: border-color .2s ease, color .2s ease, background .2s ease; }
         .pp-logout:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
-        
+
         /* Page Content */
         .page-container { max-width: 1200px; margin: 0 auto; padding: 48px 24px; min-height: calc(100vh - 200px); }
-        .page-title { font-family: 'Righteous', cursive; font-size: 48px; color: #1e293b; margin-bottom: 16px; }
+        .page-title { font-family: 'Righteous', cursive; font-size: 48px; color: #1e293b; margin-bottom: 16px; line-height: 1.15; }
         .page-subtitle { font-size: 18px; color: #475569; margin-bottom: 40px; border-left: 4px solid #0063B2; padding-left: 20px; }
         .page-content { background: #fff; border-radius: 32px; padding: 40px; box-shadow: 0 12px 28px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
         .page-content h2 { font-size: 24px; margin: 24px 0 16px; color: #1e293b; }
+        .page-content h2:first-child { margin-top: 0; }
         .page-content h3 { font-size: 18px; margin: 20px 0 12px; color: #0063B2; }
-        .page-content p { font-size: 16px; line-height: 1.6; color: #475569; margin-bottom: 16px; }
-        .page-content ul, .page-content ol { margin: 16px 0 16px 24px; color: #475569; line-height: 1.6; }
+        .page-content p { font-size: 16px; line-height: 1.65; color: #475569; margin-bottom: 16px; }
+        .page-content ul, .page-content ol { margin: 16px 0 16px 24px; color: #475569; line-height: 1.65; }
         .page-content li { margin: 8px 0; }
-        .page-content a { color: #0063B2; text-decoration: none; border-bottom: 1px solid #0063B2; }
-        
+        .page-content a { color: #0063B2; text-decoration: none; border-bottom: 1px solid #0063B2; transition: opacity .2s ease; }
+        .page-content a:hover { opacity: .7; }
+
         /* Footer */
         .site-footer { margin-top: 60px; background: #fff; border-top: 1px solid #e2e8f0; }
         .footer-content { max-width: 1200px; margin: 0 auto; padding: 48px 48px 32px; }
@@ -177,17 +196,17 @@ export default function PageLayout({ title, subtitle, children }) {
         .footer-brand { flex: 1; min-width: 260px; }
         .footer-logo span { font-family: 'Righteous', cursive; font-size: 24px; color: #1e293b; }
         .footer-links-group { display: flex; flex: 2; gap: 32px; justify-content: space-around; flex-wrap: wrap; }
-        .footer-links h4 { font-size: 13px; font-weight: 800; text-transform: uppercase; color: #1e293b; margin-bottom: 16px; }
-        .footer-links a { display: block; font-size: 14px; color: #64748b; text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: color 0.2s; }
+        .footer-links h4 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: #1e293b; margin-bottom: 16px; }
+        .footer-links a { display: block; font-size: 14px; color: #64748b; text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: color 0.2s ease; }
         .footer-links a:hover { color: #0063B2; }
         .footer-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-top: 24px; border-top: 1px solid #e2e8f0; }
         .footer-copyright { font-size: 13px; color: #94a3b8; }
-        
+
         @keyframes popIn {
-          from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+          from { opacity: 0; transform: translateY(-10px) scale(0.97); }
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        
+
         @media (max-width: 768px) {
           .nav { grid-template-columns: 130px 1fr 180px; gap: 12px; }
           .page-title { font-size: 32px; }
@@ -201,6 +220,7 @@ export default function PageLayout({ title, subtitle, children }) {
           .btn-signup { display: none; }
           .page-container { padding: 32px 16px; }
           .page-title { font-size: 28px; }
+          .prof-panel { width: calc(100vw - 32px); right: -12px; }
         }
       `}</style>
 
@@ -291,7 +311,7 @@ export default function PageLayout({ title, subtitle, children }) {
 function SiteFooter() {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="site-footer">
       <div className="footer-content">

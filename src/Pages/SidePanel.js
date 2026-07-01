@@ -217,46 +217,37 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           display:flex; align-items:center; justify-content:center;
         }
         .pv-close:hover {
-          transform:scale(1.12) rotate(90deg);
+          transform:scale(1.1) rotate(90deg);
           background:rgba(255,255,255,0.9);
           border-color: rgba(255,255,255,1);
         }
+        .pv-close:active { transform:scale(0.96) rotate(90deg); }
 
-        /* Card wrapper with child stagger */
+        /* Card wrapper — each child fades up on its own explicit delay (set inline) */
         .pv-card {
           width:360px; position:relative; z-index:2;
         }
-        /* All direct children of .pv-card will animate in sequence */
         .pv-card > * {
           opacity: 0;
           animation: fadeUp 0.5s ease forwards;
         }
-        .pv-card > *:nth-child(1) { animation-delay: 0.1s; } /* logo */
-        .pv-card > *:nth-child(2) { animation-delay: 0.2s; } /* tabs */
-        .pv-card > *:nth-child(3) { animation-delay: 0.3s; } /* google btn */
-        // .pv-card > *:nth-child(4) { animation-delay: 0.38s; } /* microsoft btn */
-        .pv-card > *:nth-child(5) { animation-delay: 0.46s; } /* email input (if shown) */
-        .pv-card > *:nth-child(6) { animation-delay: 0.54s; } /* passkey btn */
-        .pv-card > *:nth-child(7) { animation-delay: 0.62s; } /* error msg */
-        .pv-card > *:nth-child(8) { animation-delay: 0.7s; } /* footer */
 
         @keyframes fadeUp {
-          from { opacity:0; transform: translateY(16px); }
+          from { opacity:0; transform: translateY(14px); }
           to { opacity:1; transform: translateY(0); }
         }
 
         .pv-logo {
           display:flex; align-items:center; justify-content:center;
-          margin-bottom:32px;
-        
+          margin-bottom:28px;
         }
-       .pv-logo img {
-  width:150px;
-  height:150px;
-  object-fit:contain;
-  border-radius:30px;
-  padding:12px;
-}
+        .pv-logo img {
+          width:140px;
+          height:140px;
+          object-fit:contain;
+          border-radius:30px;
+          padding:12px;
+        }
 
         /* Tabs with sliding indicator feel */
         .pv-tabs {
@@ -272,7 +263,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           font-family:'Plus Jakarta Sans',sans-serif;
           font-size:15px; font-weight:700;
           cursor:pointer;
-          transition: background 0.25s, color 0.25s, transform 0.2s;
+          transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
           letter-spacing:-0.1px;
         }
         .pv-tab.active {
@@ -288,16 +279,16 @@ export default function SidePanel({ mode: initialMode, onClose }) {
 
         /* Buttons with hover lift and slight scale */
         .pv-btn {
-          width:100%; height:64px;
+          width:100%; height:60px;
           border-radius:50px;
           background: rgba(255, 255, 255, 0.55);
           border:1px solid rgba(255,255,255,0.7);
           display:flex; align-items:center; justify-content:center;
           gap:13px; color:#0f172a;
           font-family:'Plus Jakarta Sans',sans-serif;
-          font-size:16px; font-weight:700;
+          font-size:15px; font-weight:700;
           cursor:pointer; margin-bottom:13px;
-          transition: transform 0.25s cubic-bezier(.2,.9,.4,1.1), box-shadow 0.25s, background 0.2s, border-color 0.2s;
+          transition: transform 0.25s cubic-bezier(.2,.9,.4,1.1), box-shadow 0.25s ease, background 0.2s ease, border-color 0.2s ease;
           letter-spacing:-0.1px;
           will-change: transform;
         }
@@ -313,10 +304,10 @@ export default function SidePanel({ mode: initialMode, onClose }) {
 
         .pv-input {
           width:100%;
-          height:60px;
+          height:58px;
           border-radius:30px;
           border:1px solid rgba(255,255,255,0.6);
-          padding:0 16px;
+          padding:0 20px;
           font-family:'Plus Jakarta Sans',sans-serif;
           font-size:15px;
           font-weight:500;
@@ -324,7 +315,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           background: rgba(255,255,255,0.55);
           margin-bottom:13px;
           outline:none;
-          transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+          transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
         }
         .pv-input:focus {
           border-color:#6366f1;
@@ -343,18 +334,6 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           flex-shrink:0;
         }
         @keyframes spin { to{transform:rotate(360deg)} }
-
-        .pv-or {
-          display:flex; align-items:center; gap:10px;
-          margin:2px 0 13px;
-          font-size:11.5px; font-weight:700;
-          color:#64748b; letter-spacing:1.2px;
-          text-transform:uppercase;
-        }
-        .pv-or::before,.pv-or::after {
-          content:''; flex:1; height:1px;
-          background: rgba(0,0,0,0.1);
-        }
 
         /* Error message with fade in */
         .pv-error {
@@ -376,8 +355,8 @@ export default function SidePanel({ mode: initialMode, onClose }) {
         }
         .pv-footer span {
           color:#0f172a; font-weight:700; cursor:pointer;
-          border-bottom:1.5px solid #03060cff; padding-bottom:1px;
-          transition: color 0.2s, border-color 0.2s;
+          border-bottom:1.5px solid #0f172a; padding-bottom:1px;
+          transition: color 0.2s ease, border-color 0.2s ease;
         }
         .pv-footer span:hover {
           color:#6366f1;
@@ -399,13 +378,13 @@ export default function SidePanel({ mode: initialMode, onClose }) {
         <button className="pv-close" onClick={onClose}>✕</button>
 
         <div className="pv-card">
-          {/* Logo - no extra class needed, staggered via CSS */}
-          <div className="pv-logo">
+          {/* Logo */}
+          <div className="pv-logo" style={{ animationDelay: "0.06s" }}>
             <img src="/sharx.png" alt="logo" />
           </div>
 
           {/* Tabs */}
-          <div className="pv-tabs">
+          <div className="pv-tabs" style={{ animationDelay: "0.13s" }}>
             <button
               className={`pv-tab ${mode === "signup" ? "active" : ""}`}
               onClick={() => { setMode("signup"); setPasskeyError(""); setShowEmailInput(false); setPasskeyEmail(""); }}
@@ -421,7 +400,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           </div>
 
           {/* Google */}
-          <button className="pv-btn" onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}>
+          <button className="pv-btn" style={{ animationDelay: "0.2s" }} onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}>
             <svg width="22" height="22" viewBox="0 0 18 18">
               <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
               <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
@@ -446,6 +425,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           {mode === "signup" && showEmailInput && (
             <input
               className="pv-input"
+              style={{ animationDelay: "0.26s" }}
               type="email"
               placeholder="Enter your email"
               value={passkeyEmail}
@@ -456,7 +436,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
           )}
 
           {/* Passkey */}
-          <button className="pv-btn" onClick={handlePasskey} disabled={passkeyLoading}>
+          <button className="pv-btn" style={{ animationDelay: "0.32s" }} onClick={handlePasskey} disabled={passkeyLoading}>
             {passkeyLoading ? (
               <><span className="pv-spin" /> Verifying...</>
             ) : (
@@ -473,9 +453,9 @@ export default function SidePanel({ mode: initialMode, onClose }) {
             )}
           </button>
 
-          {passkeyError && <div className="pv-error">{passkeyError}</div>}
+          {passkeyError && <div className="pv-error" style={{ animationDelay: "0.38s" }}>{passkeyError}</div>}
 
-          <div className="pv-footer">
+          <div className="pv-footer" style={{ animationDelay: "0.44s" }}>
             By continuing you agree to our{" "}
             <span onClick={() => { onClose(); navigate("/privacy"); }}>Privacy Policy</span>
           </div>

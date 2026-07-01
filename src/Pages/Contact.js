@@ -19,7 +19,7 @@ export default function ContactPage() {
 
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-        .page { min-height:100vh; display:flex; flex-direction:column; }
+        .page { min-height:100vh; display:flex; flex-direction:column; -webkit-font-smoothing:antialiased; }
 
         /* ── MAIN ── */
         .main {
@@ -47,10 +47,10 @@ export default function ContactPage() {
         }
         .nav-logo {
           cursor:pointer; display:flex; align-items:center;
-          transition:opacity .2s; text-decoration:none;
+          transition:opacity .2s ease; text-decoration:none;
         }
         .nav-logo:hover { opacity:.65; }
-        .nav-logo img { height:30px; width:auto; display:block; }
+        .nav-logo img { height:70px; width:auto; display:block; }
         .nav-logo-text {
           font-family:'Inter',sans-serif;
           font-size:20px; font-weight:800; color:#1a2e44;
@@ -59,9 +59,11 @@ export default function ContactPage() {
           height:38px; padding:0 16px; border:none; border-radius:999px;
           display:flex; align-items:center; gap:6px;
           font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:#1a2e44;
-          background:rgba(26,46,68,0.07); cursor:pointer; transition:all .2s;
+          background:rgba(26,46,68,0.07); cursor:pointer;
+          transition:background .2s ease, transform .2s ease;
         }
         .nav-back:hover { background:rgba(26,46,68,0.13); transform:translateX(-2px); }
+        .nav-back:active { transform:translateX(-2px) scale(0.97); }
 
         /* ── HERO ── */
         .hero {
@@ -76,7 +78,7 @@ export default function ContactPage() {
           color:rgba(26,46,68,0.45);
           margin-bottom:24px; opacity:0;
         }
-        .hero-eyebrow.vis { animation:fadeUp .45s ease forwards; }
+        .hero-eyebrow.vis { animation:fadeUp .5s ease forwards; }
 
         .email-wrap {
           display:inline-block;
@@ -85,7 +87,7 @@ export default function ContactPage() {
           opacity:0;
           padding:4px 0;
         }
-        .email-wrap.vis { animation:fadeUp .5s .07s ease forwards; }
+        .email-wrap.vis { animation:fadeUp .55s .08s ease forwards; }
 
         .email-text {
           font-family:'Nunito',sans-serif;
@@ -118,14 +120,14 @@ export default function ContactPage() {
           font-size:14px; font-weight:500;
           color:rgba(26,46,68,0.38); opacity:0;
         }
-        .hero-hint.vis { animation:fadeUp .45s .14s ease forwards; }
+        .hero-hint.vis { animation:fadeUp .5s .16s ease forwards; }
 
         @keyframes fadeUp {
-          from { opacity:0; transform:translateY(22px); }
+          from { opacity:0; transform:translateY(18px); }
           to   { opacity:1; transform:translateY(0); }
         }
 
-        /* ==================== EXACT FOOTER FROM PRIVACY ==================== */
+        /* ==================== FOOTER ==================== */
         .site-footer {
           position: relative;
           background: transparent;
@@ -165,7 +167,7 @@ export default function ContactPage() {
 
         .footer-logo {
           cursor: pointer;
-          transition: all .3s ease;
+          transition: opacity .3s ease, transform .3s ease;
           display: inline-block;
         }
         .footer-logo img {
@@ -190,13 +192,13 @@ export default function ContactPage() {
           border-radius: 50%;
           background: #F1F5F9;
           cursor: pointer;
-          transition: all .25s ease;
+          transition: background .25s ease, transform .25s ease;
         }
         .social-icon svg {
           width: 20px;
           height: 20px;
           fill: #64748B;
-          transition: all .25s ease;
+          transition: fill .25s ease;
         }
         .social-icon:hover {
           background: #1E293B;
@@ -235,7 +237,7 @@ export default function ContactPage() {
           text-decoration: none;
           margin: 0 12px;
           cursor: pointer;
-          transition: all .22s ease;
+          transition: color .22s ease, transform .22s ease;
         }
         .footer-link:hover {
           color: #1E293B;
@@ -309,7 +311,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* EXACT FOOTER FROM PRIVACY PAGE */}
+        {/* FOOTER */}
         <footer className="site-footer">
           <div className="footer-wave-wrap">
             <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
@@ -325,8 +327,6 @@ export default function ContactPage() {
                 </div>
 
                 <div className="footer-socials">
-               
-                
                   <div className="social-icon" onClick={() => navigate("/instagram")} title="Instagram">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>

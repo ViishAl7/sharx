@@ -277,6 +277,7 @@ export default function ProfilePage() {
           min-height: 100vh;
           background: linear-gradient(135deg, #F0F4FF 0%, #E8EDF5 100%);
           font-family: 'Inter', sans-serif;
+          -webkit-font-smoothing: antialiased;
         }
 
         /* ══════════════════════════════════════════
@@ -304,10 +305,12 @@ export default function ProfilePage() {
           padding: 8px 16px; border-radius: 40px; border: none;
           font-size: 13px; font-weight: 600; cursor: pointer;
           background: rgba(0,0,0,0.05); color: #334155;
-          transition: background 0.2s, transform 0.15s;
+          transition: background 0.2s ease, transform 0.15s ease;
           white-space: nowrap;
+          font-family: 'Inter', sans-serif;
         }
         .pp-nav-btn:hover { background: rgba(0,0,0,0.09); transform: translateY(-1px); }
+        .pp-nav-btn:active { transform: translateY(0) scale(0.97); }
         .pp-nav-btn.danger { background: rgba(239,68,68,0.08); color: #EF4444; }
         .pp-nav-btn.danger:hover { background: rgba(239,68,68,0.15); }
 
@@ -334,7 +337,7 @@ export default function ProfilePage() {
           border-radius: 50%; overflow: hidden;
           display: flex; align-items: center; justify-content: center;
           box-shadow: 0 4px 18px rgba(0,0,0,0.09);
-          transition: transform 0.2s;
+          transition: transform 0.25s cubic-bezier(0.2,0.9,0.4,1.1);
         }
         .pp-avatar-img:hover { transform: scale(1.03); }
         .pp-avatar-img img { width: 100%; height: 100%; object-fit: cover; }
@@ -533,8 +536,9 @@ export default function ProfilePage() {
         }
         .pp-browse-btn:hover { background: #334155; transform: translateY(-1px); }
 
-        .pp-setting-row { margin-bottom: 18px; }
-        .pp-setting-label { font-weight: 600; color: #1E293B; margin-bottom: 3px; font-size: 14px; }
+        .pp-setting-row { padding: 14px 0; border-bottom: 1px solid #F1F5F9; }
+        .pp-setting-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .pp-setting-label { font-weight: 600; color: #1E293B; margin-bottom: 4px; font-size: 14px; }
         .pp-setting-val   { color: #64748B; font-size: 14px; }
 
         /* ══ RESPONSIVE ══ */
