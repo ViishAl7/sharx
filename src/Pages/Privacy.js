@@ -297,7 +297,7 @@ export default function Privacy() {
         }
 
         /* ── Accordion ── */
-        .acc { background: rgba(255,255,255,0.6);backdrop-filter: blur(8px);border: 1px solid rgba(255,255,255,0.8);border-radius: 16px;margin-bottom: 12px;cursor: pointer;transition: all 0.28s ease;overflow: hidden; }
+        .acc { background: rgba(255,255,255,0.6);backdrop-filter: blur(8px);border: 1px solid rgba(255,255,255,0.8);border-radius: 40px;margin-bottom: 12px;cursor: pointer;transition: all 0.28s ease;overflow: hidden; }
         .acc:hover { background: rgba(255,255,255,0.9);box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
         .acc.acc-open { background: white;box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
         .acc-q { display: flex;align-items: center;justify-content: space-between;padding: 16px 20px;gap: 12px; }

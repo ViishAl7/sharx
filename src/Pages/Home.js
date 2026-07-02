@@ -302,8 +302,7 @@ export default function Home() {
         .easter-egg-button:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,107,.4)}
         .confetti-piece{position:fixed;pointer-events:none;z-index:9998}
 
-        .nav-outer{display:flex;justify-content:center;position:sticky;top:12px;z-index:300;padding:0 16px}
-        .nav-wrap{
+.nav-outer{display:flex;justify-content:center;position:fixed;top:12px;left:0;right:0;z-index:300;padding:0 16px}        .nav-wrap{
           width:100%;max-width:1100px;
           height:52px;
           padding:0 20px;

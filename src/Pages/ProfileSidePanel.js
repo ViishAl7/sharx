@@ -1,4 +1,4 @@
-// ProfileSidePanel.js - ONLY EDITOR BUTTONS FIXED
+// ProfileSidePanel.js - CLOSE BUTTON OVERLAP FIXED FOR MOBILE
 import { useState, useEffect, useRef, useCallback } from "react";
 
 /* ─────────── Constants ─────────── */
@@ -306,7 +306,13 @@ const STYLES = `
   animation: psp-blob3 7s ease-in-out infinite 3s;
 }
 
-/* ── Close button ── */
+/* ── Close button (external chevron) ──
+   FIX: added .hidden class controlled by showEditor in JSX below.
+   This button now fades and becomes unclickable while the editor
+   overlay is open, on ALL screen sizes — not just mobile. Reason:
+   the editor renders its own X (cancel) button in the same
+   top-right corner on mobile, and this external chevron was
+   sitting on top of it. */
 .psp-extClose {
   position: fixed; top: 50%; left: 480px;
   transform: translate(-50%, -50%);
@@ -314,7 +320,13 @@ const STYLES = `
   background: #fff; border: none; cursor: pointer; z-index: 1001;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
-  transition: transform 0.18s, box-shadow 0.18s;
+  transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
+  opacity: 1;
+  pointer-events: auto;
+}
+.psp-extClose.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 .psp-extClose:hover {
   transform: translate(-50%, -50%) scale(1.08);
@@ -425,7 +437,7 @@ const STYLES = `
   padding: 68px 24px 18px;
 }
 
-/* ── Editor Actions (FIXED) ── */
+/* ── Editor Actions ── */
 .psp-edActions {
   position: absolute;
   top: 20px;
@@ -582,7 +594,6 @@ function Editor({ shape, eyes, color, username, locked, onSave, onCancel }) {
       <div className="psp-blob psp-blob2" />
 
       <div className="psp-editTop">
-        {/* ✅ FIXED: Buttons properly positioned side by side */}
         <div className="psp-edActions">
           <button className="psp-edAction x" onClick={onCancel} aria-label="Cancel">
             <I.X />
@@ -815,8 +826,14 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
         )}
       </div>
 
-      {/* Close chevron */}
-      <button className="psp-extClose" onClick={handleClose} aria-label="Close panel">
+      {/* Close chevron — FIX: hidden while editor is open so it never
+          overlaps the editor's own X/Check buttons on mobile */}
+      <button
+        className={`psp-extClose ${showEditor ? "hidden" : ""}`}
+        onClick={handleClose}
+        aria-label="Close panel"
+        tabIndex={showEditor ? -1 : 0}
+      >
         <I.ChevL />
       </button>
 
