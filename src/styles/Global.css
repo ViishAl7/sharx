@@ -1,0 +1,65 @@
+/*
+  ════════════════════════════════════════════════════════
+  SHARX GLOBAL FIXES — index.css mein yeh sab add karo
+  ════════════════════════════════════════════════════════
+*/
+
+/* ══ FIX 1: BLUE TAP HIGHLIGHT COMPLETELY REMOVE ══
+   Mobile pe koi bhi tap karo — blue/grey highlight nahi aayega
+   Exactly woh copy-paste wala blue box nahi aayega ab */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Input/textarea mein typing allow karo */
+input,
+textarea,
+[contenteditable] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Remove focus outline on click (keyboard users ke liye :focus-visible rakhna ho toh alag se daal sakte ho) */
+*:focus {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* ══ FIX 2: SMOOTH PERFORMANCE ══ */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}
+
+/* ══ FIX 3: IMAGE DRAG PREVENT ══ */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ══ FIX 4: BUTTON RESET — No system default highlight ══ */
+button {
+  -webkit-tap-highlight-color: transparent !important;
+  cursor: pointer;
+  touch-action: manipulation; /* Faster tap response on mobile */
+}
+
+/* ══ FIX 5: LINK RESET ══ */
+a {
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation;
+}

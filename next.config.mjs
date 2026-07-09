@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "img.gamemonetize.com",
+      },
+      {
+        protocol: "https",
+        hostname: "html5.gamemonetize.com",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
