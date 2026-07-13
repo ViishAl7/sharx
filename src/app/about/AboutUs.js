@@ -106,12 +106,7 @@ export default function Contact() {
   ];
 
   const connects = [
-    // { icon: <Mail size={20} strokeWidth={1.8} />, name: "Email", handle: "hello@Sharx.com", pill: "Reply in 24hrs", bg: "#E8FFF8", accent: "#00C896" },
-    // { icon: <MessageCircle size={20} strokeWidth={1.8} />, name: "Discord", handle: "discord.gg/Sharx", pill: "10k+ Gamers", bg: "#EEEEFF", accent: "#5865F2" },
-    // { icon: <Gamepad2 size={20} strokeWidth={1.8} />, name: "Twitter", handle: "@Sharx", pill: "Follow us", bg: "#E8F5FF", accent: "#1DA1F2" },
-    // { icon: <Camera size={20} strokeWidth={1.8} />, name: "Instagram", handle: "@Sharx.gg", pill: "Follow us", bg: "#FFF0F5", accent: "#E1306C" },
-    // { icon: <Play size={20} strokeWidth={1.8} />, name: "YouTube", handle: "Sharx Official", pill: "Subscribe", bg: "#FFF0F0", accent: "#FF0000" },
-    // { icon: <Gamepad2 size={20} strokeWidth={1.8} />, name: "TikTok", handle: "@Sharx", pill: "Follow us", bg: "#E8FFFE", accent: "#00D4CB" },
+   
   ];
 
   return (
@@ -208,6 +203,7 @@ export default function Contact() {
 .seen .faq-left h2 { animation: fadeLeft 0.50s ease forwards 0.00s; }
 .seen .faq-left p { animation: fadeLeft 0.50s ease forwards 0.08s; }
 .seen .faq-left .cta { animation: scaleIn 0.50s ease forwards 0.16s; }
+.seen .faq-right { animation: fadeRight 0.55s ease forwards 0.12s; }
 
 .blobs {
   position: absolute;
@@ -609,59 +605,84 @@ export default function Contact() {
   font-weight: 700;
 }
 
+/* ─── FAQ SECTION - EK DUM SUNDAR ─── */
 .faq-layout {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 1080px;
+  max-width: 980px;
   display: flex;
   align-items: flex-start;
-  gap: 56px;
+  gap: 64px;
   padding: 0 40px;
 }
-.faq-left { flex: 0 0 300px; }
+
+.faq-left {
+  flex: 0 0 300px;
+  padding-top: 8px;
+}
+
 .faq-left h2 {
-  font-size: clamp(28px,4vw,48px);
+  font-size: clamp(32px,4.5vw,52px);
   font-weight: 800;
   color: var(--navy);
   line-height: 1.08;
   letter-spacing: -0.03em;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
+
 .faq-left p {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--navy60);
   line-height: 1.6;
   margin-bottom: 28px;
 }
-.faq-right { flex: 1; min-width: 0; }
+
+.faq-right {
+  flex: 1;
+  min-width: 0;
+}
+
 .faq-item {
-  background: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.7);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.65);
-  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 50px;
   margin-bottom: 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
   overflow: hidden;
 }
-.faq-item:hover { background: rgba(255,255,255,0.85); }
+
+.faq-item:hover {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.8);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
 .faq-q {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  gap: 12px;
+  padding: 18px 22px;
+  gap: 16px;
 }
+
 .faq-q span {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--navy);
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
+
+.faq-item.open .faq-q span {
+  color: #2c4a6e;
+}
+
 .faq-tog {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--navy06);
   display: flex;
@@ -669,14 +690,33 @@ export default function Contact() {
   justify-content: center;
   color: var(--navy);
   flex-shrink: 0;
-  transition: transform 0.22s, background 0.22s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.faq-tog.open { transform: rotate(-180deg); background: var(--navy); color: white; }
+
+.faq-tog.open {
+  transform: rotate(180deg);
+  background: var(--navy);
+  color: white;
+}
+
+.faq-answer-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+  opacity: 0;
+}
+
+.faq-answer-wrapper.open {
+  max-height: 300px;
+  opacity: 1;
+}
+
 .faq-a {
-  padding: 0 20px 16px;
-  font-size: 13px;
+  padding: 0 22px 20px;
+  font-size: 14px;
   color: var(--navy60);
-  line-height: 1.65;
+  line-height: 1.7;
+  padding-top: 4px;
 }
 
 @media (max-width: 1024px) {
@@ -723,8 +763,9 @@ export default function Contact() {
   .coming-soon p { font-size: 13px; }
   .faq-layout { padding: 0 16px; gap: 20px; }
   .faq-right { width: 100%; max-width: 100%; }
+  .faq-q { padding: 14px 16px; }
   .faq-q span { font-size: 13px; }
-  .faq-a { font-size: 12px; }
+  .faq-a { font-size: 12px; padding: 0 16px 16px; }
   .footer { padding: 6px 12px; }
   .footer p { font-size: 10px; }
 }
@@ -734,6 +775,7 @@ export default function Contact() {
   .connect-card { gap: 10px; padding: 12px; }
   .c-ico { width: 38px; height: 38px; border-radius: 12px; }
   .connect-content h2 { font-size: 28px; }
+  .faq-q span { font-size: 12px; }
 }
       `}</style>
 
@@ -840,7 +882,6 @@ export default function Contact() {
           </div>
         </div>
 
-        {/* ✅ SECTION 3 - COMMUNITY (EK DUM SUNDAR) */}
         <div className={`section s3 ${seenSections.has(2) ? "seen" : ""}`} ref={sectionRefs[2]}>
           <div className="blobs">
             <div className="blob" />
@@ -881,6 +922,7 @@ export default function Contact() {
           </div>
         </div>
 
+        {/* ✅ SECTION 4 - FAQ WITH SMOOTH ANIMATION */}
         <div className={`section s4 ${seenSections.has(3) ? "seen" : ""}`} ref={sectionRefs[3]}>
           <div className="blobs">
             <div className="blob" />
@@ -901,16 +943,18 @@ export default function Contact() {
               {faqs.map((f, i) => (
                 <div
                   key={i}
-                  className="faq-item"
+                  className={`faq-item ${openFaq === i ? "open" : ""}`}
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 >
                   <div className="faq-q">
                     <span>{f.q}</span>
                     <div className={`faq-tog ${openFaq === i ? "open" : ""}`}>
-                      <ChevronDown size={13} strokeWidth={2.5} />
+                      <ChevronDown size={14} strokeWidth={2.5} />
                     </div>
                   </div>
-                  {openFaq === i && <div className="faq-a">{f.a}</div>}
+                  <div className={`faq-answer-wrapper ${openFaq === i ? "open" : ""}`}>
+                    <div className="faq-a">{f.a}</div>
+                  </div>
                 </div>
               ))}
             </div>
