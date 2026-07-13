@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const BODIES = [
   { id: "circle", label: "Round", el: (c) => <circle cx="40" cy="40" r="36" fill={c} stroke="rgba(0,0,0,.1)" strokeWidth="2.5"/> },

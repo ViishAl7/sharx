@@ -1,8 +1,8 @@
-// src/Pages/ProfilePage.js
+// src/legacy/ProfilePage.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../Context/AuthContext';
-import { useProfile } from '../Context/ProfileContext';
+import { useAuth } from '../context/AuthContext';
+import { useProfile } from '../context/ProfileContext';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const BODY_SHAPES = [

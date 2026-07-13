@@ -1,4 +1,4 @@
-// src/Context/ProfileContext.js
+// src/context/ProfileContext.js
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ProfileContext = createContext();

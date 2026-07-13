@@ -1,8 +1,8 @@
 // src/app/providers.js
 "use client";
 
-import { AuthProvider } from "../Context/AuthContext";
-import { ProfileProvider } from "../Context/ProfileContext";
+import { AuthProvider } from "../context/AuthContext";
+import { ProfileProvider } from "../context/ProfileContext";
 
 export default function Providers({ children }) {
   return (

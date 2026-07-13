@@ -1,6 +1,6 @@
 "use client";
 
-// src/Pages/SidePanel.js
+// src/legacy/SidePanel.js
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";

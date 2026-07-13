@@ -1,6 +1,21 @@
 // src/app/layout.js
 import "./globals.css";
 import Providers from "./providers";
+import { Nunito, Righteous } from "next/font/google";
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-nunito",
+  display: "swap",
+});
+
+const righteous = Righteous({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-righteous",
+  display: "swap",
+});
 
 export const metadata = {
   title: "Sharx",
@@ -9,19 +24,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Righteous&display=swap"
-        />
-      </head>
+    <html lang="en" className={`${nunito.variable} ${righteous.variable}`}>
       <body>
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -437,75 +437,59 @@ export default function Privacy() {
           .acc-a { padding: 10px 16px 14px; }
         }
 
-        /* ── FOOTER ── */
-        @keyframes footerFadeUp { from { opacity: 0;transform: translateY(30px); } to { opacity: 1;transform: translateY(0); } }
-        @keyframes softBounce { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
-
-        .site-footer { position: relative;margin-top: 90px;background: transparent;animation: footerFadeUp 0.8s ease forwards;opacity: 0; }
-        .footer-wave-wrap { display: block;line-height: 0;overflow: hidden; }
-        .footer-wave-wrap svg { display: block;width: 100%;height: 90px; }
-        .footer-body { background: #ffffff;border-top: 1px solid rgba(226,232,240,0.5); }
-        .footer-content { max-width: 1100px;margin: 0 auto;padding: 0 48px 52px;position: relative;z-index: 1; }
-        .footer-main { display: flex;flex-direction: column;align-items: center;justify-content: center;padding: 56px 0 36px;border-bottom: 1px solid rgba(226,232,240,0.8);gap: 30px;text-align: center; }
+        /* ── FOOTER (ditto Home.css) ── */
+        .site-footer { position: relative;margin-top: 90px;background: transparent; }
+        .footer-body { background: #ffffff;border-top: 1px solid rgba(226,232,240,.5);position: relative; }
+        .footer-content { max-width: 1100px;margin: 0 auto;padding: 0 40px 48px;position: relative;z-index: 1; }
+        .footer-main { display: flex;flex-direction: column;align-items: center;justify-content: center;padding: 48px 0 32px;border-bottom: 1px solid rgba(226,232,240,.8);gap: 28px;text-align: center; }
 
         .footer-logo {
           display: flex;align-items: center;justify-content: center;
-          height: 36px;overflow: hidden;
+          height: 34px;overflow: hidden;
           cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+          transition: all .35s cubic-bezier(.2,.9,.4,1.1);
         }
         .footer-logo img {
-          height: 80px;width: auto;
+          height: 76px;width: auto;
           display: block;object-fit: contain;
-          transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+          transition: all .35s cubic-bezier(.2,.9,.4,1.1);
         }
-        .footer-logo:hover { transform: scale(1.08) rotate(-2deg);opacity: 0.8; }
-        .footer-logo:hover img { filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12)); }
+        .footer-logo:hover { transform: scale(1.05); }
+        .footer-logo:hover img { filter: drop-shadow(0 5px 12px rgba(0,0,0,.14)); }
 
-        .footer-socials { display: flex;gap: 6px;padding: 6px;border-radius: 100px;background: #F1F5F9;border: 1px solid rgba(226,232,240,0.9); }
-        .social-icon { display: flex;align-items: center;justify-content: center;width: 42px;height: 42px;border-radius: 50%;background: transparent;cursor: pointer;transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);border: 1px solid transparent; }
-        .social-icon svg { width: 18px;height: 18px;fill: #1E293B;transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
-        .social-icon:hover { background: #1E293B;transform: translateY(-6px) scale(1.15) rotate(6deg);box-shadow: 0 12px 28px rgba(30,41,59,0.2);border-color: #1E293B; }
-        .social-icon:hover svg { fill: #fff;transform: rotate(-6deg) scale(1.1); }
-        .social-icon:nth-child(1) { animation: softBounce 0.6s ease 0.2s both; }
-        .social-icon:nth-child(2) { animation: softBounce 0.6s ease 0.3s both; }
+        .footer-socials { display: flex;gap: 5px;padding: 5px;border-radius: 100px;background: #F1F5F9;border: 1px solid rgba(226,232,240,.9); }
+        .social-icon { display: flex;align-items: center;justify-content: center;width: 40px;height: 40px;border-radius: 50%;background: transparent;cursor: pointer;transition: all .3s cubic-bezier(.2,.9,.4,1.1);border: 1px solid transparent; }
+        .social-icon svg { width: 17px;height: 17px;fill: #1E293B;transition: all .3s cubic-bezier(.2,.9,.4,1.1); }
+        .social-icon:hover { background: #1E293B;transform: translateY(-5px) scale(1.14) rotate(5deg);box-shadow: 0 10px 24px rgba(30,41,59,.2);border-color: #1E293B; }
+        .social-icon:hover svg { fill: #fff; }
 
-        .footer-links { display: flex;justify-content: center;gap: 72px;padding: 40px 0 0;flex-wrap: wrap; }
+        .footer-links { display: flex;justify-content: center;gap: 60px;padding: 36px 0 0;flex-wrap: wrap; }
         .footer-col { text-align: center; }
-        .footer-col-title { font-family: 'Nunito', sans-serif;font-size: 11px;font-weight: 900;text-transform: uppercase;letter-spacing: 2.5px;color: #94A3B8;margin: 0 0 12px 0; }
-        .footer-col-links { display: flex;justify-content: center;align-items: center;gap: 30px;flex-wrap: wrap; }
+        .footer-col-title { font-family: 'Nunito', sans-serif;font-size: 10px;font-weight: 900;text-transform: uppercase;letter-spacing: 2px;color: #64748B;margin: 0 0 10px 0; }
+        .footer-col-links { display: flex;justify-content: center;align-items: center;gap: 24px;flex-wrap: wrap; }
         .footer-link {
-          display: inline-block;margin: 0;font-family: 'Nunito', sans-serif;font-size: 14px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: all 0.3s ease;position: relative;
+          display: inline-block;font-family: 'Nunito', sans-serif;font-size: 13px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: color .2s ease;
         }
-        .footer-link::after { content: '';position: absolute;bottom: -4px;left: 0;width: 0;height: 2px;background: #1E293B;transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);border-radius: 2px; }
-        .footer-link:hover { color: #1E293B;transform: translateY(-2px); }
-        .footer-link:hover::after { width: 100%; }
-        .footer-link:nth-child(1) { animation: footerFadeUp 0.5s ease 0.4s both; }
-        .footer-link:nth-child(2) { animation: footerFadeUp 0.5s ease 0.5s both; }
-        .footer-link:nth-child(3) { animation: footerFadeUp 0.5s ease 0.6s both; }
+        .footer-link:hover { color: #1E293B;text-decoration: underline; }
 
-        .footer-bottom { padding-top: 34px;display: flex;align-items: center;justify-content: center;text-align: center; }
-        .footer-copyright { font-family: 'Nunito', sans-serif;font-size: 12px;font-weight: 600;color: #94A3B8;letter-spacing: 0.3px;animation: footerFadeUp 0.8s ease 0.7s both;transition: color 0.3s ease; }
+        .footer-bottom { padding-top: 28px;display: flex;align-items: center;justify-content: center;text-align: center; }
+        .footer-copyright { font-family: 'Nunito', sans-serif;font-size: 12px;font-weight: 600;color: #64748B;letter-spacing: .3px;transition: color .2s ease; }
         .footer-copyright:hover { color: #1E293B; }
 
         @media (max-width: 768px) {
-          .footer-content { padding: 0 24px 40px; }
-          .footer-links { gap: 48px; }
-          .footer-col-links { gap: 20px; }
-          .footer-link { font-size: 13px; }
+          .footer-content { padding: 0 20px 36px; }
+          .footer-links { gap: 36px; }
+          .footer-col-links { gap: 16px; }
+          .footer-logo { height: 28px; }
+          .footer-logo img { height: 62px; }
           .social-icon { width: 36px;height: 36px; }
-          .social-icon svg { width: 16px;height: 16px; }
-          .footer-logo { height: 30px; }
-          .footer-logo img { height: 65px; }
+          .social-icon svg { width: 15px;height: 15px; }
         }
         @media (max-width: 560px) {
-          .footer-wave-wrap svg { height: 60px; }
-          .footer-links { flex-direction: column;align-items: center;gap: 30px; }
+          .footer-links { flex-direction: column;align-items: center;gap: 20px; }
           .footer-col-links { flex-direction: column;gap: 16px; }
-          .footer-link { display: block;margin: 0; }
           .footer-bottom { padding-top: 24px; }
         }
-        @media (max-width: 480px) { .footer-links { gap: 24px; } }
       `}</style>
 
       <div className="prv-root" ref={containerRef}>
@@ -634,13 +618,8 @@ export default function Privacy() {
           </div>
         </div>
 
-        {/* ── FOOTER ── */}
+        {/* ── FOOTER (ditto Home.css) ── */}
         <footer className="site-footer">
-          <div className="footer-wave-wrap">
-            <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-              <path d="M0,58 C120,82 240,22 360,52 C480,82 600,16 720,46 C840,76 960,20 1080,50 C1200,80 1320,24 1440,54 L1440,90 L0,90 Z" fill="#ffffff"/>
-            </svg>
-          </div>
           <div className="footer-body">
             <div className="footer-content">
               <div className="footer-main">

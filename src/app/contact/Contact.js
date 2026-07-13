@@ -29,19 +29,11 @@ export default function ContactPage() {
           flex:1;
           position:relative;
           overflow:hidden;
-          background:#f0f2f5;
+          background: linear-gradient(135deg, #D6EAF5 0%, #E4EFE6 50%, #EAE3F2 100%);
           display:flex;
           flex-direction:column;
           padding:28px 48px 80px;
         }
-
-        .blob {
-          position:absolute; border-radius:50%;
-          filter:blur(90px); pointer-events:none;
-        }
-        .blob-1 { width:480px;height:480px;background:rgba(0,210,160,0.20);top:-140px;left:-80px; }
-        .blob-2 { width:400px;height:400px;background:rgba(160,140,255,0.16);top:10%;right:-60px; }
-        .blob-3 { width:360px;height:360px;background:rgba(255,210,80,0.12);bottom:0;left:25%; }
 
         /* ── NAV ── */
         .navbar {
@@ -130,31 +122,25 @@ export default function ContactPage() {
           to   { opacity:1; transform:translateY(0); }
         }
 
-        /* ==================== FOOTER ==================== */
+        /* ==================== FOOTER (ditto Home.css) ==================== */
         .site-footer {
           position: relative;
+          margin-top: 0;
           background: transparent;
-        }
-
-        .footer-wave-wrap {
-          display: block;
-          line-height: 0;
-          overflow: hidden;
-        }
-        .footer-wave-wrap svg {
-          display: block;
-          width: 100%;
-          height: 0px;
         }
 
         .footer-body {
           background: #ffffff;
+          border-top: 1px solid rgba(226,232,240,.5);
+          position: relative;
         }
 
         .footer-content {
           max-width: 1100px;
           margin: 0 auto;
-          padding: 0 48px 48px;
+          padding: 0 40px 48px;
+          position: relative;
+          z-index: 1;
         }
 
         .footer-main {
@@ -162,29 +148,38 @@ export default function ContactPage() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 48px 0 36px;
-          border-bottom: 1px solid #F1F5F9;
+          padding: 48px 0 32px;
+          border-bottom: 1px solid rgba(226,232,240,.8);
           gap: 28px;
           text-align: center;
         }
 
         .footer-logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 34px;
+          overflow: hidden;
           cursor: pointer;
-          transition: opacity .3s ease, transform .3s ease;
-          display: inline-block;
+          transition: all .35s cubic-bezier(.2,.9,.4,1.1);
         }
         .footer-logo img {
-          height: 42px;
+          height: 76px;
           width: auto;
           display: block;
+          object-fit: contain;
+          transition: all .35s cubic-bezier(.2,.9,.4,1.1);
         }
-        .footer-logo:hover { opacity: .7; transform: translateY(-2px); }
+        .footer-logo:hover { transform: scale(1.05); }
+        .footer-logo:hover img { filter: drop-shadow(0 5px 12px rgba(0,0,0,.14)); }
 
         .footer-socials {
           display: flex;
-          gap: 24px;
-          justify-content: center;
-          align-items: center;
+          gap: 5px;
+          padding: 5px;
+          border-radius: 100px;
+          background: #F1F5F9;
+          border: 1px solid rgba(226,232,240,.9);
         }
         .social-icon {
           display: flex;
@@ -193,62 +188,70 @@ export default function ContactPage() {
           width: 40px;
           height: 40px;
           border-radius: 50%;
-          background: #F1F5F9;
+          background: transparent;
           cursor: pointer;
-          transition: background .25s ease, transform .25s ease;
+          transition: all .3s cubic-bezier(.2,.9,.4,1.1);
+          border: 1px solid transparent;
         }
         .social-icon svg {
-          width: 20px;
-          height: 20px;
-          fill: #64748B;
-          transition: fill .25s ease;
+          width: 17px;
+          height: 17px;
+          fill: #1E293B;
+          transition: all .3s cubic-bezier(.2,.9,.4,1.1);
         }
         .social-icon:hover {
           background: #1E293B;
-          transform: translateY(-3px);
+          transform: translateY(-5px) scale(1.14) rotate(5deg);
+          box-shadow: 0 10px 24px rgba(30,41,59,.2);
+          border-color: #1E293B;
         }
-        .social-icon:hover svg {
-          fill: #ffffff;
-        }
+        .social-icon:hover svg { fill: #fff; }
 
         .footer-links {
           display: flex;
           justify-content: center;
-          padding: 32px 0 0;
+          gap: 60px;
+          padding: 36px 0 0;
+          flex-wrap: wrap;
         }
 
-        .footer-col {
-          text-align: center;
-        }
+        .footer-col { text-align: center; }
 
         .footer-col-title {
           font-family: 'Nunito', sans-serif;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 900;
           text-transform: uppercase;
           letter-spacing: 2px;
-          color: #CBD5E1;
-          margin: 0 0 16px;
+          color: #64748B;
+          margin: 0 0 10px 0;
+        }
+
+        .footer-col-links {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 24px;
+          flex-wrap: wrap;
         }
 
         .footer-link {
           display: inline-block;
           font-family: 'Nunito', sans-serif;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 600;
-          color: #64748B;
+          color: #475569;
           text-decoration: none;
-          margin: 0 12px;
           cursor: pointer;
-          transition: color .22s ease, transform .22s ease;
+          transition: color .2s ease;
         }
         .footer-link:hover {
           color: #1E293B;
-          transform: translateY(-1px);
+          text-decoration: underline;
         }
 
         .footer-bottom {
-          padding-top: 32px;
+          padding-top: 28px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -257,33 +260,33 @@ export default function ContactPage() {
 
         .footer-copyright {
           font-family: 'Nunito', sans-serif;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 600;
-          color: #CBD5E1;
+          color: #64748B;
+          letter-spacing: .3px;
+          transition: color .2s ease;
         }
+        .footer-copyright:hover { color: #1E293B; }
 
         @media (max-width: 768px) {
           .main { padding:24px 24px 60px; }
-          .footer-content { padding: 0 24px 40px; }
-          .footer-link { margin: 0 8px; font-size: 13px; }
+          .footer-content { padding: 0 20px 36px; }
+          .footer-links { gap: 36px; }
+          .footer-col-links { gap: 16px; }
+          .footer-logo { height: 28px; }
+          .footer-logo img { height: 62px; }
           .social-icon { width: 36px; height: 36px; }
-          .social-icon svg { width: 18px; height: 18px; }
+          .social-icon svg { width: 15px; height: 15px; }
         }
         @media (max-width: 560px) {
           .main { padding:20px 16px 50px; }
-          .footer-wave-wrap svg { height: 60px; }
-          .footer-links { flex-direction: column; align-items: center; }
-          .footer-link { display: block; margin: 8px 0; }
+          .footer-links { flex-direction: column; align-items: center; gap: 20px; }
           .footer-bottom { padding-top: 24px; }
         }
       `}</style>
 
       <div className="page">
         <div className="main">
-          <div className="blob blob-1" />
-          <div className="blob blob-2" />
-          <div className="blob blob-3" />
-
           {/* NAV */}
           <nav className="navbar">
             <div className="nav-logo" onClick={() => router.push("/")}>
@@ -314,14 +317,8 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* FOOTER */}
+        {/* FOOTER — ditto Home.css */}
         <footer className="site-footer">
-          <div className="footer-wave-wrap">
-            <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-              <path d="M0,58 C120,82 240,22 360,52 C480,82 600,16 720,46 C840,76 960,20 1080,50 C1200,80 1320,24 1440,54 L1440,90 L0,90 Z" fill="#ffffff"/>
-            </svg>
-          </div>
-
           <div className="footer-body">
             <div className="footer-content">
               <div className="footer-main">
@@ -346,9 +343,11 @@ export default function ContactPage() {
               <div className="footer-links">
                 <div className="footer-col">
                   <p className="footer-col-title">Company</p>
-                  <Link href="/about" className="footer-link">About Us</Link>
-                  <Link href="/contact" className="footer-link">Contact</Link>
-                  <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+                  <div className="footer-col-links">
+                    <Link href="/about" className="footer-link">About Us</Link>
+                    <Link href="/contact" className="footer-link">Contact</Link>
+                    <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+                  </div>
                 </div>
               </div>
 
