@@ -549,10 +549,24 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
   const handleImageError = useCallback(
     (e) => {
       const title = game.title || "Game";
+      // FIX: clear srcset too, not just src. next/image renders a real
+      // srcset attribute (from the `sizes` prop) on the underlying <img>.
+      // If a candidate in that srcset fails, the browser fires onError —
+      // but on reprocessing it re-evaluates srcset FIRST and picks the
+      // same broken URL again, so the new .src we set below never
+      // actually shows unless srcset is cleared first.
+      e.target.srcset = "";
       e.target.src = `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(title)}`;
     },
     [game.title],
   );
+
+  // FIX: fall back to the placeholder directly if thumb is missing/empty
+  // (e.g. API returned partial data). next/image requires a non-empty
+  // src string — passing undefined here throws at runtime instead of
+  // quietly falling through to onError.
+  const imgSrc =
+    game.thumb || `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`;
 
   return (
     <div className={`gc${featured ? " featured" : ""}`} style={cardStyle} onClick={onClick}>
@@ -560,7 +574,7 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
       <div className="gc-img-wrap">
         <Image
           className="gc-img"
-          src={game.thumb}
+          src={imgSrc}
           alt={game.title}
           fill
           sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"

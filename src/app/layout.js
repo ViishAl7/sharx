@@ -20,6 +20,9 @@ const righteous = Righteous({
 export const metadata = {
   title: "Sharx",
   description: "Play Free Online Games",
+  icons: {
+    icon: "/Sharx.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
