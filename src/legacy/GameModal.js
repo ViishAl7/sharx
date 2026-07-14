@@ -1,23 +1,50 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { API_BASE } from "../config";
 
-/* ─── GAME MODAL ─── */
+const INVALID_GAME_URL =
+  /(?:sharx-backend-production\.up\.railway\.app|localhost:5001)/i;
+
+function getGameEmbedUrl(game) {
+  const suppliedUrl = String(
+    game?.embedUrl ||
+      game?.embed_url ||
+      game?.playUrl ||
+      game?.play_url ||
+      game?.url ||
+      "",
+  ).trim();
+
+  // Actual external game URL ho to use it.
+  if (suppliedUrl && !INVALID_GAME_URL.test(suppliedUrl)) {
+    return suppliedUrl;
+  }
+
+  // GameMonetize thumbnail se game ID nikaal kar direct iframe URL banao.
+  const thumbnail = String(game?.thumb || game?.thumbnail || "");
+  const gameId = thumbnail.match(
+    /img\.gamemonetize\.com\/([^/?#]+)/i,
+  )?.[1];
+
+  return gameId
+    ? `https://html5.gamemonetize.co/${gameId}/`
+    : "";
+}
+
 const GameModal = React.memo(function GameModal({ game, onClose }) {
-  const [source, setSource] = useState("proxy");
   const [status, setStatus] = useState("loading");
+  const [reloadKey, setReloadKey] = useState(0);
   const frameRef = useRef(null);
   const timeoutRef = useRef(null);
 
-  const proxyUrl = useMemo(
-    () => `${API_BASE}/proxy/game?url=${encodeURIComponent(game.url)}`,
-    [game.url],
-  );
-  const iframeSrc = useMemo(
-    () => (source === "direct" ? game.url : proxyUrl),
-    [source, game.url, proxyUrl],
-  );
+  const iframeSrc = useMemo(() => getGameEmbedUrl(game), [game]);
+
+  const clearLoadTimeout = useCallback(() => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
   const modalStyle = useMemo(
     () => ({
@@ -28,72 +55,58 @@ const GameModal = React.memo(function GameModal({ game, onClose }) {
   );
 
   const handleFullscreen = useCallback(() => {
-    frameRef.current?.requestFullscreen?.();
+    frameRef.current?.requestFullscreen?.().catch(() => {});
   }, []);
-  const handleClose = useCallback(() => {
-    onClose();
-  }, [onClose]);
+
   const handleRetry = useCallback(() => {
-    setSource("proxy");
+    setStatus("loading");
+    setReloadKey((key) => key + 1);
   }, []);
+
   const handleOpenNewTab = useCallback(() => {
-    window.open(game.url, "_blank", "noopener,noreferrer");
-  }, [game.url]);
+    if (iframeSrc) {
+      window.open(iframeSrc, "_blank", "noopener,noreferrer");
+    }
+  }, [iframeSrc]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = "";
     };
   }, []);
 
   useEffect(() => {
-    setStatus("loading");
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setSource((prev) => {
-        if (prev === "proxy") {
-          return "direct";
-        }
-        setStatus("error");
-        return prev;
-      });
-    }, 8000);
-    return () => clearTimeout(timeoutRef.current);
-  }, [source]);
+    clearLoadTimeout();
 
-  const injectAdBlocker = useCallback(() => {
-    import("../lib/adblock").then(({ default: adblock }) => {
-      try {
-        const iframe = frameRef.current;
-        const doc = iframe?.contentDocument || iframe?.contentWindow?.document;
-        if (doc) {
-          const script = doc.createElement("script");
-          script.textContent = adblock;
-          doc.head.appendChild(script);
-        }
-      } catch (e) {
-        // Cross-origin expected
-      }
-    });
-  }, []);
-  const handleLoad = useCallback(() => {
-    clearTimeout(timeoutRef.current);
-    setStatus("loaded");
-    injectAdBlocker();
-  }, [injectAdBlocker]);
-  const handleError = useCallback(() => {
-    clearTimeout(timeoutRef.current);
-    if (source === "proxy") {
-      setSource("direct");
-    } else {
+    if (!iframeSrc) {
       setStatus("error");
+      return undefined;
     }
-  }, [source]);
+
+    setStatus("loading");
+
+    timeoutRef.current = window.setTimeout(() => {
+      setStatus("error");
+    }, 15000);
+
+    return clearLoadTimeout;
+  }, [iframeSrc, reloadKey, clearLoadTimeout]);
+
+  const handleLoad = useCallback(() => {
+    clearLoadTimeout();
+    setStatus("loaded");
+  }, [clearLoadTimeout]);
+
+  const handleError = useCallback(() => {
+    clearLoadTimeout();
+    setStatus("error");
+  }, [clearLoadTimeout]);
 
   const handleModalClick = useCallback(
-    (e) => {
-      if (e.target === e.currentTarget) {
+    (event) => {
+      if (event.target === event.currentTarget) {
         onClose();
       }
     },
@@ -110,15 +123,17 @@ const GameModal = React.memo(function GameModal({ game, onClose }) {
             <div className="modal-gc">{game.category}</div>
           </div>
         </div>
+
         <div className="modal-acts">
           <button className="modal-btn" onClick={handleFullscreen}>
             ⛶ Fullscreen
           </button>
-          <button className="modal-x" onClick={handleClose} title="Close">
+          <button className="modal-x" onClick={onClose} title="Close">
             ✕
           </button>
         </div>
       </div>
+
       <div className="modal-game">
         {status === "loading" && (
           <div className="modal-loader">
@@ -126,6 +141,7 @@ const GameModal = React.memo(function GameModal({ game, onClose }) {
             <div className="modal-lt">Loading game...</div>
           </div>
         )}
+
         {status === "error" && (
           <div className="modal-loader">
             <div className="modal-lt">This game couldn't be loaded.</div>
@@ -139,20 +155,22 @@ const GameModal = React.memo(function GameModal({ game, onClose }) {
             </div>
           </div>
         )}
-        <iframe
-          key={iframeSrc}
-          ref={frameRef}
-          className="modal-iframe"
-          src={iframeSrc}
-          title={game.title}
-          allowFullScreen
-          allow="autoplay; fullscreen; gamepad"
-          referrerPolicy="no-referrer"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox allow-pointer-lock"
-          onLoad={handleLoad}
-          onError={handleError}
-          style={modalStyle}
-        />
+
+        {iframeSrc && (
+          <iframe
+            key={`${iframeSrc}-${reloadKey}`}
+            ref={frameRef}
+            className="modal-iframe"
+            src={iframeSrc}
+            title={game.title}
+            allowFullScreen
+            allow="autoplay; fullscreen; gamepad"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox allow-pointer-lock"
+            onLoad={handleLoad}
+            onError={handleError}
+            style={modalStyle}
+          />
+        )}
       </div>
     </div>
   );
