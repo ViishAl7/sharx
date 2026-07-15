@@ -18,11 +18,11 @@ export default function ContactPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
 
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-        .page { min-height:100vh; display:flex; flex-direction:column; -webkit-font-smoothing:antialiased; }
+        .page { min-height:100vh; display:flex; flex-direction:column; -webkit-font-smoothing:antialiased; font-family:'Comfortaa', sans-serif; }
 
         /* ── MAIN ── */
         .main {
@@ -47,13 +47,13 @@ export default function ContactPage() {
         .nav-logo:hover { opacity:.65; }
         .nav-logo img { height:70px; width:auto; display:block; }
         .nav-logo-text {
-          font-family:'Inter',sans-serif;
+          font-family:'Comfortaa',sans-serif;
           font-size:20px; font-weight:800; color:#1a2e44;
         }
         .nav-back {
           height:38px; padding:0 16px; border:none; border-radius:999px;
           display:flex; align-items:center; gap:6px;
-          font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:#1a2e44;
+          font-family:'Comfortaa',sans-serif; font-size:13px; font-weight:600; color:#1a2e44;
           background:rgba(26,46,68,0.07); cursor:pointer;
           transition:background .2s ease, transform .2s ease;
         }
@@ -85,7 +85,7 @@ export default function ContactPage() {
         .email-wrap.vis { animation:fadeUp .55s .08s ease forwards; }
 
         .email-text {
-          font-family:'Nunito',sans-serif;
+          font-family:'Comfortaa',sans-serif;
           font-size:clamp(30px,4.8vw,68px);
           font-weight:900;
           color:#1a2e44;
@@ -218,9 +218,9 @@ export default function ContactPage() {
         .footer-col { text-align: center; }
 
         .footer-col-title {
-          font-family: 'Nunito', sans-serif;
+          font-family: 'Comfortaa', sans-serif;
           font-size: 10px;
-          font-weight: 900;
+          font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 2px;
           color: #64748B;
@@ -237,7 +237,7 @@ export default function ContactPage() {
 
         .footer-link {
           display: inline-block;
-          font-family: 'Nunito', sans-serif;
+          font-family: 'Comfortaa', sans-serif;
           font-size: 13px;
           font-weight: 600;
           color: #475569;
@@ -259,7 +259,7 @@ export default function ContactPage() {
         }
 
         .footer-copyright {
-          font-family: 'Nunito', sans-serif;
+          font-family: 'Comfortaa', sans-serif;
           font-size: 12px;
           font-weight: 600;
           color: #64748B;

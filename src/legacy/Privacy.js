@@ -222,13 +222,12 @@ export default function Privacy() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         .prv-root {
           height: 100vh;overflow-y: auto;overflow-x: hidden;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Raleway', sans-serif;
           background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
           scroll-behavior: smooth;
         }
@@ -506,6 +505,7 @@ export default function Privacy() {
           .footer-bottom { padding-top: 24px; }
         }
         @media (max-width: 480px) { .footer-links { gap: 24px; } }
+        
       `}</style>
 
       <div className="prv-root" ref={containerRef}>

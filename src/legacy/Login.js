@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { API_BASE } from "../config";
 function Login() {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
@@ -638,7 +639,7 @@ body {
                 <button
                   className="g-btn"
                   onClick={() => {
-                    window.location.href = "http://localhost:5001/auth/google";
+                    window.location.href = `${API_BASE}/auth/google`;
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 18 18">

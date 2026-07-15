@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { API_BASE } from "../config";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {

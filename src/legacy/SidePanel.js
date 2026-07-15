@@ -172,7 +172,7 @@ const router = useRouter();
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Plus Jakarta Sans',sans-serif; }
+        body { font-family:'Raleway',sans-serif; }
 
         /* Overlay fade */
         .pv-overlay {
@@ -262,7 +262,7 @@ const router = useRouter();
           flex:1; height:50px; border:none;
           border-radius:50px; background:transparent;
           color:#334155;
-          font-family:'Plus Jakarta Sans',sans-serif;
+          font-family:'Raleway',sans-serif;
           font-size:15px; font-weight:700;
           cursor:pointer;
           transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
@@ -287,7 +287,7 @@ const router = useRouter();
           border:1px solid rgba(255,255,255,0.7);
           display:flex; align-items:center; justify-content:center;
           gap:13px; color:#0f172a;
-          font-family:'Plus Jakarta Sans',sans-serif;
+          font-family:'Raleway',sans-serif;
           font-size:15px; font-weight:700;
           cursor:pointer; margin-bottom:13px;
           transition: transform 0.25s cubic-bezier(.2,.9,.4,1.1), box-shadow 0.25s ease, background 0.2s ease, border-color 0.2s ease;
@@ -310,7 +310,7 @@ const router = useRouter();
           border-radius:30px;
           border:1px solid rgba(255,255,255,0.6);
           padding:0 20px;
-          font-family:'Plus Jakarta Sans',sans-serif;
+          font-family:'Raleway',sans-serif;
           font-size:15px;
           font-weight:500;
           color:#0f172a;

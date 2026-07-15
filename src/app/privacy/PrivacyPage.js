@@ -222,13 +222,13 @@ export default function Privacy() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         .prv-root {
           height: 100vh;overflow-y: auto;overflow-x: hidden;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Comfortaa', sans-serif;
           background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
           scroll-behavior: smooth;
         }
@@ -301,7 +301,7 @@ export default function Privacy() {
         }
 
         .nav-label {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Comfortaa', sans-serif;
           font-size: 18px;font-weight: 800;
           color: #1a2e44;letter-spacing: -0.02em;
           user-select: none;
@@ -311,7 +311,7 @@ export default function Privacy() {
         .nav-btn {
           height: 36px;padding: 0 16px;border: none;border-radius: 999px;
           display: flex;align-items: center;gap: 6px;
-          font-family: 'Inter', sans-serif;font-size: 13px;font-weight: 600;
+          font-family: 'Comfortaa', sans-serif;font-size: 13px;font-weight: 600;
           color: #1a2e44;background: rgba(26,46,68,0.07);
           cursor: pointer;transition: all 0.2s ease;
         }
@@ -368,11 +368,11 @@ export default function Privacy() {
         .seen .quick-grid  { animation: fadeUp  0.55s ease forwards 0.20s; }
         .seen .two-col     { animation: fadeUp  0.50s ease forwards 0.00s; }
 
-        .hero-title { font-family: 'Inter', sans-serif;font-size: clamp(32px, 6vw, 72px);font-weight: 800;color: #1a2e44;line-height: 1.1;margin-bottom: 40px; }
+        .hero-title { font-family: 'Comfortaa', sans-serif;font-size: clamp(32px, 6vw, 72px);font-weight: 800;color: #1a2e44;line-height: 1.1;margin-bottom: 40px; }
         .hero-btn {
           display: inline-flex;align-items: center;gap: 10px;
           padding: 12px 28px;background: #1a2e44;color: #fff;
-          font-family: 'Inter', sans-serif;font-size: 15px;font-weight: 600;
+          font-family: 'Comfortaa', sans-serif;font-size: 15px;font-weight: 600;
           border-radius: 50px;border: none;cursor: pointer;
           box-shadow: 0 6px 20px rgba(26,46,68,0.2);transition: all 0.3s ease;
         }
@@ -385,7 +385,7 @@ export default function Privacy() {
         .quick-card:hover { background: white;transform: translateY(-6px);box-shadow: 0 16px 32px rgba(0,0,0,0.08); }
         .quick-card-icon { width: 48px;height: 48px;border-radius: 16px;display: flex;align-items: center;justify-content: center;margin: 0 auto 14px;transition: transform 0.3s ease; }
         .quick-card:hover .quick-card-icon { transform: scale(1.08) rotate(-3deg); }
-        .quick-card h3 { font-family: 'Inter', sans-serif;font-size: 13px;font-weight: 700;color: #1a2e44;line-height: 1.4; }
+        .quick-card h3 { font-family: 'Comfortaa', sans-serif;font-size: 13px;font-weight: 700;color: #1a2e44;line-height: 1.4; }
 
         @media (max-width: 640px) {
           .quick-grid { gap: 12px;margin-top: 40px;grid-template-columns: repeat(2, 1fr); }
@@ -399,10 +399,10 @@ export default function Privacy() {
         .two-col { display: grid;grid-template-columns: 280px 1fr;gap: 56px;align-items: start; }
         .col-sticky { position: sticky;top: 100px; }
         .section-tag { display: inline-flex;align-items: center;gap: 8px;padding: 5px 14px;background: rgba(26,46,68,0.06);border-radius: 100px;font-size: 11px;font-weight: 700;color: #1a2e44;text-transform: uppercase;margin-bottom: 16px; }
-        .col-num { font-family: 'Inter', sans-serif;font-weight: 800;font-size: 70px;color: rgba(26,46,68,0.05);line-height: 0.9;margin-bottom: -8px; }
-        .col-title { font-family: 'Inter', sans-serif;font-size: clamp(24px, 4vw, 40px);font-weight: 800;color: #1a2e44;line-height: 1.15;margin-bottom: 14px; }
+        .col-num { font-family: 'Comfortaa', sans-serif;font-weight: 800;font-size: 70px;color: rgba(26,46,68,0.05);line-height: 0.9;margin-bottom: -8px; }
+        .col-title { font-family: 'Comfortaa', sans-serif;font-size: clamp(24px, 4vw, 40px);font-weight: 800;color: #1a2e44;line-height: 1.15;margin-bottom: 14px; }
         .col-desc { font-size: 14px;color: rgba(26,46,68,0.6);line-height: 1.7;margin-bottom: 24px; }
-        .back-top-btn { display: inline-flex;align-items: center;gap: 8px;padding: 9px 24px;background: transparent;border: 1.5px solid rgba(26,46,68,0.15);border-radius: 100px;font-family: 'Inter', sans-serif;font-size: 13px;font-weight: 600;color: #1a2e44;cursor: pointer;transition: all 0.25s ease; }
+        .back-top-btn { display: inline-flex;align-items: center;gap: 8px;padding: 9px 24px;background: transparent;border: 1.5px solid rgba(26,46,68,0.15);border-radius: 100px;font-family: 'Comfortaa', sans-serif;font-size: 13px;font-weight: 600;color: #1a2e44;cursor: pointer;transition: all 0.25s ease; }
         .back-top-btn:hover { background: #1a2e44;color: #fff;border-color: #1a2e44; }
 
         @media (max-width: 900px) {
@@ -424,7 +424,7 @@ export default function Privacy() {
         .acc:hover { background: rgba(255,255,255,0.9);box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
         .acc.acc-open { background: white;box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
         .acc-q { display: flex;align-items: center;justify-content: space-between;padding: 16px 20px;gap: 12px; }
-        .acc-q span { font-size: clamp(13px, 4vw, 15px);font-weight: 600;color: #1a2e44;line-height: 1.4; }
+        .acc-q span { font-family: 'Comfortaa', sans-serif;font-size: clamp(13px, 4vw, 15px);font-weight: 600;color: #1a2e44;line-height: 1.4; }
         .acc-chevron { width: 28px;height: 28px;border-radius: 50%;display: flex;align-items: center;justify-content: center;background: rgba(26,46,68,0.08);color: #1a2e44;transition: transform 0.35s ease, background 0.25s;flex-shrink: 0; }
         .acc-chevron.flipped { transform: rotate(-180deg);background: #1a2e44;color: #fff; }
         .acc-body { height: 0;overflow: hidden;transition: height 0.38s ease; }
@@ -465,15 +465,15 @@ export default function Privacy() {
 
         .footer-links { display: flex;justify-content: center;gap: 60px;padding: 36px 0 0;flex-wrap: wrap; }
         .footer-col { text-align: center; }
-        .footer-col-title { font-family: 'Nunito', sans-serif;font-size: 10px;font-weight: 900;text-transform: uppercase;letter-spacing: 2px;color: #64748B;margin: 0 0 10px 0; }
+        .footer-col-title { font-family: 'Comfortaa', sans-serif;font-size: 10px;font-weight: 700;text-transform: uppercase;letter-spacing: 2px;color: #64748B;margin: 0 0 10px 0; }
         .footer-col-links { display: flex;justify-content: center;align-items: center;gap: 24px;flex-wrap: wrap; }
         .footer-link {
-          display: inline-block;font-family: 'Nunito', sans-serif;font-size: 13px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: color .2s ease;
+          display: inline-block;font-family: 'Comfortaa', sans-serif;font-size: 13px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: color .2s ease;
         }
         .footer-link:hover { color: #1E293B;text-decoration: underline; }
 
         .footer-bottom { padding-top: 28px;display: flex;align-items: center;justify-content: center;text-align: center; }
-        .footer-copyright { font-family: 'Nunito', sans-serif;font-size: 12px;font-weight: 600;color: #64748B;letter-spacing: .3px;transition: color .2s ease; }
+        .footer-copyright { font-family: 'Comfortaa', sans-serif;font-size: 12px;font-weight: 600;color: #64748B;letter-spacing: .3px;transition: color .2s ease; }
         .footer-copyright:hover { color: #1E293B; }
 
         @media (max-width: 768px) {

@@ -112,8 +112,7 @@ export default function Contact() {
   return (
     <>
       <style>{`
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -135,6 +134,10 @@ export default function Contact() {
   --radius-input: 16px;
 }
 
+body {
+  font-family: 'Comfortaa', sans-serif;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -150,7 +153,7 @@ export default function Contact() {
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Comfortaa', sans-serif;
   scroll-behavior: smooth;
 }
 .cw::-webkit-scrollbar { display: none; }
@@ -175,8 +178,42 @@ export default function Contact() {
 @keyframes fadeLeft { from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:none} }
 @keyframes fadeRight { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:none} }
 @keyframes scaleIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:none} }
-@keyframes floatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
-@keyframes floatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(18px)} }
+
+/* richer, more organic blob motion — drifts across a wide path, not just up/down */
+@keyframes driftA {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(6vw, -8vh) scale(1.08); }
+  50%  { transform: translate(-3vw, -14vh) scale(0.95); }
+  75%  { transform: translate(-8vw, -4vh) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes driftB {
+  0%   { transform: translate(0, 0) scale(1); }
+  30%  { transform: translate(-7vw, 9vh) scale(0.92); }
+  60%  { transform: translate(5vw, 13vh) scale(1.1); }
+  85%  { transform: translate(8vw, 2vh) scale(0.97); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes driftC {
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33%  { transform: translate(-6vw, -6vh) scale(1.12) rotate(8deg); }
+  66%  { transform: translate(7vw, 6vh) scale(0.9) rotate(-6deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
+.blobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.22;
+  will-change: transform;
+}
 
 .hero-content > *,
 .form-left > *,
@@ -205,27 +242,15 @@ export default function Contact() {
 .seen .faq-left .cta { animation: scaleIn 0.50s ease forwards 0.16s; }
 .seen .faq-right { animation: fadeRight 0.55s ease forwards 0.12s; }
 
-.blobs {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.22;
-}
-.s1 .blob:nth-child(1){animation:floatA 8s ease-in-out infinite;background:#4fd1c5;width:42%;height:46%;left:18%;top:18%;}
-.s1 .blob:nth-child(2){animation:floatB 10s ease-in-out infinite;background:#b794f4;width:32%;height:36%;left:64%;top:40%;}
-.s1 .blob:nth-child(3){animation:floatA 12s ease-in-out infinite;background:#f6e05e;width:26%;height:30%;left:38%;top:68%;}
-.s2 .blob:nth-child(1){animation:floatB 9s ease-in-out infinite;background:#b794f4;width:40%;height:44%;left:8%;top:22%;}
-.s2 .blob:nth-child(2){animation:floatA 11s ease-in-out infinite;background:#9f7aea;width:30%;height:34%;left:58%;top:14%;}
-.s3 .blob:nth-child(1){animation:floatA 7s ease-in-out infinite;background:#f6e05e;width:38%;height:42%;left:14%;top:18%;}
-.s3 .blob:nth-child(2){animation:floatB 13s ease-in-out infinite;background:#ed8936;width:28%;height:32%;left:63%;top:48%;}
-.s4 .blob:nth-child(1){animation:floatB 10s ease-in-out infinite;background:#63b3ed;width:44%;height:48%;left:4%;top:16%;}
-.s4 .blob:nth-child(2){animation:floatA 14s ease-in-out infinite;background:#4299e1;width:30%;height:34%;left:64%;top:33%;}
+.s1 .blob:nth-child(1){animation:driftA 16s ease-in-out infinite;background:#4fd1c5;width:42%;height:46%;left:18%;top:18%;}
+.s1 .blob:nth-child(2){animation:driftB 19s ease-in-out infinite;background:#b794f4;width:32%;height:36%;left:64%;top:40%;}
+.s1 .blob:nth-child(3){animation:driftC 22s ease-in-out infinite;background:#f6e05e;width:26%;height:30%;left:38%;top:68%;}
+.s2 .blob:nth-child(1){animation:driftB 18s ease-in-out infinite;background:#b794f4;width:40%;height:44%;left:8%;top:22%;}
+.s2 .blob:nth-child(2){animation:driftA 20s ease-in-out infinite;background:#9f7aea;width:30%;height:34%;left:58%;top:14%;}
+.s3 .blob:nth-child(1){animation:driftC 17s ease-in-out infinite;background:#f6e05e;width:38%;height:42%;left:14%;top:18%;}
+.s3 .blob:nth-child(2){animation:driftB 24s ease-in-out infinite;background:#ed8936;width:28%;height:32%;left:63%;top:48%;}
+.s4 .blob:nth-child(1){animation:driftA 19s ease-in-out infinite;background:#63b3ed;width:44%;height:48%;left:4%;top:16%;}
+.s4 .blob:nth-child(2){animation:driftC 23s ease-in-out infinite;background:#4299e1;width:30%;height:34%;left:64%;top:33%;}
 
 .navbar {
   position: fixed;
@@ -263,7 +288,7 @@ export default function Contact() {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Comfortaa', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--navy);
@@ -317,7 +342,7 @@ export default function Contact() {
   gap: 10px;
   background: var(--navy);
   color: white;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Comfortaa', sans-serif;
   font-size: 15px;
   font-weight: 700;
   padding: 13px 32px;
@@ -351,8 +376,9 @@ export default function Contact() {
   font-weight: 800;
   color: var(--navy);
   line-height: 1.08;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   margin-bottom: 22px;
+  font-family: 'Comfortaa', sans-serif;
 }
 .hero-content p {
   font-size: clamp(15px,2.2vw,18px);
@@ -360,6 +386,7 @@ export default function Contact() {
   line-height: 1.65;
   max-width: 520px;
   margin: 0 auto 36px auto;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .form-layout {
@@ -382,14 +409,16 @@ export default function Contact() {
   font-weight: 800;
   color: var(--navy);
   line-height: 1.08;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   margin-bottom: 14px;
+  font-family: 'Comfortaa', sans-serif;
 }
 .form-left p {
   font-size: 15px;
   color: var(--navy60);
   line-height: 1.6;
   margin-bottom: 24px;
+  font-family: 'Comfortaa', sans-serif;
 }
 .chips {
   display: flex;
@@ -409,6 +438,7 @@ export default function Contact() {
   color: var(--navy);
   cursor: pointer;
   transition: all 0.18s;
+  font-family: 'Comfortaa', sans-serif;
 }
 .chip.active { background: var(--navy); color: white; border-color: var(--navy); }
 .chip:hover:not(.active) { background: var(--navy12); }
@@ -436,6 +466,7 @@ export default function Contact() {
   color: #00a86b;
   font-size: 13px;
   font-weight: 600;
+  font-family: 'Comfortaa', sans-serif;
 }
 .form-row {
   display: grid;
@@ -450,7 +481,7 @@ export default function Contact() {
   border: 1px solid rgba(26,46,68,0.1);
   border-radius: var(--radius-input);
   color: var(--navy);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Comfortaa', sans-serif;
   font-size: 14px;
   outline: none;
   transition: border-color 0.18s, background 0.18s;
@@ -464,7 +495,7 @@ export default function Contact() {
   border: none;
   background: var(--navy);
   color: white;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Comfortaa', sans-serif;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -489,8 +520,9 @@ export default function Contact() {
   font-size: clamp(36px,5vw,56px);
   font-weight: 800;
   color: var(--navy);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   margin-bottom: 8px;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .connect-content .subtitle {
@@ -498,6 +530,7 @@ export default function Contact() {
   color: var(--navy60);
   font-weight: 500;
   margin-bottom: 32px;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .connect-grid {
@@ -553,6 +586,7 @@ export default function Contact() {
   font-weight: 700;
   color: var(--navy);
   margin-bottom: 2px;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .c-handle {
@@ -562,6 +596,7 @@ export default function Contact() {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .c-pill {
@@ -571,6 +606,7 @@ export default function Contact() {
   font-size: 10px;
   font-weight: 700;
   transition: all 0.3s ease;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .connect-card:hover .c-pill {
@@ -598,6 +634,7 @@ export default function Contact() {
   line-height: 1.8;
   color: var(--navy60);
   font-weight: 500;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .coming-soon strong {
@@ -605,7 +642,7 @@ export default function Contact() {
   font-weight: 700;
 }
 
-/* ─── FAQ SECTION - EK DUM SUNDAR ─── */
+/* ─── FAQ SECTION ─── */
 .faq-layout {
   position: relative;
   z-index: 10;
@@ -627,8 +664,9 @@ export default function Contact() {
   font-weight: 800;
   color: var(--navy);
   line-height: 1.08;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   margin-bottom: 12px;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .faq-left p {
@@ -636,6 +674,7 @@ export default function Contact() {
   color: var(--navy60);
   line-height: 1.6;
   margin-bottom: 28px;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .faq-right {
@@ -674,6 +713,7 @@ export default function Contact() {
   color: var(--navy);
   line-height: 1.4;
   transition: color 0.3s ease;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 .faq-item.open .faq-q span {
@@ -717,6 +757,7 @@ export default function Contact() {
   color: var(--navy60);
   line-height: 1.7;
   padding-top: 4px;
+  font-family: 'Comfortaa', sans-serif;
 }
 
 @media (max-width: 1024px) {
@@ -922,7 +963,6 @@ export default function Contact() {
           </div>
         </div>
 
-        {/* ✅ SECTION 4 - FAQ WITH SMOOTH ANIMATION */}
         <div className={`section s4 ${seenSections.has(3) ? "seen" : ""}`} ref={sectionRefs[3]}>
           <div className="blobs">
             <div className="blob" />
