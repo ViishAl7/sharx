@@ -19,7 +19,7 @@ const righteous = Righteous({
 
 export const metadata = {
   title: "Sharx",
-  description: "Play Free Online Games",
+  description: "Play free online games instantly — no downloads, no sign-up. Racing, puzzles, action & more, all in one place on Sharx!",
   icons: {
     icon: "/Sharx.svg",
   },
