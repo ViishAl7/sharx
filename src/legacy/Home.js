@@ -298,6 +298,31 @@ export default function Home({ initialGames = [] }) {
           <EasterEggModal gameCount={displayedGames.length} onClose={handleCloseEasterEgg} />
         </Suspense>
       )}
+      <div className="announcement-bar" role="region" aria-label="Website update">
+  <div className="announcement-bar__track">
+    <div className="announcement-bar__message">
+      <span className="announcement-bar__badge">
+        <span className="announcement-bar__dot" />
+        NEW WEBSITE
+      </span>
+
+      <span className="announcement-bar__text">
+        You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
+      </span>
+    </div>
+
+    <div className="announcement-bar__message" aria-hidden="true">
+      <span className="announcement-bar__badge">
+        <span className="announcement-bar__dot" />
+        NEW WEBSITE
+      </span>
+
+      <span className="announcement-bar__text">
+        You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
+      </span>
+    </div>
+  </div>
+</div>
 
       <div className="nav-outer">
         <div className="nav-wrap">

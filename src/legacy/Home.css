@@ -524,4 +524,156 @@ body {
   .nav-wrap{ background: rgba(255,255,255,.92); }
   .cats-wrap{ background: rgba(255,255,255,.92); }
   .modal-bg{ background: rgba(15,23,42,.97); }
+}@keyframes announcementMarquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes announcementPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55);
+  }
+  50% {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes announcementShine {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(130%); }
+}
+
+.announcement-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: #050505;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.announcement-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: announcementShine 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.announcement-bar__track {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: max-content;
+  animation: announcementMarquee 24s linear infinite;
+  will-change: transform;
+}
+
+.announcement-bar:hover .announcement-bar__track {
+  animation-play-state: paused;
+}
+
+.announcement-bar__message {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 0 0 auto;
+  padding: 0 64px 0 24px;
+  white-space: nowrap;
+}
+
+.announcement-bar__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.announcement-bar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  animation: announcementPulse 1.7s ease-in-out infinite;
+}
+
+.announcement-bar__text {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+.nav-outer {
+  top: 64px;
+}
+
+.cats-outer {
+  margin-top: 128px;
+}
+
+.page-content-top {
+  padding-top: 148px;
+}
+
+@media (max-width: 768px) {
+  .announcement-bar {
+    height: 48px;
+  }
+
+  .announcement-bar__message {
+    min-height: 48px;
+    gap: 13px;
+    padding-right: 48px;
+  }
+
+  .announcement-bar__text {
+    font-size: 12px;
+  }
+
+  .announcement-bar__badge {
+    font-size: 9px;
+    padding: 6px 9px;
+  }
+
+  .nav-outer {
+    top: 56px;
+  }
+
+  .cats-outer {
+    margin-top: 112px;
+  }
+
+  .page-content-top {
+    padding-top: 128px;
+  }
+}
+
+@media (max-width: 560px) {
+  .cats-outer {
+    margin-top: 108px;
+  }
+
+  .page-content-top {
+    padding-top: 120px;
+  }
 }
