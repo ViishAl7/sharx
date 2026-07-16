@@ -18,22 +18,77 @@ const righteous = Righteous({
 });
 
 export const metadata = {
-  title: "Play Free Games | Sharx",
+  metadataBase: new URL("https://sharx.in"),
+
+  title: {
+    default: "Play Free Online Games | Sharx",
+    template: "%s | Sharx",
+  },
+
   description:
-    "Play free online games instantly. No downloads, no sign-up. Racing, action, puzzle, sports and more.",
+    "Play thousands of free online games instantly on Sharx. No downloads, no sign-up. Enjoy action, racing, puzzle, sports, arcade and multiplayer games for free.",
+
+  applicationName: "Sharx",
+
+  authors: [
+    {
+      name: "Sharx",
+      url: "https://sharx.in",
+    },
+  ],
+
+  creator: "Sharx",
+  publisher: "Sharx",
+
+  alternates: {
+    canonical: "/",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
     apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
+  },
+
+  openGraph: {
+    type: "website",
+    url: "https://sharx.in",
+    siteName: "Sharx",
+    locale: "en_US",
+    title: "Play Free Online Games | Sharx",
+    description:
+      "Play thousands of free online games instantly. No downloads, no sign-up. Play anytime on Sharx.",
+    images: [
+      {
+        url: "/sharx.png",
+        width: 1200,
+        height: 630,
+        alt: "Sharx - Free Online Games",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Play Free Online Games | Sharx",
+    description:
+      "Play thousands of free online games instantly. No downloads, no sign-up.",
+    images: ["/sharx.png"],
   },
 };
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en" className={`${nunito.variable} ${righteous.variable}`}>
-      <body>
-        <Providers>{children}</Providers>
-      </body>
-    </html>
-  );
-}
