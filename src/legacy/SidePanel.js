@@ -30,9 +30,34 @@ const router = useRouter();
   const [passkeyEmail, setPasskeyEmail] = useState("");
   const [showEmailInput, setShowEmailInput] = useState(false);
 
+  // FIX: plain `overflow:hidden` on body doesn't reliably block
+  // touch-drag scrolling on iOS Safari, so the background page could
+  // still be scrolled while the panel was open. We now also pin the
+  // body with position:fixed at its current scroll offset (the
+  // standard iOS-safe scroll-lock pattern), then restore the exact
+  // scroll position when the panel closes.
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    const scrollY = window.scrollY || window.pageYOffset;
+    const { body } = document;
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+
+    return () => {
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      body.style.overflow = prev.overflow;
+      window.scrollTo(0, scrollY);
+    };
   }, []);
 
   // ── PASSKEY REGISTER ────────────────────────────────────
@@ -169,10 +194,19 @@ const router = useRouter();
     <>
       <style>{`
 
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&display=swap');
 
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Raleway',sans-serif; }
+        /* FIX: these two rules used to be unscoped ("*" and "body"),
+           which meant every time this panel opened it reset margin/
+           padding on the WHOLE document and force-switched the ENTIRE
+           page's font to Comfortaa — not just this panel. Scoped to
+           .pv-panel now, so it only ever touches its own content. */
+        .pv-panel, .pv-panel *, .pv-panel *::before, .pv-panel *::after {
+          margin:0; padding:0; box-sizing:border-box;
+        }
+        .pv-panel {
+          font-family:'Comfortaa',sans-serif;
+        }
 
         /* Overlay fade */
         .pv-overlay {
@@ -180,7 +214,13 @@ const router = useRouter();
           background:rgba(0,0,0,0.5);
           backdrop-filter:blur(12px);
           -webkit-backdrop-filter:blur(12px);
-          z-index:999;
+          /* FIX: was z-index:999, one level BELOW .announcement-bar's
+             z-index:1000. That meant the marquee bar rendered on top
+             of this blurred overlay instead of underneath it, so it
+             never got included in the blur. Raised above 1000 so the
+             announcement bar is now covered (and blurred) like the
+             rest of the page. */
+          z-index:1001;
           animation:fadeIn .28s ease;
         }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
@@ -192,7 +232,8 @@ const router = useRouter();
           background: rgba(255, 255, 255, 0.3);
           backdrop-filter: blur(30px);
           -webkit-backdrop-filter: blur(30px);
-          z-index:1000;
+          /* FIX: raised to stay above the new .pv-overlay z-index (1001). */
+          z-index:1002;
           display:flex; align-items:center; justify-content:center;
           overflow:hidden;
           box-shadow: 0 0 0 1px rgba(255,255,255,0.2) inset, 0 20px 60px rgba(0,0,0,0.1);
@@ -262,7 +303,7 @@ const router = useRouter();
           flex:1; height:50px; border:none;
           border-radius:50px; background:transparent;
           color:#334155;
-          font-family:'Raleway',sans-serif;
+          font-family:'Comfortaa',sans-serif;
           font-size:15px; font-weight:700;
           cursor:pointer;
           transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
@@ -287,7 +328,7 @@ const router = useRouter();
           border:1px solid rgba(255,255,255,0.7);
           display:flex; align-items:center; justify-content:center;
           gap:13px; color:#0f172a;
-          font-family:'Raleway',sans-serif;
+          font-family:'Comfortaa',sans-serif;
           font-size:15px; font-weight:700;
           cursor:pointer; margin-bottom:13px;
           transition: transform 0.25s cubic-bezier(.2,.9,.4,1.1), box-shadow 0.25s ease, background 0.2s ease, border-color 0.2s ease;
@@ -310,7 +351,7 @@ const router = useRouter();
           border-radius:30px;
           border:1px solid rgba(255,255,255,0.6);
           padding:0 20px;
-          font-family:'Raleway',sans-serif;
+          font-family:'Comfortaa',sans-serif;
           font-size:15px;
           font-weight:500;
           color:#0f172a;

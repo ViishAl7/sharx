@@ -117,7 +117,7 @@ export default function ContactPage() {
         }
         .hero-hint.vis { animation:fadeUp .5s .16s ease forwards; }
 
-        @keyframes fadeUp {
+        @keyframes fadeUp {a
           from { opacity:0; transform:translateY(18px); }
           to   { opacity:1; transform:translateY(0); }
         }
@@ -309,9 +309,9 @@ export default function ContactPage() {
 
             <div
               className={`email-wrap${visible ? " vis" : ""}`}
-              onClick={() => window.location.href = "mailto:sharx.help@gmail.com"}
+              onClick={() => window.location.href = "mailto:hello@sharx.in"}
             >
-              <span className="email-text">sharx.help@gmail.com</span>
+              <span className="email-text">hello@sharx.in</span>
               <span className="email-line" />
             </div>
           </div>

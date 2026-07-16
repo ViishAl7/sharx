@@ -293,6 +293,36 @@ export default function Home({ initialGames = [] }) {
 
   return (
     <>
+      {/* Ambient sky-blue crystal backdrop — fixed behind everything
+          on the page (see .bg-crystals in Home.css). Purely
+          decorative and non-interactive. */}
+    <div className="bg-crystals" aria-hidden="true">
+  <div className="crystal-cluster crystal-1">
+    <div className="facet shadow-face" />
+    <div className="facet main-face" />
+    <div className="facet rim-light" />
+  </div>
+  <div className="crystal-cluster crystal-2">
+    <div className="facet shadow-face" />
+    <div className="facet main-face" />
+    <div className="facet rim-light" />
+  </div>
+  <div className="crystal-cluster crystal-3">
+    <div className="facet shadow-face" />
+    <div className="facet main-face" />
+    <div className="facet rim-light" />
+  </div>
+  <div className="crystal-cluster crystal-4">
+    <div className="facet shadow-face" />
+    <div className="facet main-face" />
+    <div className="facet rim-light" />
+  </div>
+  <div className="crystal-cluster crystal-5">
+    <div className="facet shadow-face" />
+    <div className="facet main-face" />
+    <div className="facet rim-light" />
+  </div>
+</div>
       {showEasterEgg && (
         <Suspense fallback={null}>
           <EasterEggModal gameCount={displayedGames.length} onClose={handleCloseEasterEgg} />
