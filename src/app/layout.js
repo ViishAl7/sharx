@@ -18,15 +18,14 @@ const righteous = Righteous({
 });
 
 export const metadata = {
-  title: "Sharx",
+  title: "Play Free Games | Sharx",
   description:
-    "Play free online games instantly — no downloads, no sign-up. Racing, puzzles, action & more, all in one place on Sharx!",
+    "Play free online games instantly. No downloads, no sign-up. Racing, action, puzzle, sports and more.",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
-  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({ children }) {
