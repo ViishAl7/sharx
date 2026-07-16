@@ -19,10 +19,14 @@ const righteous = Righteous({
 
 export const metadata = {
   title: "Sharx",
-  description: "Play free online games instantly — no downloads, no sign-up. Racing, puzzles, action & more, all in one place on Sharx!",
+  description:
+    "Play free online games instantly — no downloads, no sign-up. Racing, puzzles, action & more, all in one place on Sharx!",
   icons: {
-    icon: "/Sharx.svg",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({ children }) {
