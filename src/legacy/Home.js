@@ -9,11 +9,6 @@ import { useProfile } from "../context/ProfileContext";
 import { GAMES_BASE, API_BASE } from "../config";
 import "./Home.css";
 
-// PERFORMANCE: All of these only render after a user interaction
-// (login click / profile click / game click / footer social click /
-// 5x logo click easter egg), so they're code-split out of the initial
-// Home bundle instead of being imported eagerly. This is what keeps
-// the main chunk small and LCP fast.
 const SidePanel = lazy(() => import("../legacy/SidePanel"));
 const ProfileSidePanel = lazy(() => import("../legacy/ProfileSidePanel"));
 const GameModal = lazy(() => import("../legacy/GameModal"));
@@ -23,7 +18,6 @@ const SocialComingSoonModal = lazy(() => import("../legacy/SocialComingSoonModal
 const HISTORY_KEY = "pv_history";
 const MAX_HISTORY = 12;
 
-// Optimized history functions
 const getHistory = () => {
   try {
     return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
@@ -39,8 +33,6 @@ const addToHistory = (game) => {
   );
 };
 
-// Dedupe games by id, keeping the first occurrence. Games without an id
-// are kept as-is since we can't safely tell if they're duplicates.
 const dedupeById = (list) => {
   const seen = new Set();
   const result = [];
@@ -57,15 +49,9 @@ const dedupeById = (list) => {
   return result;
 };
 
-// Memoized featured check for performance
 const FEATURED_INDICES = new Set([0, 7, 16]);
 const isFeaturedFast = (i) => FEATURED_INDICES.has(i);
 
-/* ─── HOME ───
-   FIX: now accepts `initialGames` from the server-fetched wrapper
-   (see page.js). This is the actual LCP fix — see notes below on
-   allGames/loading/hasMore.
-*/
 export default function Home({ initialGames = [] }) {
   const router = useRouter();
   const { logout: authLogout } = useAuth();
@@ -93,6 +79,23 @@ export default function Home({ initialGames = [] }) {
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("token"));
   }, []);
+
+  // FIX: the announcement bar is `position: fixed; z-index: 1000`, above
+  // the game modal (`z-index: 999`), so it covered the modal's own
+  // close/back button and there was no way to leave a game. Toggling a
+  // `modal-open` class on <body> while a game is active lets Home.css
+  // slide the announcement bar out of view for that duration (see
+  // `body.modal-open .announcement-bar` in Home.css).
+  useEffect(() => {
+    if (activeGame) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => {
+      document.body.classList.remove("modal-open");
+    };
+  }, [activeGame]);
 
   const openGame = useCallback((game) => {
     addToHistory(game);
@@ -293,66 +296,69 @@ export default function Home({ initialGames = [] }) {
 
   return (
     <>
-      {/* Ambient sky-blue crystal backdrop — fixed behind everything
-          on the page (see .bg-crystals in Home.css). Purely
-          decorative and non-interactive. */}
-    <div className="bg-crystals" aria-hidden="true">
-  <div className="crystal-cluster crystal-1">
-    <div className="facet shadow-face" />
-    <div className="facet main-face" />
-    <div className="facet rim-light" />
-  </div>
-  <div className="crystal-cluster crystal-2">
-    <div className="facet shadow-face" />
-    <div className="facet main-face" />
-    <div className="facet rim-light" />
-  </div>
-  <div className="crystal-cluster crystal-3">
-    <div className="facet shadow-face" />
-    <div className="facet main-face" />
-    <div className="facet rim-light" />
-  </div>
-  <div className="crystal-cluster crystal-4">
-    <div className="facet shadow-face" />
-    <div className="facet main-face" />
-    <div className="facet rim-light" />
-  </div>
-  <div className="crystal-cluster crystal-5">
-    <div className="facet shadow-face" />
-    <div className="facet main-face" />
-    <div className="facet rim-light" />
-  </div>
-</div>
+      {/* Ambient full-page teal backdrop with real pointed 3D crystals
+          (see .bg-crystals in Home.css for the teal gradient). Each
+          crystal below is a genuine inline SVG built from several
+          triangular facets — some catch a light gradient, some sit in
+          shadow — so they read as real photographed rough gemstones,
+          not flat shapes. A couple are rendered soft/blurred for
+          atmospheric depth, and small accent gems + hazy glow blobs
+          are scattered for extra depth. Purely decorative. */}
+      <div className="bg-crystals" aria-hidden="true">
+        <div className="crystal-cluster gem crystal-1">
+          <PointedCrystalSVG variant="a" />
+        </div>
+        <div className="crystal-cluster gem crystal-2">
+          <PointedCrystalSVG variant="b" />
+        </div>
+        <div className="crystal-cluster soft crystal-3">
+          <PointedCrystalSVG variant="c" />
+        </div>
+        <div className="crystal-cluster gem crystal-4">
+          <PointedCrystalSVG variant="b" flip />
+        </div>
+        <div className="crystal-cluster soft crystal-5">
+          <PointedCrystalSVG variant="a" flip />
+        </div>
+        <div className="crystal-cluster gem crystal-accent a1">
+          <PointedCrystalSVG variant="c" />
+        </div>
+        <div className="crystal-cluster gem crystal-accent a2">
+          <PointedCrystalSVG variant="a" />
+        </div>
+        <div className="crystal-cluster glow crystal-accent a3" />
+        <div className="crystal-cluster glow crystal-accent a4" />
+      </div>
       {showEasterEgg && (
         <Suspense fallback={null}>
           <EasterEggModal gameCount={displayedGames.length} onClose={handleCloseEasterEgg} />
         </Suspense>
       )}
       <div className="announcement-bar" role="region" aria-label="Website update">
-  <div className="announcement-bar__track">
-    <div className="announcement-bar__message">
-      <span className="announcement-bar__badge">
-        <span className="announcement-bar__dot" />
-        NEW WEBSITE
-      </span>
+        <div className="announcement-bar__track">
+          <div className="announcement-bar__message">
+            <span className="announcement-bar__badge">
+              <span className="announcement-bar__dot" />
+              NEW WEBSITE
+            </span>
 
-      <span className="announcement-bar__text">
-        You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
-      </span>
-    </div>
+            <span className="announcement-bar__text">
+              You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
+            </span>
+          </div>
 
-    <div className="announcement-bar__message" aria-hidden="true">
-      <span className="announcement-bar__badge">
-        <span className="announcement-bar__dot" />
-        NEW WEBSITE
-      </span>
+          <div className="announcement-bar__message" aria-hidden="true">
+            <span className="announcement-bar__badge">
+              <span className="announcement-bar__dot" />
+              NEW WEBSITE
+            </span>
 
-      <span className="announcement-bar__text">
-        You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
-      </span>
-    </div>
-  </div>
-</div>
+            <span className="announcement-bar__text">
+              You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
+            </span>
+          </div>
+        </div>
+      </div>
 
       <div className="nav-outer">
         <div className="nav-wrap">
@@ -597,6 +603,102 @@ export default function Home({ initialGames = [] }) {
   );
 }
 
+/* ─── DECORATIVE POINTED CRYSTAL SVG ───
+   Renders a tall, pointed rough-gem shape out of several triangular
+   facets, each filled with its own linear gradient so some faces
+   read as catching light and others as falling into shadow — the
+   same way a real photographed crystal reads. Three hand-built
+   variants (a/b/c) give visual variety across the scattered clusters,
+   and `flip` mirrors a variant horizontally for further variety
+   without needing more markup. Purely decorative (aria-hidden by the
+   parent wrapper). */
+const CRYSTAL_VARIANTS = {
+  // Tall single spike, narrow point, 5 facets
+  a: {
+    viewBox: "0 0 100 140",
+    facets: [
+      { d: "M50 2 L78 46 L50 60 L38 46 Z", tone: "light" },
+      { d: "M50 2 L38 46 L18 40 Z", tone: "mid" },
+      { d: "M50 2 L78 46 L96 42 Z", tone: "highlight" },
+      { d: "M18 40 L38 46 L50 60 L26 100 L10 70 Z", tone: "mid" },
+      { d: "M78 46 L96 42 L84 78 L50 60 Z", tone: "shadow" },
+      { d: "M26 100 L50 60 L84 78 L60 138 L34 132 Z", tone: "deep" },
+    ],
+  },
+  // Squat double-point cluster, 6 facets
+  b: {
+    viewBox: "0 0 110 130",
+    facets: [
+      { d: "M34 4 L52 40 L30 52 L14 34 Z", tone: "highlight" },
+      { d: "M34 4 L14 34 L4 24 Z", tone: "mid" },
+      { d: "M52 40 L30 52 L38 96 L64 84 Z", tone: "mid" },
+      { d: "M14 34 L4 24 L2 60 L30 52 Z", tone: "shadow" },
+      { d: "M78 18 L96 46 L74 62 L58 42 Z", tone: "light" },
+      { d: "M96 46 L108 40 L86 76 L74 62 Z", tone: "shadow" },
+      { d: "M58 42 L74 62 L64 84 L52 40 Z", tone: "mid" },
+      { d: "M2 60 L30 52 L38 96 L20 118 L8 92 Z", tone: "deep" },
+      { d: "M74 62 L86 76 L64 118 L38 96 L64 84 Z", tone: "deep" },
+    ],
+  },
+  // Small crisp accent point, 4 facets
+  c: {
+    viewBox: "0 0 80 110",
+    facets: [
+      { d: "M40 2 L62 38 L40 48 L26 36 Z", tone: "highlight" },
+      { d: "M40 2 L26 36 L10 30 Z", tone: "mid" },
+      { d: "M62 38 L40 48 L52 100 L74 70 Z", tone: "shadow" },
+      { d: "M26 36 L10 30 L6 58 L40 48 Z", tone: "mid" },
+      { d: "M6 58 L40 48 L52 100 L28 108 L14 84 Z", tone: "deep" },
+    ],
+  },
+};
+
+const CRYSTAL_TONES = {
+  highlight: ["#F0FFFC", "#BDF3EA"],
+  light: ["#CFF7F0", "#7FDDD1"],
+  mid: ["#4FC4B8", "#2A9E93"],
+  shadow: ["#1E8378", "#146157"],
+  deep: ["#0F5850", "#0A403A"],
+};
+
+const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a", flip = false }) {
+  const data = CRYSTAL_VARIANTS[variant];
+  const uid = variant;
+  return (
+    <svg
+      viewBox={data.viewBox}
+      style={flip ? { transform: "scaleX(-1)" } : undefined}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        {Object.entries(CRYSTAL_TONES).map(([tone, [c1, c2]]) => (
+          <linearGradient
+            key={tone}
+            id={`crystal-${uid}-${tone}`}
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor={c1} />
+            <stop offset="100%" stopColor={c2} />
+          </linearGradient>
+        ))}
+      </defs>
+      {data.facets.map((f, i) => (
+        <path
+          key={i}
+          d={f.d}
+          fill={`url(#crystal-${uid}-${f.tone})`}
+          stroke="rgba(255,255,255,0.25)"
+          strokeWidth="0.5"
+          strokeLinejoin="round"
+        />
+      ))}
+    </svg>
+  );
+});
+
 /* ─── GAME CARD ─── */
 const GameCard = React.memo(function GameCard({ game, index, featured, onClick }) {
   const cardStyle = useMemo(() => ({ animationDelay: `${Math.min(index, 20) * 22}ms` }), [index]);
@@ -604,22 +706,12 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
   const handleImageError = useCallback(
     (e) => {
       const title = game.title || "Game";
-      // FIX: clear srcset too, not just src. next/image renders a real
-      // srcset attribute (from the `sizes` prop) on the underlying <img>.
-      // If a candidate in that srcset fails, the browser fires onError —
-      // but on reprocessing it re-evaluates srcset FIRST and picks the
-      // same broken URL again, so the new .src we set below never
-      // actually shows unless srcset is cleared first.
       e.target.srcset = "";
       e.target.src = `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(title)}`;
     },
     [game.title],
   );
 
-  // FIX: fall back to the placeholder directly if thumb is missing/empty
-  // (e.g. API returned partial data). next/image requires a non-empty
-  // src string — passing undefined here throws at runtime instead of
-  // quietly falling through to onError.
   const imgSrc =
     game.thumb || `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`;
 
@@ -634,10 +726,6 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
           fill
           sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
           priority={index < 4}
-          // FIX: only the very first card (the actual LCP element) should get
-          // fetchPriority="high". Giving it to index 2 as well made two images
-          // compete for network priority, which was slowing the true LCP image
-          // down — that competition was a real contributor to the 4.0s LCP.
           fetchPriority={index === 0 ? "high" : undefined}
           quality={65}
           onError={handleImageError}
