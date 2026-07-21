@@ -8,27 +8,16 @@ const INVALID_GAME_URL =
 function getGameEmbedUrl(game) {
   const suppliedUrl = String(
     game?.embedUrl ||
-      game?.embed_url ||
-      game?.playUrl ||
-      game?.play_url ||
-      game?.url ||
-      "",
+    game?.embed_url ||
+    game?.playUrl ||
+    game?.play_url ||
+    game?.url ||
+    ""
   ).trim();
 
-  // Actual external game URL ho to use it.
-  if (suppliedUrl && !INVALID_GAME_URL.test(suppliedUrl)) {
-    return suppliedUrl;
-  }
+  if (!suppliedUrl) return "";
 
-  // GameMonetize thumbnail se game ID nikaal kar direct iframe URL banao.
-  const thumbnail = String(game?.thumb || game?.thumbnail || "");
-  const gameId = thumbnail.match(
-    /img\.gamemonetize\.com\/([^/?#]+)/i,
-  )?.[1];
-
-  return gameId
-    ? `https://html5.gamemonetize.co/${gameId}/`
-    : "";
+  return suppliedUrl;
 }
 
 const GameModal = React.memo(function GameModal({ game, onClose }) {

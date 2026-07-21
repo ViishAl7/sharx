@@ -719,17 +719,18 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
     <div className={`gc${featured ? " featured" : ""}`} style={cardStyle} onClick={onClick}>
       {featured && game.category && <span className="gc-cat-chip">{game.category}</span>}
       <div className="gc-img-wrap">
-        <Image
-          className="gc-img"
-          src={imgSrc}
-          alt={game.title}
-          fill
-          sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
-          priority={index < 4}
-          fetchPriority={index === 0 ? "high" : undefined}
-          quality={65}
-          onError={handleImageError}
-        />
+     <Image
+  className="gc-img"
+  src={imgSrc}
+  alt={game.title}
+  fill
+  unoptimized
+  sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
+  priority={index < 4}
+  fetchPriority={index === 0 ? "high" : undefined}
+  quality={65}
+  onError={handleImageError}
+/>
       </div>
       <div className="gc-overlay" />
       <div className="gc-play-btn">

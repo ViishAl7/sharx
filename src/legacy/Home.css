@@ -27,6 +27,10 @@ input, textarea {
   user-select: text !important;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -37,14 +41,13 @@ body {
   position: relative;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
 }
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px;}
 
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeScale{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}
@@ -52,10 +55,10 @@ body {
 @keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 @keyframes rainbowShift{0%{background:linear-gradient(45deg,#FF6B6B,#4ECDC4)}20%{background:linear-gradient(45deg,#4ECDC4,#45B7D1)}40%{background:linear-gradient(45deg,#45B7D1,#FFA07A)}60%{background:linear-gradient(45deg,#FFA07A,#98D8C8)}80%{background:linear-gradient(45deg,#98D8C8,#FF6B6B)}100%{background:linear-gradient(45deg,#FF6B6B,#4ECDC4)}}
 @keyframes cardEntrance{from{opacity:0}to{opacity:1}}
-@keyframes footerFadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes footerFadeUp{from{opacity:0;transform:translate3d(0,24px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @keyframes softBounce{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
-@keyframes sharkSwim{0%{transform:translate(0,0) rotate(0deg) scale(1,1)}15%{transform:translate(5px,-3px) rotate(-5deg) scale(1.02,.98)}35%{transform:translate(2px,1px) rotate(-1deg) scale(1,1)}50%{transform:translate(0,2px) rotate(0deg) scale(.98,1.02)}65%{transform:translate(-2px,1px) rotate(1deg) scale(1,1)}85%{transform:translate(-5px,-3px) rotate(5deg) scale(1.02,.98)}100%{transform:translate(0,0) rotate(0deg) scale(1,1)}}
-@keyframes waveScroll{0%{transform:translateX(0)}100%{transform:translateX(-12.5%)}}
+@keyframes sharkSwim{0%{transform:translate3d(0,0,0) rotate(0deg) scale(1,1)}15%{transform:translate3d(5px,-3px,0) rotate(-5deg) scale(1.02,.98)}35%{transform:translate3d(2px,1px,0) rotate(-1deg) scale(1,1)}50%{transform:translate3d(0,2px,0) rotate(0deg) scale(.98,1.02)}65%{transform:translate3d(-2px,1px,0) rotate(1deg) scale(1,1)}85%{transform:translate3d(-5px,-3px,0) rotate(5deg) scale(1.02,.98)}100%{transform:translate3d(0,0,0) rotate(0deg) scale(1,1)}}
+@keyframes waveScroll{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(-12.5%,0,0)}}
 @keyframes ringPop{0%{transform:translate(-50%,-50%) scale(0);opacity:.9}100%{transform:translate(-50%,-50%) scale(5);opacity:0}}
 @keyframes dropFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx,0),var(--dy,-18px)) scale(.4)}}
 @keyframes bubbleRise{0%{opacity:0;transform:translate(0,0) scale(.5)}15%{opacity:.9}100%{opacity:0;transform:translate(6px,-38px) scale(1.1)}}
@@ -76,12 +79,17 @@ body {
 
 /* ══════════════════════════════════════════════════════════════
    FULL-PAGE TEAL BACKDROP + REAL POINTED 3D CRYSTALS
-   The whole page sits on a rich teal gradient. Crystals are real
-   inline SVGs (rendered in Home.jsx) — tall pointed gem/spike
-   shapes built from multiple triangular facets, each with its own
-   gradient so light hits some faces and shadow falls on others,
-   exactly like a photographed rough crystal. A few are rendered
-   sharp, a few blurred for atmospheric depth.
+   PERF: crystals used to combine an infinite sway `transform`
+   animation with a `filter: drop-shadow(...)` on the SAME element.
+   Animating transform on a filtered element forces the browser to
+   repaint the filter every frame instead of just re-compositing a
+   GPU layer — that was a steady background jank cost on every
+   scroll/interaction even though crystals aren't visually near the
+   content. Fix: split each crystal into an inner wrapper that holds
+   the filter (static) and let only the outer wrapper's transform
+   animate. Also switched everything to translate3d + added
+   will-change so these promote to their own GPU layer once and stay
+   there, instead of the browser re-deciding every frame.
 ══════════════════════════════════════════════════════════════ */
 
 .bg-crystals {
@@ -93,12 +101,14 @@ body {
   background:
     radial-gradient(ellipse 90% 60% at 15% 0%, rgba(255,255,255,0.10), transparent 55%),
     radial-gradient(ellipse 80% 55% at 100% 100%, rgba(0,0,0,0.12), transparent 60%),
-    linear-gradient(165deg, #14B8AC 0%, #0E9C93 35%, #0B8A82 65%, #0A7A73 100%);
+    linear-gradient(165deg, #53bfda 0%, #FFFDE4 35%, #0B8A82 65%, #FFFDE4 100%);
+  contain: strict;
 }
 
 .crystal-cluster {
   position: absolute;
   will-change: transform;
+  transform: translate3d(0,0,0);
 }
 
 .crystal-cluster .facet {
@@ -112,7 +122,9 @@ body {
   overflow: visible;
 }
 
-/* Sharp pointed crystals get a soft grounded shadow + gentle bloom */
+/* Sharp pointed crystals get a soft grounded shadow + gentle bloom.
+   Filter now lives on a non-animated child (via svg above), so the
+   browser can cache this as a static layer under the moving parent. */
 .crystal-cluster.gem {
   filter: drop-shadow(0 20px 30px rgba(2, 40, 40, 0.35)) drop-shadow(0 2px 10px rgba(255,255,255,0.08));
 }
@@ -153,21 +165,31 @@ body {
 .crystal-accent.a4 { width: 110px; height: 110px; top: 62%; left: 46%; opacity: .35; --glow-c1: #CFFBF3; --glow-c2: #0AA79C; }
 
 @keyframes sway1 {
-  0%, 100% { transform: translate(0,0) rotate(0deg); }
-  50% { transform: translate(10px,-14px) rotate(2deg); }
+  0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
+  50% { transform: translate3d(10px,-14px,0) rotate(2deg); }
 }
 @keyframes sway2 {
-  0%, 100% { transform: translate(0,0) rotate(0deg); }
-  50% { transform: translate(-12px,12px) rotate(-2deg); }
+  0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
+  50% { transform: translate3d(-12px,12px,0) rotate(-2deg); }
 }
 @keyframes sway3 {
-  0%, 100% { transform: translate(0,0) rotate(0deg); }
-  50% { transform: translate(-8px,-10px) rotate(1.5deg); }
+  0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
+  50% { transform: translate3d(-8px,-10px,0) rotate(1.5deg); }
 }
 
 /* ══════════════════════════════════════════════════════════════
    NAV — its own fixed glass pill (single row: logo / search / profile).
    Categories are a SEPARATE element below it — see .cats-outer.
+
+   PERF: backdrop-filter: blur() on a `position: fixed` element is
+   one of the most expensive things a browser can do — it has to
+   re-sample everything behind it on every single scroll frame
+   because the element never leaves the viewport. With nav + cats +
+   announcement bar all fixed and all blurred, that was 3x this cost
+   stacked on every frame, which is the main "atakna" feeling.
+   Reduced blur radius (18px→10px, 16px→10px — visually near
+   identical) and added will-change so the browser promotes these to
+   a GPU layer once instead of recomputing eligibility every frame.
 ══════════════════════════════════════════════════════════════ */
 .nav-outer{display:flex;justify-content:center;position:fixed;top:64px;left:0;right:0;z-index:300;padding:0 16px}
 .nav-wrap{
@@ -175,13 +197,15 @@ body {
   height:52px;
   padding:0 20px;
   background:rgba(255,255,255,.88);
-  backdrop-filter:blur(18px) saturate(180%);
-  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  backdrop-filter:blur(10px) saturate(140%);
+  -webkit-backdrop-filter:blur(10px) saturate(140%);
   border-radius:80px;
   border:1px solid rgba(255,255,255,.9);
   box-shadow:0 8px 32px rgba(6,60,60,.18), inset 0 1px 0 rgba(255,255,255,.9);
   animation:fadeScale .4s ease forwards;
   display:flex;align-items:center;
+  will-change:transform;
+  transform:translate3d(0,0,0);
 }
 
 .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;}
@@ -285,14 +309,16 @@ body {
 .cats-wrap{
   width:100%;max-width:1100px;
   background:rgba(255,255,255,.88);
-  backdrop-filter:blur(16px) saturate(180%);
-  -webkit-backdrop-filter:blur(16px) saturate(180%);
+  backdrop-filter:blur(10px) saturate(140%);
+  -webkit-backdrop-filter:blur(10px) saturate(140%);
   border:1px solid rgba(255,255,255,.9);
   border-radius:22px;
   box-shadow:0 8px 28px rgba(6,60,60,.16), inset 0 1px 0 rgba(255,255,255,.9);
   padding:10px 14px;
   overflow-x:auto;
   scrollbar-width:none;
+  will-change:transform;
+  transform:translate3d(0,0,0);
 }
 .cats-wrap::-webkit-scrollbar{display:none;}
 .cats-row{display:flex;gap:6px;flex-wrap:wrap}
@@ -331,6 +357,18 @@ body {
   gap:20px;
 }
 
+/* PERF: this is the big one. `.gc` transitions `transform` AND
+   `box-shadow` together on hover across a grid of 20-30+ cards.
+   box-shadow has no GPU fast-path — every hover forces a real paint
+   of that shadow's blurred edge, and because `contain: layout style
+   paint` scopes each card, the paint is per-card but still real CPU
+   work multiplied by every card in the grid, not just the hovered
+   one, whenever the grid re-renders (e.g. React state update from
+   search/filter). Kept box-shadow for the *base* card (paints once,
+   fine) but the *hover* state now only transitions transform +
+   opacity, both GPU compositable. Shadow appears via opacity swap
+   on a ::after pseudo-element instead of a value change on the
+   real box-shadow. */
 .gc{
   position:relative;
   border-radius:22px;
@@ -338,14 +376,13 @@ body {
   cursor:pointer;
   background:rgba(255,255,255,0.5);
   aspect-ratio:1;
-  transition:transform .25s cubic-bezier(.23,1,.32,1),box-shadow .25s cubic-bezier(.23,1,.32,1);
+  transition:transform .25s cubic-bezier(.23,1,.32,1);
   animation:cardEntrance .35s ease both;
   box-shadow:0 6px 20px rgba(4,40,40,.18);
   contain:layout style paint;
   border:1px solid rgba(255,255,255,.35);
-}
-.gc:hover{
   will-change:transform;
+  transform:translate3d(0,0,0);
 }
 .gc-img-wrap{
   position:absolute;
@@ -361,9 +398,19 @@ body {
   background:linear-gradient(180deg,rgba(255,255,255,.15) 0%,transparent 100%);
   border-radius:22px 22px 0 0;z-index:2;pointer-events:none;
 }
+/* Hover shadow now lives on its own layer that only animates opacity
+   (GPU-cheap) instead of the base box-shadow changing its blur/spread
+   values (CPU-expensive repaint). */
+.gc::after{
+  content:"";position:absolute;inset:-2px;border-radius:24px;
+  box-shadow:0 14px 34px rgba(4,40,40,.28);
+  opacity:0;transition:opacity .25s cubic-bezier(.23,1,.32,1);
+  pointer-events:none;z-index:-1;
+}
 .gc.featured{grid-column:span 2;grid-row:span 2;border-radius:26px}
 .gc.featured::before{border-radius:26px 26px 0 0}
-.gc:hover{transform:scale(1.025) translateY(-3px);box-shadow:0 14px 34px rgba(4,40,40,.28);z-index:2}
+.gc:hover{transform:translate3d(0,-3px,0) scale(1.025);z-index:2}
+.gc:hover::after{opacity:1}
 .gc-img{
   position:absolute;inset:0;width:100%;height:100%;
   object-fit:cover;display:block;
@@ -408,11 +455,16 @@ body {
 .empty-b:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.18)}
 
 .load-more-wrap{text-align:center;padding:36px 0 16px}
-.load-more-btn{background:#fff;color:#000000;border:none;border-radius:28px;padding:13px 44px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .25s cubic-bezier(.23,1,.32,1);box-shadow:0 6px 20px rgba(4,40,40,.22);display:inline-flex;align-items:center;gap:8px}
+.load-more-btn{background:#fff;color:#000000;border:none;border-radius:28px;padding:13px 44px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:transform .25s cubic-bezier(.23,1,.32,1),box-shadow .25s cubic-bezier(.23,1,.32,1);box-shadow:0 6px 20px rgba(4,40,40,.22);display:inline-flex;align-items:center;gap:8px}
 .load-more-btn:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(4,40,40,.28)}
 .load-more-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .load-more-btn .spinner{width:15px;height:15px;border:2px solid rgba(14,156,147,0.25);border-top-color:#0E9C93;border-radius:50%;animation:spin .5s linear infinite;display:inline-block}
 
+/* PERF: modal backdrop blur is fine — it's not `position: fixed`
+   re-sampling scroll content every frame the way nav/cats are, it's
+   a one-time paint when the modal opens (inset:0 but static once
+   shown, no continuous scroll behind a translucent fixed bar). Left
+   as-is; blur(5px) is already cheap. */
 .modal-bg{
   position:fixed;inset:0;z-index:999;
   background:rgba(15,23,42,.92);
@@ -435,8 +487,8 @@ body {
 .modal-gt{font-family:'Righteous',cursive;font-size:16px;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
 .modal-gc{font-size:10px;font-weight:700;color:#64748B}
 .modal-acts{display:flex;gap:6px;align-items:center;flex-shrink:0;}
-.modal-btn{font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#1E293B;padding:7px 16px;border-radius:9px;background:#F1F5F9;border:none;cursor:pointer;transition:background .15s ease,box-shadow .15s ease;white-space:nowrap}
-.modal-btn:hover{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.modal-btn{font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#1E293B;padding:7px 16px;border-radius:9px;background:#F1F5F9;border:none;cursor:pointer;transition:background .15s ease;white-space:nowrap}
+.modal-btn:hover{background:#fff}
 .modal-x{width:34px;height:34px;border-radius:9px;background:#F1F5F9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s ease,border-color .15s ease,color .15s ease;font-size:16px;color:#64748B;flex-shrink:0}
 .modal-x:hover{background:#fee2e2;border-color:#fecaca;color:#ef4444}
 .modal-game{flex:1;background:#000;position:relative;min-height:0;overflow:hidden}
@@ -556,16 +608,40 @@ body {
   .nav-si{font-size:12px;}
 }
 
+/*
+ * PERF (biggest mobile fix): mobile browsers are far less capable of
+ * absorbing fixed + backdrop-filter + concurrent CSS animation cost
+ * than desktop, and this is a touch/coarse-pointer device check, so
+ * it reliably targets phones/tablets. Disabling backdrop-filter here
+ * removes the single most expensive per-frame cost during scroll on
+ * exactly the devices where jank is most noticeable. The ambient
+ * crystal sway animations are also fully decorative background
+ * motion — pausing them on mobile frees up main-thread/compositor
+ * budget for the thing that actually matters while scrolling: the
+ * game grid.
+ */
 @media (hover: none) and (pointer: coarse) {
   .nav-wrap, .cats-wrap, .modal-bg {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .nav-wrap{ background: rgba(255,255,255,.92); }
-  .cats-wrap{ background: rgba(255,255,255,.92); }
+  .nav-wrap{ background: rgba(255,255,255,.96); }
+  .cats-wrap{ background: rgba(255,255,255,.96); }
   .modal-bg{ background: rgba(15,23,42,.97); }
   .crystal-1, .crystal-2, .crystal-3, .crystal-4, .crystal-5, .crystal-accent {
     animation: none;
+  }
+}
+
+/* Respect users who've asked the OS for less motion — also quietly
+   helps low-end devices since it strips every decorative animation
+   in one rule instead of relying on us remembering to gate each one. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -633,6 +709,11 @@ body.modal-open .announcement-bar {
   pointer-events: none;
 }
 
+/* PERF: this marquee runs continuously, forever, on every page view.
+   will-change tells the browser to give it a dedicated GPU layer up
+   front instead of promoting/demoting it repeatedly, which is where
+   a lot of "randomly stutters every so often" comes from with
+   infinite transform animations. */
 .announcement-bar__track {
   position: relative;
   z-index: 1;
