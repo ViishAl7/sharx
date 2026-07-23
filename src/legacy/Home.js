@@ -846,7 +846,7 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
   fill
   unoptimized
   sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
-  priority={index < 4}
+  priority={index === 0}
   fetchPriority={index === 0 ? "high" : undefined}
   quality={65}
   onError={handleImageError}
