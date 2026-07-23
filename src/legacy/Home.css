@@ -504,8 +504,17 @@ body {
 }
 .modal-l{display:flex;align-items:center;gap:10px;min-width:0;}
 .modal-thumb{width:44px;height:32px;object-fit:cover;border-radius:7px;flex-shrink:0}
-.modal-gt{font-family:'Righteous',cursive;font-size:16px;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
-.modal-gc{font-size:10px;font-weight:700;color:#64748B}
+.modal-gt {
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  letter-spacing: 0.2px;
+}.modal-gc{font-size:10px;font-weight:700;color:#64748B}
 .modal-acts{display:flex;gap:6px;align-items:center;flex-shrink:0;}
 .modal-btn{font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#1E293B;padding:7px 16px;border-radius:9px;background:#F1F5F9;border:none;cursor:pointer;transition:background .15s ease;white-space:nowrap}
 .modal-btn:hover{background:#fff}

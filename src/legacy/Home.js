@@ -48,11 +48,19 @@ const dedupeById = (list) => {
   }
   return result;
 };
+function slugify(title = "") {
+  return String(title)
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 const FEATURED_INDICES = new Set([0, 7, 16]);
 const isFeaturedFast = (i) => FEATURED_INDICES.has(i);
 
-export default function Home({ initialGames = [] }) {
+export default function Home({ initialGames = [], initialActiveGame = null }) {
   const router = useRouter();
   const { logout: authLogout } = useAuth();
   const { profile, updateProfile } = useProfile();
@@ -65,7 +73,7 @@ export default function Home({ initialGames = [] }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
-  const [activeGame, setActiveGame] = useState(null);
+  const [activeGame, setActiveGame] = useState(initialActiveGame);
   const [error, setError] = useState(null);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [panelMode, setPanelMode] = useState(null);
@@ -74,6 +82,11 @@ export default function Home({ initialGames = [] }) {
 
   const logoClickCountRef = useRef(0);
   const logoClickTimerRef = useRef(null);
+  // Tracks whether the CURRENT open modal was reached via our own
+  // pushState() call (a click from inside this already-mounted Home) as
+  // opposed to a hard page-load on /game/:id. Drives whether "close"
+  // should walk back through browser history or do a real navigation.
+  const pushedOwnHistoryRef = useRef(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
@@ -97,10 +110,25 @@ export default function Home({ initialGames = [] }) {
     };
   }, [activeGame]);
 
+  // CHANGED: still sets activeGame synchronously (instant modal, zero
+  // network wait, identical to before). Additionally syncs the URL bar
+  // via raw history.pushState — NOT router.push — so this never triggers
+  // a Next.js route change / remount of this component. The real
+  // /game/[id] Next route exists for direct loads, shares, and crawlers;
+  // this internal click just needs the address bar to reflect it.
   const openGame = useCallback((game) => {
     addToHistory(game);
     setActiveGame(game);
+    if (typeof window !== "undefined" && game?.id != null) {
+      window.history.pushState(
+        { sharxGameId: game.id },
+        "",
+`/game/${game.id}-${slugify(game.title)}`
+      );
+      pushedOwnHistoryRef.current = true;
+    }
   }, []);
+
   const handleNavLogoClick = useCallback(() => {
     logoClickCountRef.current += 1;
     if (logoClickTimerRef.current) {
@@ -115,10 +143,36 @@ export default function Home({ initialGames = [] }) {
       setTimeout(() => setShowEasterEgg(false), 3000);
     }
   }, []);
+  // CHANGED: if a game modal is open (reached via a hard load OR an
+  // internal click), route the logo click through the SAME close logic
+  // as the X button/Escape instead of blindly calling router.push("/").
+  // Prevents a state mismatch between Next's internal router (which
+  // still thinks we're on "/" after an internal pushState-driven open)
+  // and the real browser URL.
+  const handleCloseModal = useCallback(() => {
+  if (pushedOwnHistoryRef.current) {
+    pushedOwnHistoryRef.current = false;
+    window.history.back();
+  } else {
+    setActiveGame(null);
+
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/game/")
+    ) {
+      router.push("/");
+    }
+  }
+}, [router]);
+
   const handleNavLogoClickWithNavigate = useCallback(() => {
     handleNavLogoClick();
-    router.push("/");
-  }, [handleNavLogoClick, router]);
+    if (activeGame) {
+      handleCloseModal();
+    } else {
+      router.push("/");
+    }
+  }, [handleNavLogoClick, activeGame, handleCloseModal, router]);
   const handleSearchChange = useCallback((e) => {
     setSearch(e.target.value);
   }, []);
@@ -130,9 +184,13 @@ export default function Home({ initialGames = [] }) {
     setCategory("All");
     setSearch("");
   }, []);
-  const handleCloseModal = useCallback(() => {
-    setActiveGame(null);
-  }, []);
+  // CHANGED: if this modal was opened via our own pushState (internal
+  // click), walk back through browser history — the popstate listener
+  // below picks up the resulting URL change and clears activeGame,
+  // giving a completely native "back button" feel. If it wasn't (a hard
+  // load of /game/:id, nothing of ours to go "back" to), clear the modal
+  // and take a real, but soft, Next.js navigation home.
+
   const handleCloseEasterEgg = useCallback(() => {
     setShowEasterEgg(false);
   }, []);
@@ -204,15 +262,51 @@ export default function Home({ initialGames = [] }) {
     fetchGames(next, false);
   }, [loadingMore, page, fetchGames, visibleCount, allGames.length]);
 
-  const handleEscapeKey = useCallback((e) => {
-    if (e.key === "Escape") {
-      setActiveGame(null);
-    }
-  }, []);
+  // CHANGED: routes through handleCloseModal instead of setActiveGame(null)
+  // directly, so Escape stays in sync with the URL/history bookkeeping
+  // that openGame/handleCloseModal now manage. Without this, pressing
+  // Escape would close the modal but leave the URL bar (and the pushed
+  // history entry) stuck on /game/:id.
+  const handleEscapeKey = useCallback(
+    (e) => {
+      if (e.key === "Escape") {
+        handleCloseModal();
+      }
+    },
+    [handleCloseModal],
+  );
   useEffect(() => {
     window.addEventListener("keydown", handleEscapeKey);
     return () => window.removeEventListener("keydown", handleEscapeKey);
   }, [handleEscapeKey]);
+
+  // NEW: keeps activeGame in sync with the browser's actual back/forward
+  // navigation. When the URL lands on /game/:id (via back OR forward),
+  // look the game up in already-loaded state and reopen it instantly —
+  // no network round-trip needed since the grid data is already here.
+  // When the URL lands anywhere else, close the modal.
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const match = path.match(/^\/game\/([^/]+)/);
+      if (match) {
+        const raw = decodeURIComponent(match[1]);
+        const id = raw.match(/^gm_\d+/)?.[0] || raw;
+        const found =
+          allGames.find((g) => String(g.id) === id) ||
+          (initialActiveGame && String(initialActiveGame.id) === id ? initialActiveGame : null);
+        if (found) {
+          setActiveGame(found);
+          pushedOwnHistoryRef.current = true;
+        }
+      } else {
+        setActiveGame(null);
+        pushedOwnHistoryRef.current = false;
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [allGames, initialActiveGame]);
 
   const searchLower = useMemo(() => search.toLowerCase(), [search]);
   const categoryFilter = useMemo(() => (category === "All" ? null : category), [category]);
@@ -718,11 +812,31 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
     [game.title],
   );
 
+  // NEW: only intercepts a plain, unmodified left-click. Ctrl/Cmd/Shift/
+  // middle-click all fall through untouched, so "open in new tab",
+  // "open in new window", and "copy link" keep working natively via the
+  // <Link>'s real href below — this mirrors exactly how Next's own Link
+  // decides whether to run its own client-side navigation.
+  const handleCardClick = useCallback(
+    (e) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        return;
+      }
+      e.preventDefault();
+      onClick?.();
+    },
+    [onClick],
+  );
+
   const imgSrc =
     game.thumb || `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`;
 
-  return (
-    <div className={`gc${featured ? " featured" : ""}`} style={cardStyle} onClick={onClick}>
+  const cardBody = (
+    <div
+      className={`gc${featured ? " featured" : ""}`}
+      style={cardStyle}
+      onClick={game.id == null ? onClick : undefined}
+    >
       {featured && game.category && <span className="gc-cat-chip">{game.category}</span>}
       <div className="gc-img-wrap">
      <Image
@@ -748,5 +862,28 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
         <div className="gc-label-text">{game.title}</div>
       </div>
     </div>
+  );
+
+  // No id, no valid /game/:id URL to build — fall back to the exact
+  // original click-only behavior rather than generating a broken link.
+  if (game.id == null) {
+    return cardBody;
+  }
+
+  // NEW: wraps the untouched card in a real, crawlable <a href="/game/:id">.
+  // display: contents means the Link introduces ZERO box/layout of its
+  // own — the div inside renders exactly as if this wrapper didn't
+  // exist, so Home.css and every existing animation apply unchanged.
+  // Googlebot (and anyone middle-clicking) sees a real link; a normal
+  // left-click still goes through the instant in-app modal.
+  return (
+    <Link
+href={`/game/${encodeURIComponent(game.id)}-${slugify(game.title)}`}
+      prefetch={false}
+      style={{ display: "contents" }}
+      onClick={handleCardClick}
+    >
+      {cardBody}
+    </Link>
   );
 });
