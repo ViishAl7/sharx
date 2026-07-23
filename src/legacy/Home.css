@@ -8,6 +8,26 @@
  * is identical once fonts load — they just no longer block render.
  */
 
+/*
+ * COLOR TOKENS — "Sharx Water Blue"
+ * Every color used more than once lives here. Change the palette by
+ * editing these values only; nothing below should hardcode a new hex.
+ *   --sx-deep    : primary brand blue (buttons active state, CTAs)
+ *   --sx-deep-rgb: same color as r,g,b triplet, for rgba() shadows/glows
+ *   --sx-ocean   : darkest gradient stop (backdrop, deep water)
+ *   --sx-mid     : mid-tone blue (crystal body, wave front)
+ *   --sx-sky     : light sky blue (crystal highlight, wave back)
+ *   --sx-foam    : near-white foam/highlight tint
+ */
+:root {
+  --sx-deep: #0A6FBF;
+  --sx-deep-rgb: 10, 111, 191;
+  --sx-ocean: #063D7A;
+  --sx-mid: #1E6FC4;
+  --sx-sky: #6FC6F5;
+  --sx-foam: #EAF8FF;
+}
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -37,7 +57,7 @@ body {
   min-height: 100vh;
   font-family: 'Nunito', sans-serif;
   color: #1E293B;
-  background-color: #0E9C93;
+  background-color: var(--sx-deep);
   position: relative;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -99,9 +119,9 @@ body {
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 90% 60% at 15% 0%, rgba(255,255,255,0.10), transparent 55%),
-    radial-gradient(ellipse 80% 55% at 100% 100%, rgba(0,0,0,0.12), transparent 60%),
-    linear-gradient(165deg, #53bfda 0%, #FFFDE4 35%, #0B8A82 65%, #FFFDE4 100%);
+    radial-gradient(ellipse 90% 60% at 15% 0%, rgba(255,255,255,0.14), transparent 55%),
+    radial-gradient(ellipse 80% 55% at 100% 100%, rgba(0,0,0,0.15), transparent 60%),
+    linear-gradient(165deg, var(--sx-sky) 0%, var(--sx-foam) 32%, var(--sx-ocean) 68%, var(--sx-foam) 100%);
   contain: strict;
 }
 
@@ -126,12 +146,12 @@ body {
    Filter now lives on a non-animated child (via svg above), so the
    browser can cache this as a static layer under the moving parent. */
 .crystal-cluster.gem {
-  filter: drop-shadow(0 20px 30px rgba(2, 40, 40, 0.35)) drop-shadow(0 2px 10px rgba(255,255,255,0.08));
+  filter: drop-shadow(0 20px 30px rgba(3, 25, 55, 0.35)) drop-shadow(0 2px 10px rgba(255,255,255,0.08));
 }
 
 /* Blurred atmospheric crystals — same shapes, softened for depth */
 .crystal-cluster.soft {
-  filter: blur(7px) drop-shadow(0 14px 22px rgba(2, 40, 40, 0.25));
+  filter: blur(7px) drop-shadow(0 14px 22px rgba(3, 25, 55, 0.25));
 }
 
 /* Distant hazy glow gems (pure blur, no edges) for background depth */
@@ -145,7 +165,7 @@ body {
   inset: 0;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), transparent 45%),
-              radial-gradient(circle at 60% 65%, var(--glow-c1, #5EEAE0), var(--glow-c2, #0B8A82) 70%);
+              radial-gradient(circle at 60% 65%, var(--glow-c1, #BEE3FA), var(--glow-c2, #1873C9) 70%);
 }
 
 /* ---- Placement: big pointed crystals anchored at the edges, like a
@@ -161,8 +181,8 @@ body {
 .crystal-accent { position: absolute; }
 .crystal-accent.a1 { width: 100px; height: 130px; top: 12%; right: 20%; opacity: .92; animation: sway3 13s ease-in-out infinite; }
 .crystal-accent.a2 { width: 90px; height: 120px; bottom: 16%; left: 22%; opacity: .88; animation: sway1 15s ease-in-out infinite reverse; }
-.crystal-accent.a3 { width: 130px; height: 130px; top: 52%; right: 8%; opacity: .5; --glow-c1: #B7F5EE; --glow-c2: #0AA79C; }
-.crystal-accent.a4 { width: 110px; height: 110px; top: 62%; left: 46%; opacity: .35; --glow-c1: #CFFBF3; --glow-c2: #0AA79C; }
+.crystal-accent.a3 { width: 130px; height: 130px; top: 52%; right: 8%; opacity: .5; --glow-c1: #BEE3FA; --glow-c2: #1873C9; }
+.crystal-accent.a4 { width: 110px; height: 110px; top: 62%; left: 46%; opacity: .35; --glow-c1: #D8EEFC; --glow-c2: #1873C9; }
 
 @keyframes sway1 {
   0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
@@ -244,8 +264,8 @@ body {
 }
 .nav-si-wrap:focus-within{
   background:rgba(255,255,255,.92);
-  border-color:rgba(14,156,147,.35);
-  box-shadow:0 0 0 3px rgba(14,156,147,.1);
+  border-color:rgba(var(--sx-deep-rgb),.35);
+  box-shadow:0 0 0 3px rgba(var(--sx-deep-rgb),.1);
 }
 .nav-si-wrap svg{flex-shrink:0;color:#64748B;width:15px;height:15px;}
 .nav-si{
@@ -333,7 +353,7 @@ body {
   flex-shrink:0;
 }
 .cat:hover{background:rgba(255,255,255,.95);transform:translateY(-1px);color:#1E293B}
-.cat.on{background:#0E9C93;border-color:#0E9C93;color:#fff;transform:translateY(-1px);box-shadow:0 2px 8px rgba(14,156,147,.3)}
+.cat.on{background:var(--sx-deep);border-color:var(--sx-deep);color:#fff;transform:translateY(-1px);box-shadow:0 2px 8px rgba(var(--sx-deep-rgb),.3)}
 
 /* ══════════════════════════════════════════════════════════════
    PAGE CONTENT — the game grid.
@@ -451,14 +471,14 @@ body {
 
 .empty{text-align:center;padding:70px 24px;animation:fadeUp .35s ease forwards}
 .empty-t{font-family:'Righteous',cursive;font-size:22px;color:#fff;margin-bottom:8px;text-shadow:0 2px 8px rgba(0,0,0,.15)}
-.empty-b{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#0E9C93;background:#fff;border:none;border-radius:14px;padding:10px 24px;cursor:pointer;transition:all .2s ease}
+.empty-b{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--sx-deep);background:#fff;border:none;border-radius:14px;padding:10px 24px;cursor:pointer;transition:all .2s ease}
 .empty-b:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.18)}
 
 .load-more-wrap{text-align:center;padding:36px 0 16px}
 .load-more-btn{background:#fff;color:#000000;border:none;border-radius:28px;padding:13px 44px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:transform .25s cubic-bezier(.23,1,.32,1),box-shadow .25s cubic-bezier(.23,1,.32,1);box-shadow:0 6px 20px rgba(4,40,40,.22);display:inline-flex;align-items:center;gap:8px}
 .load-more-btn:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(4,40,40,.28)}
 .load-more-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.load-more-btn .spinner{width:15px;height:15px;border:2px solid rgba(14,156,147,0.25);border-top-color:#0E9C93;border-radius:50%;animation:spin .5s linear infinite;display:inline-block}
+.load-more-btn .spinner{width:15px;height:15px;border:2px solid rgba(var(--sx-deep-rgb),0.25);border-top-color:var(--sx-deep);border-radius:50%;animation:spin .5s linear infinite;display:inline-block}
 
 /* PERF: modal backdrop blur is fine — it's not `position: fixed`
    re-sampling scroll content every frame the way nav/cats are, it's
@@ -515,11 +535,11 @@ body {
 .water-wrap{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:110px;height:24px;overflow:hidden;border-radius:0 0 55px 55px;opacity:0;transition:opacity .3s ease;z-index:2;pointer-events:none;}
 .shark-tank:hover .water-wrap{opacity:1;}
 .wave-svg{position:absolute;top:0;left:0;width:170%;height:100%;}
-.wave-back{fill:#7dd3fc;opacity:.55;animation:waveScroll 5s linear infinite;}
-.wave-front{fill:#0ea5e9;opacity:.9;animation:waveScroll 3.2s linear infinite reverse;}
+.wave-back{fill:var(--sx-sky);opacity:.55;animation:waveScroll 5s linear infinite;}
+.wave-front{fill:var(--sx-deep);opacity:.9;animation:waveScroll 3.2s linear infinite reverse;}
 .foam-line{position:absolute;top:1px;left:-10%;width:120%;height:3px;background:rgba(255,255,255,.7);border-radius:100px;filter:blur(1.5px);animation:waveScroll 3.2s linear infinite reverse;}
 .splash-rings{position:absolute;bottom:18px;left:50%;width:0;height:0;z-index:3;pointer-events:none;}
-.ring{position:absolute;top:0;left:0;width:8px;height:8px;margin:-4px;border:1.5px solid rgba(125,211,252,.9);border-radius:50%;transform:translate(-50%,-50%) scale(0);opacity:0;}
+.ring{position:absolute;top:0;left:0;width:8px;height:8px;margin:-4px;border:1.5px solid rgba(111,198,245,.9);border-radius:50%;transform:translate(-50%,-50%) scale(0);opacity:0;}
 .shark-tank:hover .ring{animation:ringPop .65s ease-out forwards;}
 .shark-tank:hover .ring.r2{animation-delay:.08s;}
 .shark-tank:hover .ring.r3{animation-delay:.16s;}
@@ -541,7 +561,7 @@ body {
 .footer-socials{display:flex;gap:5px;padding:5px;border-radius:100px;background:#ffffff;border:none;}
 .social-icon{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:transparent;cursor:pointer;transition:background .3s cubic-bezier(.2,.9,.4,1.1),transform .3s cubic-bezier(.2,.9,.4,1.1),box-shadow .3s cubic-bezier(.2,.9,.4,1.1);border:none;}
 .social-icon svg{width:17px;height:17px;fill:#1E293B;transition:fill .3s cubic-bezier(.2,.9,.4,1.1);}
-.social-icon:hover{background:#000000;transform:translateY(-5px) scale(1.14) rotate(5deg);box-shadow:0 6px 16px rgba(14,156,147,.35);border-color:#0E9C93;}
+.social-icon:hover{background:#000000;transform:translateY(-5px) scale(1.14) rotate(5deg);box-shadow:0 6px 16px rgba(var(--sx-deep-rgb),.35);border-color:var(--sx-deep);}
 .social-icon:hover svg{fill:#fff;}
 .social-icon:nth-child(1){animation:softBounce .5s ease .2s both;}
 .social-icon:nth-child(2){animation:softBounce .5s ease .3s both;}
@@ -746,14 +766,14 @@ body.modal-open .announcement-bar {
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 1.5px;
-  color: #0E9C93;
+  color: var(--sx-deep);
 }
 
 .announcement-bar__dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0E9C93;
+  background: var(--sx-deep);
   animation: announcementPulse 1.7s ease-in-out infinite;
 }
 
