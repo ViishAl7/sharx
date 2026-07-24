@@ -4,6 +4,10 @@ import "./globals.css";
 import Providers from "./providers";
 import { Nunito, Righteous } from "next/font/google";
 
+// next/font/google self-hosts these at build time and injects the
+// correct <link rel="preload"> for the exact font files used, so no
+// manual preconnect to fonts.googleapis.com is needed — that's the
+// whole point of using next/font over a raw <link> or @import.
 const nunito = Nunito({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -24,7 +28,8 @@ export const metadata = {
     default: "Play Free Online Games | Sharx",
     template: "%s | Sharx",
   },
-  description: "Play thousands of free online games instantly on Sharx. No downloads, no sign-up. Enjoy action, racing, puzzle, sports, arcade and multiplayer games for free.",
+  description:
+    "Play thousands of free online games instantly on Sharx. No downloads, no sign-up. Enjoy action, racing, puzzle, sports, arcade and multiplayer games for free.",
   applicationName: "Sharx",
   authors: [{ name: "Sharx", url: "https://sharx.in" }],
   creator: "Sharx",
@@ -86,7 +91,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${nunito.variable} ${righteous.variable}`}>
       <head>
-        {/* ✅ LCP Optimization: Preload first image */}
+        {/*
+          LCP optimization: preconnect to the CDN that serves the first
+          game thumbnail so the browser opens the connection (DNS + TLS)
+          before it even discovers the <img> tag, then preload the exact
+          image. This pair is what actually shaves time off LCP — preload
+          alone still pays the connection-setup cost on first byte.
+        */}
+        <link rel="preconnect" href="https://img.gamemonetize.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://img.gamemonetize.com" />
         <link
           rel="preload"
           as="image"
@@ -95,6 +108,7 @@ export default function RootLayout({ children }) {
         />
         <script
           type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>

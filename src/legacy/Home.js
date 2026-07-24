@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useProfile } from "../context/ProfileContext";
-import { GAMES_BASE, API_BASE } from "../config";
+import { GAMES_BASE } from "../config";
 import "./Home.css";
 
 const SidePanel = lazy(() => import("../legacy/SidePanel"));
@@ -15,15 +15,21 @@ const GameModal = lazy(() => import("../legacy/GameModal"));
 const EasterEggModal = lazy(() => import("../legacy/EasterEggModal"));
 const SocialComingSoonModal = lazy(() => import("../legacy/SocialComingSoonModal"));
 
+// ────────────────────────────────────────────────────────────
 // Constants
+// ────────────────────────────────────────────────────────────
 const HISTORY_KEY = "pv_history";
 const MAX_HISTORY = 12;
 const GAMES_PER_PAGE = 50;
 const VISIBLE_INCREMENT = 20;
+const INITIAL_VISIBLE = 20;
 const FEATURED_INDICES = new Set([0, 7, 16]);
 
-// Utility Functions
+// ────────────────────────────────────────────────────────────
+// Utility functions (pure, outside component so they never re-create)
+// ────────────────────────────────────────────────────────────
 const getHistory = () => {
+  if (typeof window === "undefined") return [];
   try {
     return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
   } catch {
@@ -32,11 +38,16 @@ const getHistory = () => {
 };
 
 const addToHistory = (game) => {
-  const prev = getHistory().filter((g) => g.id !== game.id);
-  localStorage.setItem(
-    HISTORY_KEY,
-    JSON.stringify([{ ...game, playedAt: Date.now() }, ...prev].slice(0, MAX_HISTORY))
-  );
+  if (typeof window === "undefined") return;
+  try {
+    const prev = getHistory().filter((g) => g.id !== game.id);
+    localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify([{ ...game, playedAt: Date.now() }, ...prev].slice(0, MAX_HISTORY))
+    );
+  } catch {
+    /* localStorage can throw in private mode / quota exceeded — safe to ignore */
+  }
 };
 
 const dedupeById = (list) => {
@@ -55,26 +66,28 @@ const dedupeById = (list) => {
   return result;
 };
 
-const slugify = (title = "") => {
-  return String(title)
+const slugify = (title = "") =>
+  String(title)
     .toLowerCase()
     .trim()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-};
 
 const isFeaturedFast = (i) => FEATURED_INDICES.has(i);
 
+// ════════════════════════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════════════════════════
 export default function Home({ initialGames = [], initialActiveGame = null }) {
   const router = useRouter();
   const { logout: authLogout } = useAuth();
   const { profile, updateProfile } = useProfile();
 
-  // State
+  // ── State ──────────────────────────────────────────────────
   const [allGames, setAllGames] = useState(() => dedupeById(initialGames));
   const [page, setPage] = useState(1);
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [hasMore, setHasMore] = useState(initialGames.length === GAMES_PER_PAGE);
   const [loading, setLoading] = useState(initialGames.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -89,28 +102,29 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const [socialModal, setSocialModal] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Refs
+  // ── Refs ───────────────────────────────────────────────────
   const logoClickCountRef = useRef(0);
   const logoClickTimerRef = useRef(null);
   const pushedOwnHistoryRef = useRef(false);
   const fetchInFlightRef = useRef(false);
-  const totalGamesRef = useRef(0);
+  // Mirrors allGames.length without forcing fetchGames to depend on the array.
+  // This is the #1 fix for the "sticky/janky" feeling: previously fetchGames
+  // was re-created on every game added, which re-created every callback that
+  // depended on it, which re-rendered every GameCard. Now fetchGames never
+  // changes identity after mount.
+  const totalGamesRef = useRef(initialGames.length);
 
-  // Effects
+  // ── One-time / auth effects ────────────────────────────────
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("token"));
   }, []);
 
   useEffect(() => {
-    if (activeGame) {
-      document.body.classList.add("modal-open");
-    } else {
-      document.body.classList.remove("modal-open");
-    }
+    document.body.classList.toggle("modal-open", !!activeGame);
     return () => document.body.classList.remove("modal-open");
   }, [activeGame]);
 
-  // Core Functions
+  // ── Navigation into a game ─────────────────────────────────
   const openGame = useCallback((game) => {
     addToHistory(game);
     setActiveGame(game);
@@ -136,7 +150,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, [router]);
 
-  // ✅ FIXED: Proper API fetch with pagination
+  // ── Fetch games (stable identity — depends on nothing that changes) ──
   const fetchGames = useCallback(async (pageNum, isFirst) => {
     if (fetchInFlightRef.current) return;
     fetchInFlightRef.current = true;
@@ -151,97 +165,79 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
 
     try {
       const url = `${GAMES_BASE}/games?page=${pageNum}`;
-      console.log(`📡 Fetching: ${url}`);
-      
-      const res = await fetch(url);
-      
-      if (!res.ok) {
-        throw new Error(`Server error: ${res.status} ${res.statusText}`);
-      }
-      
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
+
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
       const data = await res.json();
-      console.log(`✅ Page ${pageNum} response:`, data);
-
-      // Handle different API response formats
-      let gamesArray = [];
-      let totalCount = 0;
-      
-      if (Array.isArray(data)) {
-        gamesArray = data;
-        totalCount = data.length;
-      } else if (data && typeof data === 'object') {
-        gamesArray = data.games || data.data || [];
-        totalCount = data.total || data.count || gamesArray.length;
-      }
-
-      if (totalCount > 0) {
-        totalGamesRef.current = totalCount;
-      }
+      const gamesArray = Array.isArray(data) ? data : [];
 
       if (gamesArray.length > 0) {
         setAllGames((prev) => {
           const combined = isFirst ? gamesArray : [...prev, ...gamesArray];
-          return dedupeById(combined);
+          const deduped = dedupeById(combined);
+          totalGamesRef.current = deduped.length;
+          return deduped;
         });
-
-        // Pagination logic
-        const currentTotal = isFirst ? gamesArray.length : allGames.length + gamesArray.length;
-        const hasMoreData = gamesArray.length === GAMES_PER_PAGE || 
-                           (totalCount > 0 && currentTotal < totalCount);
-        
-        setHasMore(hasMoreData);
-        console.log(`📊 Has more: ${hasMoreData}, Total: ${currentTotal}`);
+        setHasMore(gamesArray.length === GAMES_PER_PAGE);
       } else {
         setHasMore(false);
-        if (!isFirst) {
-          setLoadMoreError("🎮 All games loaded!");
-        }
+        if (!isFirst) setLoadMoreError("All games loaded!");
       }
     } catch (e) {
-      console.error('❌ Fetch error:', e);
       if (isFirst) {
-        setError(e.message || 'Failed to load games');
+        setError("Failed to load games. Please refresh.");
       } else {
-        setLoadMoreError(e.message || 'Could not load more games');
+        setLoadMoreError("Could not load more games. Please try again.");
       }
     } finally {
       fetchInFlightRef.current = false;
-      if (isFirst) {
-        setLoading(false);
-      } else {
-        setLoadingMore(false);
-      }
+      if (isFirst) setLoading(false);
+      else setLoadingMore(false);
     }
-  }, [allGames.length]);
+  }, []); // stable forever — no stale-closure risk because we only read refs/setters inside
 
-  // ✅ FIXED: Load more with proper error recovery
+  // ── Load more (reveal already-fetched games first, fetch only when needed) ──
   const loadMore = useCallback(() => {
-    if (loadingMore || fetchInFlightRef.current) {
-      console.log('⏳ Already loading...');
-      return;
-    }
+    if (loadingMore || fetchInFlightRef.current) return;
 
-    if (visibleCount < allGames.length) {
-      setVisibleCount((v) => Math.min(v + VISIBLE_INCREMENT, allGames.length));
-      return;
-    }
+    setVisibleCount((v) => {
+      if (v < totalGamesRef.current) {
+        return Math.min(v + VISIBLE_INCREMENT, totalGamesRef.current);
+      }
+      return v;
+    });
+
+    // If we already have unrevealed games locally, don't hit the network.
+    if (visibleCount < totalGamesRef.current) return;
 
     if (!hasMore) {
-      setLoadMoreError('🎮 All games loaded!');
+      setLoadMoreError("All games loaded!");
       return;
     }
 
-    const targetPage = loadMoreError ? page : page + 1;
-    console.log(`🔄 Loading page ${targetPage}...`);
-    setPage(targetPage);
-    fetchGames(targetPage, false);
-  }, [loadingMore, fetchInFlightRef, visibleCount, allGames.length, hasMore, loadMoreError, page, fetchGames]);
+    setPage((p) => {
+      const nextPage = p + 1;
+      fetchGames(nextPage, false);
+      return nextPage;
+    });
+  }, [loadingMore, visibleCount, hasMore, fetchGames]);
 
-  // Navigation handlers
+  // ── Initial load ───────────────────────────────────────────
+  useEffect(() => {
+    if (initialGames.length === 0) {
+      fetchGames(1, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Logo easter egg ────────────────────────────────────────
   const handleNavLogoClick = useCallback(() => {
     logoClickCountRef.current += 1;
     if (logoClickTimerRef.current) clearTimeout(logoClickTimerRef.current);
-    logoClickTimerRef.current = setTimeout(() => { logoClickCountRef.current = 0; }, 800);
+    logoClickTimerRef.current = setTimeout(() => {
+      logoClickCountRef.current = 0;
+    }, 800);
     if (logoClickCountRef.current === 5) {
       setShowEasterEgg(true);
       logoClickCountRef.current = 0;
@@ -258,9 +254,16 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, [handleNavLogoClick, activeGame, handleCloseModal, router]);
 
+  // ── Simple UI handlers ─────────────────────────────────────
   const handleSearchChange = useCallback((e) => setSearch(e.target.value), []);
-  const handleCategoryClick = useCallback((c) => { setCategory(c); setSearch(""); }, []);
-  const clearCategoryAndSearch = useCallback(() => { setCategory("All"); setSearch(""); }, []);
+  const handleCategoryClick = useCallback((c) => {
+    setCategory(c);
+    setSearch("");
+  }, []);
+  const clearCategoryAndSearch = useCallback(() => {
+    setCategory("All");
+    setSearch("");
+  }, []);
   const handleCloseEasterEgg = useCallback(() => setShowEasterEgg(false), []);
   const handleCloseProfile = useCallback(() => setShowProfile(false), []);
   const handlePanelLogin = useCallback(() => setPanelMode("login"), []);
@@ -269,18 +272,19 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const handleSocialClick = useCallback((platform) => setSocialModal(platform), []);
   const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
   const handleSharkNavigate = useCallback(() => router.push("/"), [router]);
+  const handleRetryInitial = useCallback(() => fetchGames(1, true), [fetchGames]);
+  const handleRetryLoadMore = useCallback(() => fetchGames(page, false), [fetchGames, page]);
 
-  // Keyboard handler
-  const handleEscapeKey = useCallback((e) => {
-    if (e.key === "Escape") handleCloseModal();
-  }, [handleCloseModal]);
-
+  // ── Escape key closes modal ────────────────────────────────
   useEffect(() => {
+    const handleEscapeKey = (e) => {
+      if (e.key === "Escape") handleCloseModal();
+    };
     window.addEventListener("keydown", handleEscapeKey);
     return () => window.removeEventListener("keydown", handleEscapeKey);
-  }, [handleEscapeKey]);
+  }, [handleCloseModal]);
 
-  // Popstate handler
+  // ── Browser back/forward syncs modal state ─────────────────
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
@@ -288,8 +292,9 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
       if (match) {
         const raw = decodeURIComponent(match[1]);
         const id = raw.match(/^gm_\d+/)?.[0] || raw;
-        const found = allGames.find((g) => String(g.id) === id) ||
-                     (initialActiveGame && String(initialActiveGame.id) === id ? initialActiveGame : null);
+        const found =
+          allGames.find((g) => String(g.id) === id) ||
+          (initialActiveGame && String(initialActiveGame.id) === id ? initialActiveGame : null);
         if (found) {
           setActiveGame(found);
           pushedOwnHistoryRef.current = true;
@@ -303,41 +308,30 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [allGames, initialActiveGame]);
 
-  // Initial load
-  useEffect(() => {
-    if (initialGames.length === 0) {
-      fetchGames(1, true);
-    }
-  }, [fetchGames, initialGames]);
-
-  // Memoized values
-  const searchLower = useMemo(() => search.toLowerCase(), [search]);
+  // ── Derived / memoized data ─────────────────────────────────
+  const searchLower = useMemo(() => search.trim().toLowerCase(), [search]);
   const categoryFilter = useMemo(() => (category === "All" ? null : category), [category]);
-  
-  const displayedGames = useMemo(() => {
+
+  const filteredGames = useMemo(() => {
     let games = allGames;
-    if (categoryFilter) {
-      games = games.filter((g) => g.category === categoryFilter);
-    }
-    if (searchLower) {
-      games = games.filter((g) => g.title?.toLowerCase().includes(searchLower));
-    }
-    return games.slice(0, visibleCount);
-  }, [allGames, categoryFilter, searchLower, visibleCount]);
+    if (categoryFilter) games = games.filter((g) => g.category === categoryFilter);
+    if (searchLower) games = games.filter((g) => g.title?.toLowerCase().includes(searchLower));
+    return games;
+  }, [allGames, categoryFilter, searchLower]);
+
+  const displayedGames = useMemo(
+    () => filteredGames.slice(0, visibleCount),
+    [filteredGames, visibleCount]
+  );
 
   const categories = useMemo(() => {
     const unique = new Set(allGames.map((g) => g.category).filter(Boolean));
     return ["All", ...Array.from(unique)];
   }, [allGames]);
 
-  const gameClickHandlers = useMemo(() => {
-    const map = new Map();
-    displayedGames.forEach((game, i) => {
-      const key = game.id || game.title || i;
-      map.set(key, () => openGame(game));
-    });
-    return map;
-  }, [displayedGames, openGame]);
+  // Only show the "load more" button when there's something left to reveal —
+  // either locally (filtered set bigger than what's shown) or on the server.
+  const canLoadMore = visibleCount < filteredGames.length || (hasMore && !searchLower && !categoryFilter);
 
   const skeletonArray = useMemo(() => Array.from({ length: 18 }), []);
   const avatarElement = useMemo(() => renderMiniAvatar(profile), [profile]);
@@ -373,7 +367,10 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               NEW WEBSITE
             </span>
             <span className="announcement-bar__text">
-              You're among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we're listening, improving, and working to make every visit better.
+              You&apos;re among the first to explore Sharx. As we continue refining our newly
+              launched experience, you may occasionally come across a small issue. Thank you for
+              your patience, feedback, and support—we&apos;re listening, improving, and working to
+              make every visit better.
             </span>
           </div>
           <div className="announcement-bar__message" aria-hidden="true">
@@ -382,7 +379,10 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               NEW WEBSITE
             </span>
             <span className="announcement-bar__text">
-              You're among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we're listening, improving, and working to make every visit better.
+              You&apos;re among the first to explore Sharx. As we continue refining our newly
+              launched experience, you may occasionally come across a small issue. Thank you for
+              your patience, feedback, and support—we&apos;re listening, improving, and working to
+              make every visit better.
             </span>
           </div>
         </div>
@@ -398,7 +398,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
 
             <div className="nav-search">
               <div className="nav-si-wrap">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                   <circle cx="11" cy="11" r="8" />
                   <path d="m21 21-4.35-4.35" />
                 </svg>
@@ -408,6 +408,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                   placeholder="Search games..."
                   value={search}
                   onChange={handleSearchChange}
+                  aria-label="Search games"
                 />
               </div>
             </div>
@@ -415,18 +416,24 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
             <div className="nav-r">
               {isLoggedIn ? (
                 <div className="user-logged">
-                  <button className="profile-btn" onClick={handleShowProfile}>
+                  <button className="profile-btn" onClick={handleShowProfile} type="button">
                     <div className="profile-avatar">{avatarElement}</div>
                     {profile?.stylishUsername || "Profile"}
                   </button>
                 </div>
               ) : (
-                <div className="login-icon-container" onClick={handlePanelLogin} title="Login">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <button
+                  className="login-icon-container"
+                  onClick={handlePanelLogin}
+                  title="Login"
+                  type="button"
+                  aria-label="Login"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
-                </div>
+                </button>
               )}
             </div>
           </nav>
@@ -441,6 +448,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               {categories.map((c) => (
                 <button
                   key={c}
+                  type="button"
                   className={`cat${category === c ? " on" : ""}`}
                   onClick={() => handleCategoryClick(c)}
                 >
@@ -466,71 +474,67 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
           </div>
         ) : error ? (
           <div className="empty">
-            <div className="empty-t">⚠️ Server Error</div>
-            <button className="empty-b" onClick={() => fetchGames(1, true)}>Retry</button>
+            <div className="empty-t">{error}</div>
+            <button className="empty-b" type="button" onClick={handleRetryInitial}>
+              Retry
+            </button>
           </div>
         ) : displayedGames.length === 0 ? (
           <div className="empty">
-            <div className="empty-t">🔍 No games found</div>
-            <button className="empty-b" onClick={clearCategoryAndSearch}>All Games</button>
+            <div className="empty-t">No games found</div>
+            <button className="empty-b" type="button" onClick={clearCategoryAndSearch}>
+              View All Games
+            </button>
           </div>
         ) : (
           <>
             <div className="grid" id="games-grid">
               {displayedGames.map((game, i) => {
-                const key = game.id || game.title || i;
+                const key = game.id ?? game.title ?? i;
                 return (
                   <GameCard
                     key={key}
                     game={game}
                     index={i}
                     featured={isFeaturedFast(i)}
-                    onClick={gameClickHandlers.get(key)}
+                    onClick={game.id == null ? () => openGame(game) : undefined}
+                    onNavigate={game.id != null ? () => openGame(game) : undefined}
                   />
                 );
               })}
             </div>
-            
-            {/* ✅ Load More Section - Completely Fixed */}
-            {hasMore && (
+
+            {canLoadMore && (
               <div className="load-more-wrap">
-                <button 
-                  className="load-more-btn" 
-                  onClick={loadMore} 
-                  disabled={loadingMore || fetchInFlightRef.current}
+                <button
+                  className="load-more-btn"
+                  type="button"
+                  onClick={loadMore}
+                  disabled={loadingMore}
                 >
                   {loadingMore ? (
                     <>
                       <span className="spinner" />
                       Loading...
                     </>
-                  ) : loadMoreError ? (
-                    '🔄 Retry'
                   ) : (
-                    'Load More Games'
+                    "Load More Games"
                   )}
                 </button>
               </div>
             )}
-            
-            {/* ✅ Error Message */}
-            {loadMoreError && loadMoreError !== '🎮 All games loaded!' && (
+
+            {loadMoreError && loadMoreError !== "All games loaded!" && (
               <div className="load-more-error">
-                {loadMoreError}
-                <button
-                  className="load-more-error-retry"
-                  onClick={() => fetchGames(page, false)}
-                >
+                {loadMoreError}{" "}
+                <button className="load-more-error-retry" type="button" onClick={handleRetryLoadMore}>
                   Retry
                 </button>
               </div>
             )}
-            
-            {/* ✅ All Loaded Message */}
-            {!hasMore && allGames.length > 0 && (
-              <div className="load-more-end">
-                🎮 All {allGames.length} games loaded
-              </div>
+
+            {!canLoadMore && allGames.length > 0 && !loadingMore && (
+              <div className="load-more-end">All {filteredGames.length} games loaded</div>
             )}
           </>
         )}
@@ -576,7 +580,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                   <Image src="/sharx.png" alt="Sharx" width={76} height={76} draggable={false} />
                 </div>
                 <div className="water-wrap">
-                  <svg className="wave-svg" viewBox="0 0 800 50" preserveAspectRatio="none">
+                  <svg className="wave-svg" viewBox="0 0 800 50" preserveAspectRatio="none" aria-hidden="true">
                     <path className="wave-back" d="M0,25 C200,0 400,50 800,25 L800,50 L0,50 Z" />
                     <path className="wave-front" d="M0,30 C150,10 350,45 800,20 L800,50 L0,50 Z" />
                   </svg>
@@ -603,20 +607,29 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               </div>
 
               <div className="footer-socials">
-                <div
+                <a
                   className="social-icon"
-                  onClick={() => window.open("https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4", "_blank", "noopener,noreferrer")}
+                  href="https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   title="Instagram"
+                  aria-label="Sharx on Instagram"
                 >
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
                   </svg>
-                </div>
-                <div className="social-icon" onClick={() => handleSocialClick("youtube")} title="YouTube">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                </a>
+                <button
+                  className="social-icon"
+                  type="button"
+                  onClick={() => handleSocialClick("youtube")}
+                  title="YouTube"
+                  aria-label="Sharx on YouTube"
+                >
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
-                </div>
+                </button>
               </div>
             </div>
 
@@ -641,11 +654,13 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   );
 }
 
-// ========== Helper Functions ==========
-const renderMiniAvatar = (profile) => {
+// ════════════════════════════════════════════════════════════
+// Helper: mini avatar
+// ════════════════════════════════════════════════════════════
+function renderMiniAvatar(profile) {
   if (!profile) {
     return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
         <circle cx="12" cy="7" r="4" />
       </svg>
@@ -653,6 +668,7 @@ const renderMiniAvatar = (profile) => {
   }
   if (profile.avatarType === "google" && profile.avatarUrl) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={profile.avatarUrl}
         alt="avatar"
@@ -663,15 +679,13 @@ const renderMiniAvatar = (profile) => {
   const shape = profile.avatarShape || "heart";
   const color = profile.avatarColor || "#c084fc";
   return (
-    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       {shape === "circle" && <circle cx="14" cy="14" r="12" fill={color} />}
       {shape === "square" && <rect x="2" y="2" width="24" height="24" rx="5" fill={color} />}
       {shape === "star" && (
         <polygon points="14,2 17,10 26,10 19,15 22,23 14,18 6,23 9,15 2,10 11,10" fill={color} />
       )}
-      {shape === "hexagon" && (
-        <polygon points="14,2 24,8 24,20 14,26 4,20 4,8" fill={color} />
-      )}
+      {shape === "hexagon" && <polygon points="14,2 24,8 24,20 14,26 4,20 4,8" fill={color} />}
       {shape === "heart" && (
         <path
           d="M14 23 C14 23 3 16 3 9 C3 5.7 5.7 3 9 3 C11 3 12.7 4 14 5.5 C15.3 4 17 3 19 3 C22.3 3 25 5.7 25 9 C25 16 14 23 14 23Z"
@@ -680,9 +694,11 @@ const renderMiniAvatar = (profile) => {
       )}
     </svg>
   );
-};
+}
 
-// ========== Crystal SVG Component ==========
+// ════════════════════════════════════════════════════════════
+// Crystal SVG — memoized, never re-renders once mounted
+// ════════════════════════════════════════════════════════════
 const CRYSTAL_VARIANTS = {
   a: {
     viewBox: "0 0 100 140",
@@ -731,23 +747,16 @@ const CRYSTAL_TONES = {
 
 const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a", flip = false }) {
   const data = CRYSTAL_VARIANTS[variant];
-  const uid = variant;
   return (
     <svg
       viewBox={data.viewBox}
       style={flip ? { transform: "scaleX(-1)" } : undefined}
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <defs>
         {Object.entries(CRYSTAL_TONES).map(([tone, [c1, c2]]) => (
-          <linearGradient
-            key={tone}
-            id={`crystal-${uid}-${tone}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient key={tone} id={`crystal-${variant}-${tone}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor={c1} />
             <stop offset="100%" stopColor={c2} />
           </linearGradient>
@@ -757,7 +766,7 @@ const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a",
         <path
           key={i}
           d={f.d}
-          fill={`url(#crystal-${uid}-${f.tone})`}
+          fill={`url(#crystal-${variant}-${f.tone})`}
           stroke="rgba(255,255,255,0.25)"
           strokeWidth="0.5"
           strokeLinejoin="round"
@@ -767,38 +776,44 @@ const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a",
   );
 });
 
-// ========== GameCard Component ==========
-const GameCard = React.memo(function GameCard({ game, index, featured, onClick }) {
+// ════════════════════════════════════════════════════════════
+// GameCard — single <Image>, memoized, no duplicate DOM
+// ════════════════════════════════════════════════════════════
+const GameCard = React.memo(function GameCard({ game, index, featured, onClick, onNavigate }) {
   const cardStyle = useMemo(() => ({ animationDelay: `${Math.min(index, 20) * 22}ms` }), [index]);
 
-  const handleImageError = useCallback((e) => {
-    const title = game.title || "Game";
-    e.target.srcset = "";
-    e.target.src = `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(title)}`;
-  }, [game.title]);
+  const fallbackSrc = useMemo(
+    () => `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`,
+    [game.title]
+  );
 
-  const handleCardClick = useCallback((e) => {
-    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
-      return;
-    }
-    e.preventDefault();
-    onClick?.();
-  }, [onClick]);
+  const handleImageError = useCallback(
+    (e) => {
+      e.target.srcset = "";
+      e.target.src = fallbackSrc;
+    },
+    [fallbackSrc]
+  );
 
-  const imgSrc = game.thumb || `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`;
+  const handleCardClick = useCallback(
+    (e) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      onNavigate?.();
+    },
+    [onNavigate]
+  );
+
+  const imgSrc = game.thumb || fallbackSrc;
 
   const cardBody = (
-    <div
-      className={`gc${featured ? " featured" : ""}`}
-      style={cardStyle}
-      onClick={game.id == null ? onClick : undefined}
-    >
+    <div className={`gc${featured ? " featured" : ""}`} style={cardStyle} onClick={onClick}>
       {featured && game.category && <span className="gc-cat-chip">{game.category}</span>}
       <div className="gc-img-wrap">
         <Image
           className="gc-img"
           src={imgSrc}
-          alt={game.title}
+          alt={game.title || "Game thumbnail"}
           fill
           unoptimized
           sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
@@ -811,7 +826,7 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
       </div>
       <div className="gc-overlay" />
       <div className="gc-play-btn">
-        <svg viewBox="0 0 20 22">
+        <svg viewBox="0 0 20 22" aria-hidden="true">
           <path d="M2 1.5L19 11L2 20.5V1.5Z" fill="#1E293B" />
         </svg>
       </div>
@@ -821,9 +836,7 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
     </div>
   );
 
-  if (game.id == null) {
-    return cardBody;
-  }
+  if (game.id == null) return cardBody;
 
   return (
     <Link
