@@ -15,9 +15,14 @@ const GameModal = lazy(() => import("../legacy/GameModal"));
 const EasterEggModal = lazy(() => import("../legacy/EasterEggModal"));
 const SocialComingSoonModal = lazy(() => import("../legacy/SocialComingSoonModal"));
 
+// Constants
 const HISTORY_KEY = "pv_history";
 const MAX_HISTORY = 12;
+const GAMES_PER_PAGE = 50;
+const VISIBLE_INCREMENT = 20;
+const FEATURED_INDICES = new Set([0, 7, 16]);
 
+// Utility Functions
 const getHistory = () => {
   try {
     return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
@@ -25,11 +30,12 @@ const getHistory = () => {
     return [];
   }
 };
+
 const addToHistory = (game) => {
   const prev = getHistory().filter((g) => g.id !== game.id);
   localStorage.setItem(
     HISTORY_KEY,
-    JSON.stringify([{ ...game, playedAt: Date.now() }, ...prev].slice(0, MAX_HISTORY)),
+    JSON.stringify([{ ...game, playedAt: Date.now() }, ...prev].slice(0, MAX_HISTORY))
   );
 };
 
@@ -48,16 +54,16 @@ const dedupeById = (list) => {
   }
   return result;
 };
-function slugify(title = "") {
+
+const slugify = (title = "") => {
   return String(title)
     .toLowerCase()
     .trim()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
+};
 
-const FEATURED_INDICES = new Set([0, 7, 16]);
 const isFeaturedFast = (i) => FEATURED_INDICES.has(i);
 
 export default function Home({ initialGames = [], initialActiveGame = null }) {
@@ -65,66 +71,46 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const { logout: authLogout } = useAuth();
   const { profile, updateProfile } = useProfile();
 
+  // State
   const [allGames, setAllGames] = useState(() => dedupeById(initialGames));
   const [page, setPage] = useState(1);
   const [visibleCount, setVisibleCount] = useState(20);
-  const [hasMore, setHasMore] = useState(initialGames.length === 50);
+  const [hasMore, setHasMore] = useState(initialGames.length === GAMES_PER_PAGE);
   const [loading, setLoading] = useState(initialGames.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [activeGame, setActiveGame] = useState(initialActiveGame);
   const [error, setError] = useState(null);
-  // FIX: separate from `error` above on purpose — see the note on
-  // fetchGames() for why a load-more failure can no longer reuse `error`.
   const [loadMoreError, setLoadMoreError] = useState(null);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [panelMode, setPanelMode] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [socialModal, setSocialModal] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Refs
   const logoClickCountRef = useRef(0);
   const logoClickTimerRef = useRef(null);
-  // Tracks whether the CURRENT open modal was reached via our own
-  // pushState() call (a click from inside this already-mounted Home) as
-  // opposed to a hard page-load on /game/:id. Drives whether "close"
-  // should walk back through browser history or do a real navigation.
   const pushedOwnHistoryRef = useRef(false);
-  // FIX: synchronous lock for fetchGames. setLoadingMore(true) is a state
-  // update — it only takes effect on the NEXT render, so a fast double
-  // tap (very common on mobile) can fire twice before the button even
-  // visually disables. A ref flips the instant the first call starts, so
-  // the second call always sees it in time and bails out immediately.
   const fetchInFlightRef = useRef(false);
+  const totalGamesRef = useRef(0);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Effects
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("token"));
   }, []);
 
-  // FIX: the announcement bar is `position: fixed; z-index: 1000`, above
-  // the game modal (`z-index: 999`), so it covered the modal's own
-  // close/back button and there was no way to leave a game. Toggling a
-  // `modal-open` class on <body> while a game is active lets Home.css
-  // slide the announcement bar out of view for that duration (see
-  // `body.modal-open .announcement-bar` in Home.css).
   useEffect(() => {
     if (activeGame) {
       document.body.classList.add("modal-open");
     } else {
       document.body.classList.remove("modal-open");
     }
-    return () => {
-      document.body.classList.remove("modal-open");
-    };
+    return () => document.body.classList.remove("modal-open");
   }, [activeGame]);
 
-  // CHANGED: still sets activeGame synchronously (instant modal, zero
-  // network wait, identical to before). Additionally syncs the URL bar
-  // via raw history.pushState — NOT router.push — so this never triggers
-  // a Next.js route change / remount of this component. The real
-  // /game/[id] Next route exists for direct loads, shares, and crawlers;
-  // this internal click just needs the address bar to reflect it.
+  // Core Functions
   const openGame = useCallback((game) => {
     addToHistory(game);
     setActiveGame(game);
@@ -138,101 +124,19 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, []);
 
-  const handleNavLogoClick = useCallback(() => {
-    logoClickCountRef.current += 1;
-    if (logoClickTimerRef.current) {
-      clearTimeout(logoClickTimerRef.current);
-    }
-    logoClickTimerRef.current = setTimeout(() => {
-      logoClickCountRef.current = 0;
-    }, 800);
-    if (logoClickCountRef.current === 5) {
-      setShowEasterEgg(true);
-      logoClickCountRef.current = 0;
-      setTimeout(() => setShowEasterEgg(false), 3000);
-    }
-  }, []);
-  // CHANGED: if a game modal is open (reached via a hard load OR an
-  // internal click), route the logo click through the SAME close logic
-  // as the X button/Escape instead of blindly calling router.push("/").
-  // Prevents a state mismatch between Next's internal router (which
-  // still thinks we're on "/" after an internal pushState-driven open)
-  // and the real browser URL.
   const handleCloseModal = useCallback(() => {
     if (pushedOwnHistoryRef.current) {
       pushedOwnHistoryRef.current = false;
       window.history.back();
     } else {
       setActiveGame(null);
-
-      if (
-        typeof window !== "undefined" &&
-        window.location.pathname.startsWith("/game/")
-      ) {
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/game/")) {
         router.push("/");
       }
     }
   }, [router]);
 
-  const handleNavLogoClickWithNavigate = useCallback(() => {
-    handleNavLogoClick();
-    if (activeGame) {
-      handleCloseModal();
-    } else {
-      router.push("/");
-    }
-  }, [handleNavLogoClick, activeGame, handleCloseModal, router]);
-  const handleSearchChange = useCallback((e) => {
-    setSearch(e.target.value);
-  }, []);
-  const handleCategoryClick = useCallback((c) => {
-    setCategory(c);
-    setSearch("");
-  }, []);
-  const clearCategoryAndSearch = useCallback(() => {
-    setCategory("All");
-    setSearch("");
-  }, []);
-  // CHANGED: if this modal was opened via our own pushState (internal
-  // click), walk back through browser history — the popstate listener
-  // below picks up the resulting URL change and clears activeGame,
-  // giving a completely native "back button" feel. If it wasn't (a hard
-  // load of /game/:id, nothing of ours to go "back" to), clear the modal
-  // and take a real, but soft, Next.js navigation home.
-
-  const handleCloseEasterEgg = useCallback(() => {
-    setShowEasterEgg(false);
-  }, []);
-  const handleCloseProfile = useCallback(() => {
-    setShowProfile(false);
-  }, []);
-  const handlePanelLogin = useCallback(() => {
-    setPanelMode("login");
-  }, []);
-  const handleClosePanel = useCallback(() => {
-    setPanelMode(null);
-  }, []);
-  const handleShowProfile = useCallback(() => {
-    setShowProfile(true);
-  }, []);
-  const handleSocialClick = useCallback((platform) => {
-    setSocialModal(platform);
-  }, []);
-  const handleCloseSocialModal = useCallback(() => {
-    setSocialModal(null);
-  }, []);
-
-  // FIX: a failed "load more" (page 2, 3...) used to set the SAME
-  // `error` state as a failed first load. The render below swaps the
-  // ENTIRE grid for a full "Server Error" screen whenever `error` is
-  // truthy, so one flaky request while paging wiped out every game
-  // already on screen — and the only Retry button always re-fetched
-  // page 1. That combo is exactly "load more 2-3 baar karo, error aa
-  // jata hai, refresh karne pe wapas load more karna padta hai." A
-  // load-more failure now sets its own `loadMoreError` instead, so the
-  // grid stays put and a small inline retry shows up, retrying the SAME
-  // page that failed — not page 1. fetchInFlightRef (declared above)
-  // stops the request itself from ever double-firing in the first place.
+  // ✅ FIXED: Proper API fetch with pagination
   const fetchGames = useCallback(async (pageNum, isFirst) => {
     if (fetchInFlightRef.current) return;
     fetchInFlightRef.current = true;
@@ -244,30 +148,61 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
       setLoadingMore(true);
       setLoadMoreError(null);
     }
+
     try {
-      const res = await fetch(`${GAMES_BASE}/games?page=${pageNum}`);
-      if (!res.ok) throw new Error("Server error");
+      const url = `${GAMES_BASE}/games?page=${pageNum}`;
+      console.log(`📡 Fetching: ${url}`);
+      
+      const res = await fetch(url);
+      
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status} ${res.statusText}`);
+      }
+      
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
+      console.log(`✅ Page ${pageNum} response:`, data);
+
+      // Handle different API response formats
+      let gamesArray = [];
+      let totalCount = 0;
+      
+      if (Array.isArray(data)) {
+        gamesArray = data;
+        totalCount = data.length;
+      } else if (data && typeof data === 'object') {
+        gamesArray = data.games || data.data || [];
+        totalCount = data.total || data.count || gamesArray.length;
+      }
+
+      if (totalCount > 0) {
+        totalGamesRef.current = totalCount;
+      }
+
+      if (gamesArray.length > 0) {
         setAllGames((prev) => {
-          const combined = isFirst ? data : [...prev, ...data];
+          const combined = isFirst ? gamesArray : [...prev, ...gamesArray];
           return dedupeById(combined);
         });
-        setHasMore(data.length === 50);
+
+        // Pagination logic
+        const currentTotal = isFirst ? gamesArray.length : allGames.length + gamesArray.length;
+        const hasMoreData = gamesArray.length === GAMES_PER_PAGE || 
+                           (totalCount > 0 && currentTotal < totalCount);
+        
+        setHasMore(hasMoreData);
+        console.log(`📊 Has more: ${hasMoreData}, Total: ${currentTotal}`);
       } else {
         setHasMore(false);
+        if (!isFirst) {
+          setLoadMoreError("🎮 All games loaded!");
+        }
       }
     } catch (e) {
+      console.error('❌ Fetch error:', e);
       if (isFirst) {
-        setError(e.message);
+        setError(e.message || 'Failed to load games');
       } else {
-        // FIX: log the real failure (bad status, network error, CORS,
-        // requesting a page the API doesn't actually have, etc.) to the
-        // console. Previously the only visible signal was the generic
-        // "Couldn't load more games" text on screen, so there was no way
-        // to tell WHY a given page kept failing without guessing.
-        console.error("Load more failed for page", pageNum, e);
-        setLoadMoreError(e.message);
+        setLoadMoreError(e.message || 'Could not load more games');
       }
     } finally {
       fetchInFlightRef.current = false;
@@ -277,66 +212,75 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         setLoadingMore(false);
       }
     }
-  }, []);
+  }, [allGames.length]);
 
-  useEffect(() => {
-    if (initialGames.length === 0) {
-      fetchGames(1, true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchGames]);
-
-  // FIX (the main bug): this used to always compute `next = page + 1`
-  // BEFORE knowing whether the fetch would even succeed, and it committed
-  // to that next page with setPage(next) unconditionally. So the exact
-  // sequence you were hitting was:
-  //   1. Click "Load More" on page 1 -> request for page 2 fails
-  //      -> loadMoreError is set, but `page` state is ALREADY 2
-  //   2. Click "Load More" again (the big button, not the small inline
-  //      Retry link) -> loadMore reads `page` (=2), computes next = 3,
-  //      commits to page 3 -> page 2 is never retried, ever
-  //   3. If page 3 (or any later page) also fails for the same backend
-  //      reason, this repeats forever: every click burns a new page
-  //      number, `hasMore` never becomes false, and no new games ever
-  //      arrive — exactly "load more click karo, games load hi nahi hote."
-  // Fix: if the previous attempt failed, retry that SAME page number.
-  // Only advance to page + 1 after an attempt actually succeeds.
+  // ✅ FIXED: Load more with proper error recovery
   const loadMore = useCallback(() => {
-    if (loadingMore) return;
-    if (visibleCount < allGames.length) {
-      setVisibleCount((v) => Math.min(v + 20, allGames.length));
+    if (loadingMore || fetchInFlightRef.current) {
+      console.log('⏳ Already loading...');
       return;
     }
-    const targetPage = loadMoreError ? page : page + 1;
-    if (!loadMoreError) {
-      setPage(targetPage);
-    }
-    fetchGames(targetPage, false);
-  }, [loadingMore, loadMoreError, page, fetchGames, visibleCount, allGames.length]);
 
-  // CHANGED: routes through handleCloseModal instead of setActiveGame(null)
-  // directly, so Escape stays in sync with the URL/history bookkeeping
-  // that openGame/handleCloseModal now manage. Without this, pressing
-  // Escape would close the modal but leave the URL bar (and the pushed
-  // history entry) stuck on /game/:id.
-  const handleEscapeKey = useCallback(
-    (e) => {
-      if (e.key === "Escape") {
-        handleCloseModal();
-      }
-    },
-    [handleCloseModal],
-  );
+    if (visibleCount < allGames.length) {
+      setVisibleCount((v) => Math.min(v + VISIBLE_INCREMENT, allGames.length));
+      return;
+    }
+
+    if (!hasMore) {
+      setLoadMoreError('🎮 All games loaded!');
+      return;
+    }
+
+    const targetPage = loadMoreError ? page : page + 1;
+    console.log(`🔄 Loading page ${targetPage}...`);
+    setPage(targetPage);
+    fetchGames(targetPage, false);
+  }, [loadingMore, fetchInFlightRef, visibleCount, allGames.length, hasMore, loadMoreError, page, fetchGames]);
+
+  // Navigation handlers
+  const handleNavLogoClick = useCallback(() => {
+    logoClickCountRef.current += 1;
+    if (logoClickTimerRef.current) clearTimeout(logoClickTimerRef.current);
+    logoClickTimerRef.current = setTimeout(() => { logoClickCountRef.current = 0; }, 800);
+    if (logoClickCountRef.current === 5) {
+      setShowEasterEgg(true);
+      logoClickCountRef.current = 0;
+      setTimeout(() => setShowEasterEgg(false), 3000);
+    }
+  }, []);
+
+  const handleNavLogoClickWithNavigate = useCallback(() => {
+    handleNavLogoClick();
+    if (activeGame) {
+      handleCloseModal();
+    } else {
+      router.push("/");
+    }
+  }, [handleNavLogoClick, activeGame, handleCloseModal, router]);
+
+  const handleSearchChange = useCallback((e) => setSearch(e.target.value), []);
+  const handleCategoryClick = useCallback((c) => { setCategory(c); setSearch(""); }, []);
+  const clearCategoryAndSearch = useCallback(() => { setCategory("All"); setSearch(""); }, []);
+  const handleCloseEasterEgg = useCallback(() => setShowEasterEgg(false), []);
+  const handleCloseProfile = useCallback(() => setShowProfile(false), []);
+  const handlePanelLogin = useCallback(() => setPanelMode("login"), []);
+  const handleClosePanel = useCallback(() => setPanelMode(null), []);
+  const handleShowProfile = useCallback(() => setShowProfile(true), []);
+  const handleSocialClick = useCallback((platform) => setSocialModal(platform), []);
+  const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
+  const handleSharkNavigate = useCallback(() => router.push("/"), [router]);
+
+  // Keyboard handler
+  const handleEscapeKey = useCallback((e) => {
+    if (e.key === "Escape") handleCloseModal();
+  }, [handleCloseModal]);
+
   useEffect(() => {
     window.addEventListener("keydown", handleEscapeKey);
     return () => window.removeEventListener("keydown", handleEscapeKey);
   }, [handleEscapeKey]);
 
-  // NEW: keeps activeGame in sync with the browser's actual back/forward
-  // navigation. When the URL lands on /game/:id (via back OR forward),
-  // look the game up in already-loaded state and reopen it instantly —
-  // no network round-trip needed since the grid data is already here.
-  // When the URL lands anywhere else, close the modal.
+  // Popstate handler
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
@@ -344,9 +288,8 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
       if (match) {
         const raw = decodeURIComponent(match[1]);
         const id = raw.match(/^gm_\d+/)?.[0] || raw;
-        const found =
-          allGames.find((g) => String(g.id) === id) ||
-          (initialActiveGame && String(initialActiveGame.id) === id ? initialActiveGame : null);
+        const found = allGames.find((g) => String(g.id) === id) ||
+                     (initialActiveGame && String(initialActiveGame.id) === id ? initialActiveGame : null);
         if (found) {
           setActiveGame(found);
           pushedOwnHistoryRef.current = true;
@@ -360,22 +303,26 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [allGames, initialActiveGame]);
 
+  // Initial load
+  useEffect(() => {
+    if (initialGames.length === 0) {
+      fetchGames(1, true);
+    }
+  }, [fetchGames, initialGames]);
+
+  // Memoized values
   const searchLower = useMemo(() => search.toLowerCase(), [search]);
   const categoryFilter = useMemo(() => (category === "All" ? null : category), [category]);
+  
   const displayedGames = useMemo(() => {
-    if (!categoryFilter && !searchLower) {
-      return allGames.slice(0, visibleCount);
+    let games = allGames;
+    if (categoryFilter) {
+      games = games.filter((g) => g.category === categoryFilter);
     }
-    return allGames
-      .filter((g) => {
-        if (categoryFilter && g.category !== categoryFilter) return false;
-        if (searchLower) {
-          const title = g.title?.toLowerCase() || "";
-          if (!title.includes(searchLower)) return false;
-        }
-        return true;
-      })
-      .slice(0, visibleCount);
+    if (searchLower) {
+      games = games.filter((g) => g.title?.toLowerCase().includes(searchLower));
+    }
+    return games.slice(0, visibleCount);
   }, [allGames, categoryFilter, searchLower, visibleCount]);
 
   const categories = useMemo(() => {
@@ -385,101 +332,39 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
 
   const gameClickHandlers = useMemo(() => {
     const map = new Map();
-    for (let i = 0; i < displayedGames.length; i++) {
-      const game = displayedGames[i];
+    displayedGames.forEach((game, i) => {
       const key = game.id || game.title || i;
       map.set(key, () => openGame(game));
-    }
+    });
     return map;
   }, [displayedGames, openGame]);
 
   const skeletonArray = useMemo(() => Array.from({ length: 18 }), []);
-
-  const renderMiniAvatar = useCallback(() => {
-    if (!profile) {
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      );
-    }
-    if (profile.avatarType === "google" && profile.avatarUrl) {
-      return (
-        <img
-          src={profile.avatarUrl}
-          alt="avatar"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      );
-    }
-    const shape = profile.avatarShape || "heart";
-    const color = profile.avatarColor || "#c084fc";
-    return (
-      <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-        {shape === "circle" && <circle cx="14" cy="14" r="12" fill={color} />}
-        {shape === "square" && <rect x="2" y="2" width="24" height="24" rx="5" fill={color} />}
-        {shape === "star" && (
-          <polygon points="14,2 17,10 26,10 19,15 22,23 14,18 6,23 9,15 2,10 11,10" fill={color} />
-        )}
-        {shape === "hexagon" && (
-          <polygon points="14,2 24,8 24,20 14,26 4,20 4,8" fill={color} />
-        )}
-        {shape === "heart" && (
-          <path
-            d="M14 23 C14 23 3 16 3 9 C3 5.7 5.7 3 9 3 C11 3 12.7 4 14 5.5 C15.3 4 17 3 19 3 C22.3 3 25 5.7 25 9 C25 16 14 23 14 23Z"
-            fill={color}
-          />
-        )}
-      </svg>
-    );
-  }, [profile]);
-  const avatarElement = useMemo(() => renderMiniAvatar(), [renderMiniAvatar]);
-
-  const handleSharkNavigate = useCallback(() => {
-    router.push("/");
-  }, [router]);
+  const avatarElement = useMemo(() => renderMiniAvatar(profile), [profile]);
 
   return (
     <>
-      {/* Ambient full-page teal backdrop with real pointed 3D crystals
-          (see .bg-crystals in Home.css for the teal gradient). Each
-          crystal below is a genuine inline SVG built from several
-          triangular facets — some catch a light gradient, some sit in
-          shadow — so they read as real photographed rough gemstones,
-          not flat shapes. A couple are rendered soft/blurred for
-          atmospheric depth, and small accent gems + hazy glow blobs
-          are scattered for extra depth. Purely decorative. */}
+      {/* Background */}
       <div className="bg-crystals" aria-hidden="true">
-        <div className="crystal-cluster gem crystal-1">
-          <PointedCrystalSVG variant="a" />
-        </div>
-        <div className="crystal-cluster gem crystal-2">
-          <PointedCrystalSVG variant="b" />
-        </div>
-        <div className="crystal-cluster soft crystal-3">
-          <PointedCrystalSVG variant="c" />
-        </div>
-        <div className="crystal-cluster gem crystal-4">
-          <PointedCrystalSVG variant="b" flip />
-        </div>
-        <div className="crystal-cluster soft crystal-5">
-          <PointedCrystalSVG variant="a" flip />
-        </div>
-        <div className="crystal-cluster gem crystal-accent a1">
-          <PointedCrystalSVG variant="c" />
-        </div>
-        <div className="crystal-cluster gem crystal-accent a2">
-          <PointedCrystalSVG variant="a" />
-        </div>
+        <div className="crystal-cluster gem crystal-1"><PointedCrystalSVG variant="a" /></div>
+        <div className="crystal-cluster gem crystal-2"><PointedCrystalSVG variant="b" /></div>
+        <div className="crystal-cluster soft crystal-3"><PointedCrystalSVG variant="c" /></div>
+        <div className="crystal-cluster gem crystal-4"><PointedCrystalSVG variant="b" flip /></div>
+        <div className="crystal-cluster soft crystal-5"><PointedCrystalSVG variant="a" flip /></div>
+        <div className="crystal-cluster gem crystal-accent a1"><PointedCrystalSVG variant="c" /></div>
+        <div className="crystal-cluster gem crystal-accent a2"><PointedCrystalSVG variant="a" /></div>
         <div className="crystal-cluster glow crystal-accent a3" />
         <div className="crystal-cluster glow crystal-accent a4" />
       </div>
+
+      {/* Easter Egg */}
       {showEasterEgg && (
         <Suspense fallback={null}>
           <EasterEggModal gameCount={displayedGames.length} onClose={handleCloseEasterEgg} />
         </Suspense>
       )}
+
+      {/* Announcement Bar */}
       <div className="announcement-bar" role="region" aria-label="Website update">
         <div className="announcement-bar__track">
           <div className="announcement-bar__message">
@@ -487,25 +372,23 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               <span className="announcement-bar__dot" />
               NEW WEBSITE
             </span>
-
             <span className="announcement-bar__text">
-              You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
+              You're among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we're listening, improving, and working to make every visit better.
             </span>
           </div>
-
           <div className="announcement-bar__message" aria-hidden="true">
             <span className="announcement-bar__badge">
               <span className="announcement-bar__dot" />
               NEW WEBSITE
             </span>
-
             <span className="announcement-bar__text">
-              You’re among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we’re listening, improving, and working to make every visit better.
+              You're among the first to explore Sharx. As we continue refining our newly launched experience, you may occasionally come across a small issue. Thank you for your patience, feedback, and support—we're listening, improving, and working to make every visit better.
             </span>
           </div>
         </div>
       </div>
 
+      {/* Navigation */}
       <div className="nav-outer">
         <div className="nav-wrap">
           <nav className="nav">
@@ -539,16 +422,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                 </div>
               ) : (
                 <div className="login-icon-container" onClick={handlePanelLogin} title="Login">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#1E293B"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
@@ -559,6 +433,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         </div>
       </div>
 
+      {/* Categories */}
       {!loading && !error && categories.length > 1 && (
         <div className="cats-outer">
           <div className="cats-wrap">
@@ -577,6 +452,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         </div>
       )}
 
+      {/* Main Content */}
       <main className={`page-content${loading || error || categories.length <= 1 ? " page-content-top" : ""}`}>
         {loading ? (
           <div className="skels">
@@ -590,17 +466,13 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
           </div>
         ) : error ? (
           <div className="empty">
-            <div className="empty-t">Server Error</div>
-            <button className="empty-b" onClick={() => fetchGames(1, true)}>
-              Retry
-            </button>
+            <div className="empty-t">⚠️ Server Error</div>
+            <button className="empty-b" onClick={() => fetchGames(1, true)}>Retry</button>
           </div>
         ) : displayedGames.length === 0 ? (
           <div className="empty">
-            <div className="empty-t">No games found</div>
-            <button className="empty-b" onClick={clearCategoryAndSearch}>
-              All Games
-            </button>
+            <div className="empty-t">🔍 No games found</div>
+            <button className="empty-b" onClick={clearCategoryAndSearch}>All Games</button>
           </div>
         ) : (
           <>
@@ -618,37 +490,53 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                 );
               })}
             </div>
+            
+            {/* ✅ Load More Section - Completely Fixed */}
             {hasMore && (
               <div className="load-more-wrap">
-                <button className="load-more-btn" onClick={loadMore} disabled={loadingMore}>
+                <button 
+                  className="load-more-btn" 
+                  onClick={loadMore} 
+                  disabled={loadingMore || fetchInFlightRef.current}
+                >
                   {loadingMore ? (
                     <>
                       <span className="spinner" />
                       Loading...
                     </>
+                  ) : loadMoreError ? (
+                    '🔄 Retry'
                   ) : (
-                    "Load More Games"
+                    'Load More Games'
                   )}
                 </button>
-                {/* FIX: small inline retry instead of nuking the whole
-                    grid — see the comment above fetchGames() for why. */}
-                {loadMoreError && (
-                  <div className="load-more-error">
-                    Couldn't load more games.{" "}
-                    <button
-                      className="load-more-error-retry"
-                      onClick={() => fetchGames(page, false)}
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
+              </div>
+            )}
+            
+            {/* ✅ Error Message */}
+            {loadMoreError && loadMoreError !== '🎮 All games loaded!' && (
+              <div className="load-more-error">
+                {loadMoreError}
+                <button
+                  className="load-more-error-retry"
+                  onClick={() => fetchGames(page, false)}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            
+            {/* ✅ All Loaded Message */}
+            {!hasMore && allGames.length > 0 && (
+              <div className="load-more-end">
+                🎮 All {allGames.length} games loaded
               </div>
             )}
           </>
         )}
       </main>
 
+      {/* Modals */}
       {activeGame && (
         <Suspense fallback={null}>
           <GameModal game={activeGame} onClose={handleCloseModal} />
@@ -678,6 +566,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         </Suspense>
       )}
 
+      {/* Footer */}
       <footer className="site-footer">
         <div className="footer-body">
           <div className="footer-content">
@@ -716,24 +605,14 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               <div className="footer-socials">
                 <div
                   className="social-icon"
-                  onClick={() =>
-                    window.open(
-                      "https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4",
-                      "_blank",
-                      "noopener,noreferrer"
-                    )
-                  }
+                  onClick={() => window.open("https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4", "_blank", "noopener,noreferrer")}
                   title="Instagram"
                 >
                   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
                   </svg>
                 </div>
-                <div
-                  className="social-icon"
-                  onClick={() => handleSocialClick("youtube")}
-                  title="YouTube"
-                >
+                <div className="social-icon" onClick={() => handleSocialClick("youtube")} title="YouTube">
                   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
@@ -745,15 +624,9 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               <div className="footer-col">
                 <p className="footer-col-title">Company</p>
                 <div className="footer-col-links">
-                  <Link href="/about" className="footer-link">
-                    About Us
-                  </Link>
-                  <Link href="/contact" className="footer-link">
-                    Contact
-                  </Link>
-                  <Link href="/privacy" className="footer-link">
-                    Privacy Policy
-                  </Link>
+                  <Link href="/about" className="footer-link">About Us</Link>
+                  <Link href="/contact" className="footer-link">Contact</Link>
+                  <Link href="/privacy" className="footer-link">Privacy Policy</Link>
                 </div>
               </div>
             </div>
@@ -768,17 +641,49 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   );
 }
 
-/* ─── DECORATIVE POINTED CRYSTAL SVG ───
-   Renders a tall, pointed rough-gem shape out of several triangular
-   facets, each filled with its own linear gradient so some faces
-   read as catching light and others as falling into shadow — the
-   same way a real photographed crystal reads. Three hand-built
-   variants (a/b/c) give visual variety across the scattered clusters,
-   and `flip` mirrors a variant horizontally for further variety
-   without needing more markup. Purely decorative (aria-hidden by the
-   parent wrapper). */
+// ========== Helper Functions ==========
+const renderMiniAvatar = (profile) => {
+  if (!profile) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1E293B" strokeWidth="2" strokeLinecap="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    );
+  }
+  if (profile.avatarType === "google" && profile.avatarUrl) {
+    return (
+      <img
+        src={profile.avatarUrl}
+        alt="avatar"
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    );
+  }
+  const shape = profile.avatarShape || "heart";
+  const color = profile.avatarColor || "#c084fc";
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+      {shape === "circle" && <circle cx="14" cy="14" r="12" fill={color} />}
+      {shape === "square" && <rect x="2" y="2" width="24" height="24" rx="5" fill={color} />}
+      {shape === "star" && (
+        <polygon points="14,2 17,10 26,10 19,15 22,23 14,18 6,23 9,15 2,10 11,10" fill={color} />
+      )}
+      {shape === "hexagon" && (
+        <polygon points="14,2 24,8 24,20 14,26 4,20 4,8" fill={color} />
+      )}
+      {shape === "heart" && (
+        <path
+          d="M14 23 C14 23 3 16 3 9 C3 5.7 5.7 3 9 3 C11 3 12.7 4 14 5.5 C15.3 4 17 3 19 3 C22.3 3 25 5.7 25 9 C25 16 14 23 14 23Z"
+          fill={color}
+        />
+      )}
+    </svg>
+  );
+};
+
+// ========== Crystal SVG Component ==========
 const CRYSTAL_VARIANTS = {
-  // Tall single spike, narrow point, 5 facets
   a: {
     viewBox: "0 0 100 140",
     facets: [
@@ -790,7 +695,6 @@ const CRYSTAL_VARIANTS = {
       { d: "M26 100 L50 60 L84 78 L60 138 L34 132 Z", tone: "deep" },
     ],
   },
-  // Squat double-point cluster, 6 facets
   b: {
     viewBox: "0 0 110 130",
     facets: [
@@ -805,7 +709,6 @@ const CRYSTAL_VARIANTS = {
       { d: "M74 62 L86 76 L64 118 L38 96 L64 84 Z", tone: "deep" },
     ],
   },
-  // Small crisp accent point, 4 facets
   c: {
     viewBox: "0 0 80 110",
     facets: [
@@ -864,37 +767,25 @@ const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a",
   );
 });
 
-/* ─── GAME CARD ─── */
+// ========== GameCard Component ==========
 const GameCard = React.memo(function GameCard({ game, index, featured, onClick }) {
   const cardStyle = useMemo(() => ({ animationDelay: `${Math.min(index, 20) * 22}ms` }), [index]);
 
-  const handleImageError = useCallback(
-    (e) => {
-      const title = game.title || "Game";
-      e.target.srcset = "";
-      e.target.src = `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(title)}`;
-    },
-    [game.title],
-  );
+  const handleImageError = useCallback((e) => {
+    const title = game.title || "Game";
+    e.target.srcset = "";
+    e.target.src = `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(title)}`;
+  }, [game.title]);
 
-  // NEW: only intercepts a plain, unmodified left-click. Ctrl/Cmd/Shift/
-  // middle-click all fall through untouched, so "open in new tab",
-  // "open in new window", and "copy link" keep working natively via the
-  // <Link>'s real href below — this mirrors exactly how Next's own Link
-  // decides whether to run its own client-side navigation.
-  const handleCardClick = useCallback(
-    (e) => {
-      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
-        return;
-      }
-      e.preventDefault();
-      onClick?.();
-    },
-    [onClick],
-  );
+  const handleCardClick = useCallback((e) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return;
+    }
+    e.preventDefault();
+    onClick?.();
+  }, [onClick]);
 
-  const imgSrc =
-    game.thumb || `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`;
+  const imgSrc = game.thumb || `https://placehold.co/400x400/D8DDE6/475569?text=${encodeURIComponent(game.title || "Game")}`;
 
   const cardBody = (
     <div
@@ -911,6 +802,7 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
           fill
           unoptimized
           sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
+          loading={index < 4 ? "eager" : "lazy"}
           priority={index === 0}
           fetchPriority={index === 0 ? "high" : undefined}
           quality={65}
@@ -929,18 +821,10 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
     </div>
   );
 
-  // No id, no valid /game/:id URL to build — fall back to the exact
-  // original click-only behavior rather than generating a broken link.
   if (game.id == null) {
     return cardBody;
   }
 
-  // NEW: wraps the untouched card in a real, crawlable <a href="/game/:id">.
-  // display: contents means the Link introduces ZERO box/layout of its
-  // own — the div inside renders exactly as if this wrapper didn't
-  // exist, so Home.css and every existing animation apply unchanged.
-  // Googlebot (and anyone middle-clicking) sees a real link; a normal
-  // left-click still goes through the instant in-app modal.
   return (
     <Link
       href={`/game/${encodeURIComponent(game.id)}-${slugify(game.title)}`}

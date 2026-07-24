@@ -887,3 +887,125 @@ body.modal-open .page-content-top {
   border: none;
   cursor: pointer;
 }
+/* Load More Button */
+.load-more-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding: 0 1rem;
+}
+
+.load-more-btn {
+  padding: 0.85rem 2.5rem;
+  background: linear-gradient(135deg, #1E293B, #334155);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 200px;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.25);
+}
+
+.load-more-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(30, 41, 59, 0.35);
+  background: linear-gradient(135deg, #334155, #1E293B);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Load More Error */
+.load-more-error {
+  text-align: center;
+  color: #EF4444;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.load-more-error-retry {
+  background: none;
+  border: none;
+  color: #EF4444;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0 0.25rem;
+}
+
+.load-more-error-retry:hover {
+  color: #DC2626;
+}
+
+/* All Loaded Message */
+.load-more-end {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #94A3B8;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+  margin-top: 2rem;
+  width: 100%;
+}
+
+/* Empty State */
+.empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748B;
+}
+
+.empty-t {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1E293B;
+}
+
+.empty-b {
+  padding: 0.75rem 2rem;
+  background: #1E293B;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.empty-b:hover {
+  background: #334155;
+  transform: translateY(-2px);
+}
