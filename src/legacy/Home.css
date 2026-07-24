@@ -874,3 +874,16 @@ body.modal-open .page-content-top {
     padding-top: 120px;
   }
 }
+.load-more-error {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #b91c1c;
+}
+.load-more-error-retry {
+  color: #2472c4;
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}

@@ -75,6 +75,9 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const [category, setCategory] = useState("All");
   const [activeGame, setActiveGame] = useState(initialActiveGame);
   const [error, setError] = useState(null);
+  // FIX: separate from `error` above on purpose — see the note on
+  // fetchGames() for why a load-more failure can no longer reuse `error`.
+  const [loadMoreError, setLoadMoreError] = useState(null);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [panelMode, setPanelMode] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -87,6 +90,12 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   // opposed to a hard page-load on /game/:id. Drives whether "close"
   // should walk back through browser history or do a real navigation.
   const pushedOwnHistoryRef = useRef(false);
+  // FIX: synchronous lock for fetchGames. setLoadingMore(true) is a state
+  // update — it only takes effect on the NEXT render, so a fast double
+  // tap (very common on mobile) can fire twice before the button even
+  // visually disables. A ref flips the instant the first call starts, so
+  // the second call always sees it in time and bails out immediately.
+  const fetchInFlightRef = useRef(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
@@ -213,13 +222,28 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     setSocialModal(null);
   }, []);
 
+  // FIX: a failed "load more" (page 2, 3...) used to set the SAME
+  // `error` state as a failed first load. The render below swaps the
+  // ENTIRE grid for a full "Server Error" screen whenever `error` is
+  // truthy, so one flaky request while paging wiped out every game
+  // already on screen — and the only Retry button always re-fetched
+  // page 1. That combo is exactly "load more 2-3 baar karo, error aa
+  // jata hai, refresh karne pe wapas load more karna padta hai." A
+  // load-more failure now sets its own `loadMoreError` instead, so the
+  // grid stays put and a small inline retry shows up, retrying the SAME
+  // page that failed — not page 1. fetchInFlightRef (declared above)
+  // stops the request itself from ever double-firing in the first place.
   const fetchGames = useCallback(async (pageNum, isFirst) => {
+    if (fetchInFlightRef.current) return;
+    fetchInFlightRef.current = true;
+
     if (isFirst) {
       setLoading(true);
+      setError(null);
     } else {
       setLoadingMore(true);
+      setLoadMoreError(null);
     }
-    setError(null);
     try {
       const res = await fetch(`${GAMES_BASE}/games?page=${pageNum}`);
       if (!res.ok) throw new Error("Server error");
@@ -234,8 +258,13 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         setHasMore(false);
       }
     } catch (e) {
-      setError(e.message);
+      if (isFirst) {
+        setError(e.message);
+      } else {
+        setLoadMoreError(e.message);
+      }
     } finally {
+      fetchInFlightRef.current = false;
       if (isFirst) {
         setLoading(false);
       } else {
@@ -578,6 +607,19 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                     "Load More Games"
                   )}
                 </button>
+                {/* FIX: small inline retry instead of nuking the whole
+                    grid — see the comment above fetchGames() for why. */}
+                {loadMoreError && (
+                  <div className="load-more-error">
+                    Couldn't load more games.{" "}
+                    <button
+                      className="load-more-error-retry"
+                      onClick={() => fetchGames(page, false)}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </>
