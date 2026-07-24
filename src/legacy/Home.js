@@ -132,7 +132,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
       window.history.pushState(
         { sharxGameId: game.id },
         "",
-`/game/${game.id}-${slugify(game.title)}`
+        `/game/${game.id}-${slugify(game.title)}`
       );
       pushedOwnHistoryRef.current = true;
     }
@@ -159,20 +159,20 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   // still thinks we're on "/" after an internal pushState-driven open)
   // and the real browser URL.
   const handleCloseModal = useCallback(() => {
-  if (pushedOwnHistoryRef.current) {
-    pushedOwnHistoryRef.current = false;
-    window.history.back();
-  } else {
-    setActiveGame(null);
+    if (pushedOwnHistoryRef.current) {
+      pushedOwnHistoryRef.current = false;
+      window.history.back();
+    } else {
+      setActiveGame(null);
 
-    if (
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/game/")
-    ) {
-      router.push("/");
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname.startsWith("/game/")
+      ) {
+        router.push("/");
+      }
     }
-  }
-}, [router]);
+  }, [router]);
 
   const handleNavLogoClickWithNavigate = useCallback(() => {
     handleNavLogoClick();
@@ -261,6 +261,12 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
       if (isFirst) {
         setError(e.message);
       } else {
+        // FIX: log the real failure (bad status, network error, CORS,
+        // requesting a page the API doesn't actually have, etc.) to the
+        // console. Previously the only visible signal was the generic
+        // "Couldn't load more games" text on screen, so there was no way
+        // to tell WHY a given page kept failing without guessing.
+        console.error("Load more failed for page", pageNum, e);
         setLoadMoreError(e.message);
       }
     } finally {
@@ -280,16 +286,33 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchGames]);
 
+  // FIX (the main bug): this used to always compute `next = page + 1`
+  // BEFORE knowing whether the fetch would even succeed, and it committed
+  // to that next page with setPage(next) unconditionally. So the exact
+  // sequence you were hitting was:
+  //   1. Click "Load More" on page 1 -> request for page 2 fails
+  //      -> loadMoreError is set, but `page` state is ALREADY 2
+  //   2. Click "Load More" again (the big button, not the small inline
+  //      Retry link) -> loadMore reads `page` (=2), computes next = 3,
+  //      commits to page 3 -> page 2 is never retried, ever
+  //   3. If page 3 (or any later page) also fails for the same backend
+  //      reason, this repeats forever: every click burns a new page
+  //      number, `hasMore` never becomes false, and no new games ever
+  //      arrive — exactly "load more click karo, games load hi nahi hote."
+  // Fix: if the previous attempt failed, retry that SAME page number.
+  // Only advance to page + 1 after an attempt actually succeeds.
   const loadMore = useCallback(() => {
     if (loadingMore) return;
     if (visibleCount < allGames.length) {
       setVisibleCount((v) => Math.min(v + 20, allGames.length));
       return;
     }
-    const next = page + 1;
-    setPage(next);
-    fetchGames(next, false);
-  }, [loadingMore, page, fetchGames, visibleCount, allGames.length]);
+    const targetPage = loadMoreError ? page : page + 1;
+    if (!loadMoreError) {
+      setPage(targetPage);
+    }
+    fetchGames(targetPage, false);
+  }, [loadingMore, loadMoreError, page, fetchGames, visibleCount, allGames.length]);
 
   // CHANGED: routes through handleCloseModal instead of setActiveGame(null)
   // directly, so Escape stays in sync with the URL/history bookkeeping
@@ -691,17 +714,17 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               </div>
 
               <div className="footer-socials">
-               <div
-  className="social-icon"
-  onClick={() =>
-    window.open(
-      "https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4",
-      "_blank",
-      "noopener,noreferrer"
-    )
-  }
-  title="Instagram"
->
+                <div
+                  className="social-icon"
+                  onClick={() =>
+                    window.open(
+                      "https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4",
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  title="Instagram"
+                >
                   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
                   </svg>
@@ -881,18 +904,18 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
     >
       {featured && game.category && <span className="gc-cat-chip">{game.category}</span>}
       <div className="gc-img-wrap">
-     <Image
-  className="gc-img"
-  src={imgSrc}
-  alt={game.title}
-  fill
-  unoptimized
-  sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
-  priority={index === 0}
-  fetchPriority={index === 0 ? "high" : undefined}
-  quality={65}
-  onError={handleImageError}
-/>
+        <Image
+          className="gc-img"
+          src={imgSrc}
+          alt={game.title}
+          fill
+          unoptimized
+          sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
+          priority={index === 0}
+          fetchPriority={index === 0 ? "high" : undefined}
+          quality={65}
+          onError={handleImageError}
+        />
       </div>
       <div className="gc-overlay" />
       <div className="gc-play-btn">
@@ -920,7 +943,7 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick }
   // left-click still goes through the instant in-app modal.
   return (
     <Link
-href={`/game/${encodeURIComponent(game.id)}-${slugify(game.title)}`}
+      href={`/game/${encodeURIComponent(game.id)}-${slugify(game.title)}`}
       prefetch={false}
       style={{ display: "contents" }}
       onClick={handleCardClick}
