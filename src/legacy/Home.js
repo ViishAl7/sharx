@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useProfile } from "../context/ProfileContext";
-import { GAMES_BASE } from "../config";
 import "./Home.css";
 
 const SidePanel = lazy(() => import("../legacy/SidePanel"));
@@ -86,7 +85,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
 
   // ── State ──────────────────────────────────────────────────
   const [allGames, setAllGames] = useState(() => dedupeById(initialGames));
-  const [page, setPage] = useState(1);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [hasMore, setHasMore] = useState(initialGames.length === GAMES_PER_PAGE);
   const [loading, setLoading] = useState(initialGames.length === 0);
@@ -107,16 +105,18 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const logoClickTimerRef = useRef(null);
   const pushedOwnHistoryRef = useRef(false);
   const fetchInFlightRef = useRef(false);
-  // Mirrors allGames.length without forcing fetchGames to depend on the array.
-  // This is the #1 fix for the "sticky/janky" feeling: previously fetchGames
-  // was re-created on every game added, which re-created every callback that
-  // depended on it, which re-rendered every GameCard. Now fetchGames never
-  // changes identity after mount.
-  const totalGamesRef = useRef(initialGames.length);
+  const allGamesRef = useRef(dedupeById(initialGames));
+  const totalGamesRef = useRef(dedupeById(initialGames).length);
+  // Advance this only after the API returns a valid, non-duplicate page.
+  const currentPageRef = useRef(initialGames.length > 0 ? 1 : 0);
 
   // ── One-time / auth effects ────────────────────────────────
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("token"));
+    const timer = window.setTimeout(() => {
+      setIsLoggedIn(!!localStorage.getItem("token"));
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -150,9 +150,9 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, [router]);
 
-  // ── Fetch games (stable identity — depends on nothing that changes) ──
+  // ── Fetch games through the same-origin Next route ──────────
   const fetchGames = useCallback(async (pageNum, isFirst) => {
-    if (fetchInFlightRef.current) return;
+    if (fetchInFlightRef.current) return false;
     fetchInFlightRef.current = true;
 
     if (isFirst) {
@@ -164,72 +164,112 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
 
     try {
-      const url = `${GAMES_BASE}/games?page=${pageNum}`;
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      const params = new URLSearchParams({
+        page: String(pageNum),
+        limit: String(GAMES_PER_PAGE),
+      });
 
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      // Do not call the external API from the user's phone/browser. The
+      // server proxy avoids CORS, localhost URLs and CDN cache collisions.
+      const res = await fetch(`/api/games?${params.toString()}`, {
+        method: "GET",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
 
-      const data = await res.json();
-      const gamesArray = Array.isArray(data) ? data : [];
+      let data = null;
 
-      if (gamesArray.length > 0) {
-        setAllGames((prev) => {
-          const combined = isFirst ? gamesArray : [...prev, ...gamesArray];
-          const deduped = dedupeById(combined);
-          totalGamesRef.current = deduped.length;
-          return deduped;
-        });
-        setHasMore(gamesArray.length === GAMES_PER_PAGE);
-      } else {
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid API response.");
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.error || `Server error: ${res.status}`);
+      }
+
+      const gamesArray = Array.isArray(data?.games) ? data.games : [];
+      const responseHasMore =
+        typeof data?.hasMore === "boolean"
+          ? data.hasMore
+          : gamesArray.length === GAMES_PER_PAGE;
+
+      if (gamesArray.length === 0) {
         setHasMore(false);
         if (!isFirst) setLoadMoreError("All games loaded!");
+        return false;
       }
+
+      const previousGames = isFirst ? [] : allGamesRef.current;
+      const combinedGames = dedupeById(
+        isFirst ? gamesArray : [...previousGames, ...gamesArray]
+      );
+
+      // A bad production cache can return page 1 for page 2. Do not silently
+      // move past it; keep the same page ready for the Retry button.
+      if (!isFirst && combinedGames.length === previousGames.length) {
+        throw new Error("Duplicate games page received.");
+      }
+
+      allGamesRef.current = combinedGames;
+      totalGamesRef.current = combinedGames.length;
+      setAllGames(combinedGames);
+      setHasMore(responseHasMore);
+
+      return true;
     } catch (e) {
+      console.error("Load games failed:", e);
       if (isFirst) {
         setError("Failed to load games. Please refresh.");
       } else {
         setLoadMoreError("Could not load more games. Please try again.");
       }
+      return false;
     } finally {
       fetchInFlightRef.current = false;
       if (isFirst) setLoading(false);
       else setLoadingMore(false);
     }
-  }, []); // stable forever — no stale-closure risk because we only read refs/setters inside
+  }, []);
 
-  // ── Load more (reveal already-fetched games first, fetch only when needed) ──
-  const loadMore = useCallback(() => {
+  // ── Load more ──────────────────────────────────────────────
+  const loadMore = useCallback(async () => {
     if (loadingMore || fetchInFlightRef.current) return;
 
-    setVisibleCount((v) => {
-      if (v < totalGamesRef.current) {
-        return Math.min(v + VISIBLE_INCREMENT, totalGamesRef.current);
-      }
-      return v;
-    });
-
-    // If we already have unrevealed games locally, don't hit the network.
-    if (visibleCount < totalGamesRef.current) return;
+    if (visibleCount < totalGamesRef.current) {
+      setVisibleCount((count) =>
+        Math.min(count + VISIBLE_INCREMENT, totalGamesRef.current)
+      );
+      return;
+    }
 
     if (!hasMore) {
       setLoadMoreError("All games loaded!");
       return;
     }
 
-    setPage((p) => {
-      const nextPage = p + 1;
-      fetchGames(nextPage, false);
-      return nextPage;
-    });
+    const nextPage = currentPageRef.current + 1;
+    const loaded = await fetchGames(nextPage, false);
+
+    if (!loaded) return;
+
+    currentPageRef.current = nextPage;
+    // The newly fetched games appear on this same click.
+    setVisibleCount((count) =>
+      Math.min(count + VISIBLE_INCREMENT, totalGamesRef.current)
+    );
   }, [loadingMore, visibleCount, hasMore, fetchGames]);
 
   // ── Initial load ───────────────────────────────────────────
   useEffect(() => {
-    if (initialGames.length === 0) {
-      fetchGames(1, true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (initialGames.length > 0) return;
+
+    void (async () => {
+      const loaded = await fetchGames(1, true);
+      if (loaded) currentPageRef.current = 1;
+    })();
+  }, [fetchGames, initialGames.length]);
 
   // ── Logo easter egg ────────────────────────────────────────
   const handleNavLogoClick = useCallback(() => {
@@ -272,8 +312,14 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const handleSocialClick = useCallback((platform) => setSocialModal(platform), []);
   const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
   const handleSharkNavigate = useCallback(() => router.push("/"), [router]);
-  const handleRetryInitial = useCallback(() => fetchGames(1, true), [fetchGames]);
-  const handleRetryLoadMore = useCallback(() => fetchGames(page, false), [fetchGames, page]);
+  const handleRetryInitial = useCallback(async () => {
+    currentPageRef.current = 0;
+    const loaded = await fetchGames(1, true);
+    if (loaded) currentPageRef.current = 1;
+  }, [fetchGames]);
+  const handleRetryLoadMore = useCallback(() => {
+    void loadMore();
+  }, [loadMore]);
 
   // ── Escape key closes modal ────────────────────────────────
   useEffect(() => {

@@ -22,14 +22,82 @@ export function dedupeGamesById(list) {
   return result;
 }
 
+const DEFAULT_LIMIT = 50;
+
+function getGamesApiBase() {
+  // This is resolved on the Next.js server, never in the visitor's browser.
+  // It uses Railway in production and localhost only during local development.
+  return GAMES_BASE.replace(/\/+$/, "");
+}
+
+function toPositiveInt(value, fallback, max) {
+  const parsed = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return Math.min(parsed, max);
+}
+
+export async function getGamesPage(page = 1, limit = DEFAULT_LIMIT) {
+  const safePage = toPositiveInt(page, 1, 10000);
+  const safeLimit = toPositiveInt(limit, DEFAULT_LIMIT, 100);
+
+  const url = new URL(`${getGamesApiBase()}/games`);
+  url.searchParams.set("page", String(safePage));
+  url.searchParams.set("limit", String(safeLimit));
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  let payload = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error("Games API returned invalid JSON.");
+  }
+
+  if (!response.ok) {
+    throw new Error(payload?.error || `Games API returned ${response.status}.`);
+  }
+
+  // Array response aur { games: [] } dono support karega.
+  const games = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.games)
+      ? payload.games
+      : Array.isArray(payload?.data)
+        ? payload.data
+        : [];
+
+  const total = Number(payload?.total);
+
+  const hasMore =
+    typeof payload?.hasMore === "boolean"
+      ? payload.hasMore
+      : Number.isFinite(total)
+        ? safePage * safeLimit < total
+        : games.length === safeLimit;
+
+  return {
+    games,
+    page: safePage,
+    limit: safeLimit,
+    hasMore,
+  };
+}
+
 export async function getInitialGames() {
   try {
-    const res = await fetch(`${GAMES_BASE}/games?page=1`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return dedupeGamesById(Array.isArray(data) ? data : []);
+    const { games } = await getGamesPage(1, DEFAULT_LIMIT);
+    return games;
   } catch {
     return [];
   }
@@ -37,11 +105,14 @@ export async function getInitialGames() {
 
 export async function getGameById(id) {
   if (id == null) return null;
+
   try {
     const res = await fetch(`${GAMES_BASE}/games/${encodeURIComponent(id)}`, {
       next: { revalidate: 60 },
     });
+
     if (!res.ok) return null;
+
     const data = await res.json();
     if (!data || typeof data !== "object" || data.error) return null;
     return data;
@@ -49,7 +120,6 @@ export async function getGameById(id) {
     return null;
   }
 }
-
 // Primes the browser's preload cache for the grid's first-rendered image
 // (the page's LCP element) using the SAME optimized src/srcSet that
 // GameCard's own <Image> will end up requesting, so the browser doesn't
