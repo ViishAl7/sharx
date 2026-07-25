@@ -2,7 +2,7 @@
 
 import "./globals.css";
 import Providers from "./providers";
-import { Nunito, Righteous } from "next/font/google";
+import { Nunito, Righteous, Comfortaa } from "next/font/google"; // ← Comfortaa added here
 
 // next/font/google self-hosts these at build time and injects the
 // correct <link rel="preload"> for the exact font files used, so no
@@ -19,6 +19,14 @@ const righteous = Righteous({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-righteous",
+  display: "swap",
+});
+
+// ← New Comfortaa font object added here
+const comfortaa = Comfortaa({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-comfortaa",
   display: "swap",
 });
 
@@ -89,7 +97,10 @@ const jsonLd = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${nunito.variable} ${righteous.variable}`}>
+    <html
+      lang="en"
+      className={`${nunito.variable} ${righteous.variable} ${comfortaa.variable}`}
+    >
       <head>
         {/*
           LCP optimization: preconnect to the CDN that serves the first

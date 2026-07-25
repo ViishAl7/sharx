@@ -125,7 +125,7 @@ export default function PageLayout({ title, subtitle, children }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Righteous&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #9CC3D5; font-family: 'Nunito', sans-serif; color: #1e293b; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+        body { background: #9CC3D5; font-family: var(--font-comfortaa), sans-serif; color: #1e293b; min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
         /* Navbar */
         .nav-wrap { position: sticky; top: 0; z-index: 300; padding: 12px 24px; background: rgba(255,255,255,0.98); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -160,7 +160,7 @@ export default function PageLayout({ title, subtitle, children }) {
         .pp-close:active, .pp-done:active { transform: scale(0.92); }
         .pp-info-name { margin-top: 10px; font-size: 15px; font-weight: 800; color: #1e293b; }
         .pp-name-wrap { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; }
-        .pp-input { width: 100%; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 100px; background: #f8fafc; text-align: center; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; outline: none; transition: border-color .2s ease; }
+        .pp-input { width: 100%; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 100px; background: #f8fafc; text-align: center; font-family: var(--font-comfortaa), sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; outline: none; transition: border-color .2s ease; }
         .pp-input:focus { border-color: #0063B2; background: #fff; }
         .pp-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
         .pp-tab { flex: 1; padding: 12px 6px; font-size: 12px; font-weight: 800; color: #64748b; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color .2s ease, border-color .2s ease, background .2s ease; }
@@ -172,7 +172,7 @@ export default function PageLayout({ title, subtitle, children }) {
         .pp-opt.on { border-color: #0063B2; background: #eff6ff; }
         .pp-swatch { width: 100%; height: 100%; border-radius: 12px; }
         .pp-foot { padding: 0 16px 18px; }
-        .pp-logout { width: 100%; padding: 12px; border-radius: 100px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: #475569; transition: border-color .2s ease, color .2s ease, background .2s ease; }
+        .pp-logout { width: 100%; padding: 12px; border-radius: 100px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-comfortaa), sans-serif; font-size: 13px; font-weight: 700; color: #475569; transition: border-color .2s ease, color .2s ease, background .2s ease; }
         .pp-logout:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
 
         /* Page Content */

@@ -488,7 +488,7 @@ const STYLES = `
 .psp-unameField:focus-within { border-color: rgba(255, 255, 255, 0.96); }
 .psp-unameInput {
   flex: 1; border: none; background: transparent; outline: none;
-  font: 800 15px/1 'Nunito', sans-serif;
+  font: 800 15px/1 'Comfortaa', sans-serif
   color: ${STROKE}; text-align: center;
 }
 .psp-unameInput::placeholder { color: rgba(15, 46, 92, 0.35); }
@@ -507,7 +507,7 @@ const STYLES = `
 }
 .psp-tab {
   background: none; border: none; cursor: pointer; padding: 13px 0;
-  font: 800 13px 'Nunito', sans-serif; color: #9aa3b2;
+  font: 800 13px 'Comfortaa', sans-serif color: #9aa3b2;
   display: flex; align-items: center; justify-content: center;
   gap: 6px; position: relative; transition: color 0.16s;
 }
@@ -565,7 +565,7 @@ const STYLES = `
 .psp-modalBtns { display: flex; gap: 10px; }
 .psp-modalBtn {
   flex: 1; padding: 13px; border: none; border-radius: 999px;
-  font: 800 14px 'Nunito', sans-serif; cursor: pointer;
+  font: 800 14px 'Comfortaa', sans-serif cursor: pointer;
   transition: transform 0.14s;
 }
 .psp-modalBtn:hover { transform: scale(1.03); }

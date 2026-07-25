@@ -50,7 +50,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
   color: #1E293B;
   background-color: var(--sx-deep);
   position: relative;
@@ -86,7 +86,7 @@ body {
 .easter-egg-stat { flex: 1; background: #F1F5F9; border-radius: 14px; padding: 10px; min-width: 70px; }
 .easter-egg-stat-num { font-size: 22px; font-weight: 800; color: #1E293B; margin-bottom: 3px; }
 .easter-egg-stat-label { font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; }
-.easter-egg-button { background: linear-gradient(135deg,#FF6B6B,#4ECDC4); color: #fff; border: none; border-radius: 100px; padding: 11px 28px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; transition: transform .2s ease; }
+.easter-egg-button { background: linear-gradient(135deg,#FF6B6B,#4ECDC4); color: #fff; border: none; border-radius: 100px; padding: 11px 28px; font-family: var(--font-comfortaa), sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; transition: transform .2s ease; }
 .easter-egg-button:hover { transform: translateY(-2px); }
 
 /* ══════════════════════════════════════════════════════════════
@@ -220,7 +220,7 @@ body {
 .nav-si {
   flex: 1; min-width: 0;
   border: none; outline: none; background: none;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
   font-size: 13px; font-weight: 500; color: #1E293B;
   width: 100%;
 }
@@ -249,7 +249,7 @@ body {
   padding: 5px 14px 5px 5px;
   transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
   color: #1E293B;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
   font-size: 12px; font-weight: 800;
   white-space: nowrap;
   max-width: 160px;
@@ -387,7 +387,7 @@ body {
 .empty { text-align: center; padding: 4rem 2rem; animation: fadeUp .35s ease forwards; color: #64748B; }
 .empty-t { font-family: 'Righteous', cursive; font-size: 22px; color: #fff; margin-bottom: 8px; text-shadow: 0 2px 8px rgba(0,0,0,.15); }
 .empty-b {
-  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; color: var(--sx-deep);
+  font-family: var(--font-comfortaa), sans-serif; font-size: 13px; font-weight: 800; color: var(--sx-deep);
   background: #fff; border: none; border-radius: 14px; padding: 10px 24px; cursor: pointer;
   transition: transform .2s ease, box-shadow .2s ease;
 }
@@ -399,7 +399,7 @@ body {
 .load-more-wrap { text-align: center; padding: 36px 0 50px; }
 .load-more-btn {
   background: #1E293B; color: #fff; border: none; border-radius: 30px;
-  padding: 14px 48px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px;
+  padding: 14px 48px; font-family: var(--font-comfortaa), sans-serif; font-weight: 700; font-size: 15px;
   cursor: pointer; transition: transform .25s ease, box-shadow .25s ease;
   box-shadow: 0 4px 16px rgba(0,0,0,.2);
   display: inline-flex; align-items: center; gap: 10px;
@@ -438,7 +438,7 @@ body {
 .modal-l { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .modal-thumb { width: 44px; height: 32px; object-fit: cover; border-radius: 7px; flex-shrink: 0; }
 .modal-gt {
-  font-family: var(--font-righteous), cursive;
+font-family: var(--font-comfortaa), sans-serif;
   font-size: 17px; font-weight: 700; color: #1e293b;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   max-width: 220px; letter-spacing: .2px;
@@ -446,7 +446,7 @@ body {
 .modal-gc { font-size: 10px; font-weight: 700; color: #64748B; }
 .modal-acts { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 .modal-btn {
-  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800; color: #1E293B;
+  font-family: var(--font-comfortaa), sans-serif; font-size: 12px; font-weight: 800; color: #1E293B;
   padding: 7px 16px; border-radius: 9px; background: #F1F5F9; border: none; cursor: pointer;
   transition: background .15s ease; white-space: nowrap;
 }
@@ -462,7 +462,7 @@ body {
 .modal-iframe { width: 100%; height: 100%; border: none; display: block; }
 .modal-loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #0f172a; }
 .modal-spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #334155; border-top-color: #fff; animation: spin .7s linear infinite; }
-.modal-lt { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: #64748B; }
+.modal-lt { font-family: var(--font-comfortaa), sans-serif; font-size: 13px; font-weight: 700; color: #64748B; }
 .modal-error-actions { display: flex; gap: 10px; }
 
 /* ══════════════════════════════════════════════════════════════
@@ -533,12 +533,12 @@ body {
 
 .footer-links { display: flex; justify-content: center; gap: 60px; padding: 36px 0 0; flex-wrap: wrap; }
 .footer-col { text-align: center; }
-.footer-col-title { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #64748B; margin: 0 0 10px 0; }
+.footer-col-title { font-family: var(--font-comfortaa), sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #64748B; margin: 0 0 10px 0; }
 .footer-col-links { display: flex; justify-content: center; align-items: center; gap: 24px; flex-wrap: wrap; }
-.footer-link { display: inline-block; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600; color: #475569; text-decoration: none; cursor: pointer; transition: color .2s ease; position: relative; }
+.footer-link { display: inline-block; font-family: var(--font-comfortaa), sans-serif; font-size: 13px; font-weight: 600; color: #475569; text-decoration: none; cursor: pointer; transition: color .2s ease; position: relative; }
 .footer-link:hover { color: #1E293B; text-decoration: underline; }
 .footer-bottom { padding-top: 28px; display: flex; align-items: center; justify-content: center; text-align: center; }
-.footer-copyright { font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 600; color: #64748B; letter-spacing: .3px; transition: color .2s ease; }
+.footer-copyright { font-family: var(--font-comfortaa), sans-serif; font-size: 12px; font-weight: 600; color: #64748B; letter-spacing: .3px; transition: color .2s ease; }
 .footer-copyright:hover { color: #1E293B; }
 
 /* ══════════════════════════════════════════════════════════════

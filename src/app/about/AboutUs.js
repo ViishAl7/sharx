@@ -143,7 +143,7 @@ export default function Contact() {
         }
 
         body {
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
 
         .logo {
@@ -161,7 +161,7 @@ export default function Contact() {
           height: 100vh;
           overflow-y: auto;
           overflow-x: hidden;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
         }
@@ -382,7 +382,7 @@ export default function Contact() {
           display: flex;
           align-items: center;
           gap: 6px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           font-size: 13px;
           font-weight: 600;
           color: var(--navy);
@@ -438,7 +438,7 @@ export default function Contact() {
           gap: 10px;
           background: var(--navy);
           color: white;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           font-size: 15px;
           font-weight: 700;
           padding: 13px 32px;
@@ -476,7 +476,7 @@ export default function Contact() {
           line-height: 1.08;
           letter-spacing: -0.02em;
           margin-bottom: 22px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .hero-content p {
           font-size: clamp(15px,2.2vw,18px);
@@ -484,7 +484,7 @@ export default function Contact() {
           line-height: 1.65;
           max-width: 520px;
           margin: 0 auto 36px auto;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
 
         /* ── FORM ── */
@@ -510,14 +510,14 @@ export default function Contact() {
           line-height: 1.08;
           letter-spacing: -0.02em;
           margin-bottom: 14px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .form-left p {
           font-size: 15px;
           color: var(--navy60);
           line-height: 1.6;
           margin-bottom: 24px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .chips {
           display: flex;
@@ -537,7 +537,7 @@ export default function Contact() {
           color: var(--navy);
           cursor: pointer;
           transition: all 0.18s;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .chip.active { background: var(--navy); color: white; border-color: var(--navy); }
         .chip:hover:not(.active) { background: var(--navy12); }
@@ -566,7 +566,7 @@ export default function Contact() {
           color: #00a86b;
           font-size: 13px;
           font-weight: 600;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .form-row {
           display: grid;
@@ -581,7 +581,7 @@ export default function Contact() {
           border: 1px solid rgba(26,46,68,0.1);
           border-radius: var(--radius-input);
           color: var(--navy);
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           font-size: 14px;
           outline: none;
           transition: border-color 0.18s, background 0.18s;
@@ -595,7 +595,7 @@ export default function Contact() {
           border: none;
           background: var(--navy);
           color: white;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           font-size: 14px;
           font-weight: 700;
           cursor: pointer;
@@ -623,14 +623,14 @@ export default function Contact() {
           color: var(--navy);
           letter-spacing: -0.02em;
           margin-bottom: 8px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .connect-content .subtitle {
           font-size: 17px;
           color: var(--navy60);
           font-weight: 500;
           margin-bottom: 32px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .connect-grid {
           display: grid;
@@ -682,7 +682,7 @@ export default function Contact() {
           font-weight: 700;
           color: var(--navy);
           margin-bottom: 2px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .c-handle {
           font-size: 11px;
@@ -691,7 +691,7 @@ export default function Contact() {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .c-pill {
           display: inline-block;
@@ -700,7 +700,7 @@ export default function Contact() {
           font-size: 10px;
           font-weight: 700;
           transition: all 0.3s ease;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .connect-card:hover .c-pill {
           transform: scale(1.05);
@@ -726,7 +726,7 @@ export default function Contact() {
           line-height: 1.8;
           color: var(--navy60);
           font-weight: 500;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .coming-soon strong {
           color: var(--navy);
@@ -755,14 +755,14 @@ export default function Contact() {
           line-height: 1.08;
           letter-spacing: -0.02em;
           margin-bottom: 12px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .faq-left p {
           font-size: 16px;
           color: var(--navy60);
           line-height: 1.6;
           margin-bottom: 28px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .faq-right {
           flex: 1;
@@ -800,7 +800,7 @@ export default function Contact() {
           color: var(--navy);
           line-height: 1.4;
           transition: color 0.3s ease;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
         .faq-item.open .faq-q span {
           color: #2c4a6e;
@@ -839,7 +839,7 @@ export default function Contact() {
           color: var(--navy60);
           line-height: 1.7;
           padding-top: 4px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
         }
 
         /* ── RESPONSIVE ── */

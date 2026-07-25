@@ -227,7 +227,7 @@ export default function Privacy() {
 
         .prv-root {
           height: 100vh;overflow-y: auto;overflow-x: hidden;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
           scroll-behavior: smooth;
         }
@@ -471,10 +471,10 @@ export default function Privacy() {
 
         .footer-links { display: flex;justify-content: center;gap: 72px;padding: 40px 0 0;flex-wrap: wrap; }
         .footer-col { text-align: center; }
-        .footer-col-title { font-family: 'Nunito', sans-serif;font-size: 11px;font-weight: 900;text-transform: uppercase;letter-spacing: 2.5px;color: #94A3B8;margin: 0 0 12px 0; }
+        .footer-col-title { font-family: var(--font-comfortaa), sans-serif;font-size: 11px;font-weight: 900;text-transform: uppercase;letter-spacing: 2.5px;color: #94A3B8;margin: 0 0 12px 0; }
         .footer-col-links { display: flex;justify-content: center;align-items: center;gap: 30px;flex-wrap: wrap; }
         .footer-link {
-          display: inline-block;margin: 0;font-family: 'Nunito', sans-serif;font-size: 14px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: all 0.3s ease;position: relative;
+          display: inline-block;margin: 0;font-family: var(--font-comfortaa), sans-serif;font-size: 14px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: all 0.3s ease;position: relative;
         }
         .footer-link::after { content: '';position: absolute;bottom: -4px;left: 0;width: 0;height: 2px;background: #1E293B;transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);border-radius: 2px; }
         .footer-link:hover { color: #1E293B;transform: translateY(-2px); }
@@ -484,7 +484,7 @@ export default function Privacy() {
         .footer-link:nth-child(3) { animation: footerFadeUp 0.5s ease 0.6s both; }
 
         .footer-bottom { padding-top: 34px;display: flex;align-items: center;justify-content: center;text-align: center; }
-        .footer-copyright { font-family: 'Nunito', sans-serif;font-size: 12px;font-weight: 600;color: #94A3B8;letter-spacing: 0.3px;animation: footerFadeUp 0.8s ease 0.7s both;transition: color 0.3s ease; }
+        .footer-copyright { font-family: var(--font-comfortaa), sans-serif;font-size: 12px;font-weight: 600;color: #94A3B8;letter-spacing: 0.3px;animation: footerFadeUp 0.8s ease 0.7s both;transition: color 0.3s ease; }
         .footer-copyright:hover { color: #1E293B; }
 
         @media (max-width: 768px) {

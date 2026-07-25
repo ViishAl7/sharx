@@ -218,7 +218,7 @@ export default function ContactPage() {
         .footer-col { text-align: center; }
 
         .footer-col-title {
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           font-size: 10px;
           font-weight: 700;
           text-transform: uppercase;
@@ -237,7 +237,7 @@ export default function ContactPage() {
 
         .footer-link {
           display: inline-block;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           font-size: 13px;
           font-weight: 600;
           color: #475569;
@@ -259,7 +259,7 @@ export default function ContactPage() {
         }
 
         .footer-copyright {
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), sans-serif;;
           font-size: 12px;
           font-weight: 600;
           color: #64748B;

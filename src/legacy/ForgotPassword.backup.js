@@ -200,7 +200,7 @@ function ForgotPassword() {
 
 body {
   background: #F5F7FA;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
   color: #1E293B;
   min-height: 100vh;
   overflow-x: hidden;
@@ -426,7 +426,7 @@ body {
   color: #1E293B;
   outline: none;
   transition: all 0.25s ease;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
 }
 
 .field-input:focus {
@@ -590,7 +590,7 @@ body {
   gap: 8px;
   background: none;
   border: none;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: #64748B;

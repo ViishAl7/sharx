@@ -95,7 +95,7 @@ function Signup() {
 
 body {
   background: #F5F7FA;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
   color: #1E293B;
   min-height: 100vh;
   overflow-x: hidden;
@@ -315,7 +315,7 @@ body {
   color: #1E293B;
   outline: none;
   transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-comfortaa), sans-serif;
 }
 
 .fl-input:focus {
