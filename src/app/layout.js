@@ -3,6 +3,7 @@
 import "./globals.css";
 import Providers from "./providers";
 import { Nunito, Righteous, Comfortaa } from "next/font/google"; // ← Comfortaa added here
+import Script from "next/script";
 
 // next/font/google self-hosts these at build time and injects the
 // correct <link rel="preload"> for the exact font files used, so no
@@ -122,6 +123,20 @@ export default function RootLayout({ children }) {
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-Z2BF3XNZ72"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-Z2BF3XNZ72');
+          `}
+        </Script>
       </head>
       <body>
         <Providers>{children}</Providers>
