@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import { link } from "PrivacyPage.css";
 const BODIES = [
   { id: "circle", label: "Round", el: (c) => <circle cx="40" cy="40" r="36" fill={c} stroke="rgba(0,0,0,.1)" strokeWidth="2.5"/> },
   { id: "square", label: "Square", el: (c) => <rect x="4" y="4" width="72" height="72" rx="22" fill={c} stroke="rgba(0,0,0,.1)" strokeWidth="2.5"/> },

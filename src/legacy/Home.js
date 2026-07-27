@@ -25,7 +25,7 @@ const INITIAL_VISIBLE = 20;
 const FEATURED_INDICES = new Set([0, 7, 16]);
 
 // ────────────────────────────────────────────────────────────
-// Utility functions (pure, outside component so they never re-create)
+// Utility functions
 // ────────────────────────────────────────────────────────────
 const getHistory = () => {
   if (typeof window === "undefined") return [];
@@ -107,7 +107,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const fetchInFlightRef = useRef(false);
   const allGamesRef = useRef(dedupeById(initialGames));
   const totalGamesRef = useRef(dedupeById(initialGames).length);
-  // Advance this only after the API returns a valid, non-duplicate page.
   const currentPageRef = useRef(initialGames.length > 0 ? 1 : 0);
 
   // ── One-time / auth effects ────────────────────────────────
@@ -150,7 +149,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, [router]);
 
-  // ── Fetch games through the same-origin Next route ──────────
+  // ── Fetch games ───────────────────────────────────────────
   const fetchGames = useCallback(async (pageNum, isFirst) => {
     if (fetchInFlightRef.current) return false;
     fetchInFlightRef.current = true;
@@ -169,8 +168,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         limit: String(GAMES_PER_PAGE),
       });
 
-      // Do not call the external API from the user's phone/browser. The
-      // server proxy avoids CORS, localhost URLs and CDN cache collisions.
       const res = await fetch(`/api/games?${params.toString()}`, {
         method: "GET",
         cache: "no-store",
@@ -206,8 +203,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         isFirst ? gamesArray : [...previousGames, ...gamesArray]
       );
 
-      // A bad production cache can return page 1 for page 2. Do not silently
-      // move past it; keep the same page ready for the Retry button.
       if (!isFirst && combinedGames.length === previousGames.length) {
         throw new Error("Duplicate games page received.");
       }
@@ -255,7 +250,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     if (!loaded) return;
 
     currentPageRef.current = nextPage;
-    // The newly fetched games appear on this same click.
     setVisibleCount((count) =>
       Math.min(count + VISIBLE_INCREMENT, totalGamesRef.current)
     );
@@ -375,8 +369,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     return ["All", ...Array.from(unique)];
   }, [allGames]);
 
-  // Only show the "load more" button when there's something left to reveal —
-  // either locally (filtered set bigger than what's shown) or on the server.
   const canLoadMore = visibleCount < filteredGames.length || (hasMore && !searchLower && !categoryFilter);
 
   const skeletonArray = useMemo(() => Array.from({ length: 18 }), []);
@@ -616,8 +608,23 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         </Suspense>
       )}
 
-      {/* Footer */}
+      {/* Footer — Poki Style 3D Low Poly Crystal Top Fold */}
       <footer className="site-footer">
+        <div className="footer-crystal-top" aria-hidden="true">
+          <svg viewBox="0 0 1440 90" preserveAspectRatio="none" className="crystal-poly-svg">
+            {/* Deep background turquoise 3D facet */}
+            <polygon points="0,45 320,5 560,60 1440,20 1440,90 0,90" fill="#00C6FF" opacity="0.75" />
+            {/* Bright cyan accent fold */}
+            <polygon points="320,5 560,60 420,90" fill="#00E5FF" opacity="0.6" />
+            {/* Darker shadow facet on peak fold */}
+            <polygon points="0,65 320,5 420,90" fill="#0A6FBF" opacity="0.25" />
+            {/* Front main white 3D low-poly crystal shape */}
+            <polygon points="0,70 300,18 440,82 1440,25 1440,90 0,90" fill="#FFFFFF" />
+            {/* Subtle white facet shade */}
+            <polygon points="300,18 440,82 300,82" fill="#F1F5F9" opacity="0.6" />
+          </svg>
+        </div>
+
         <div className="footer-body">
           <div className="footer-content">
             <div className="footer-main">
@@ -743,7 +750,7 @@ function renderMiniAvatar(profile) {
 }
 
 // ════════════════════════════════════════════════════════════
-// Crystal SVG — memoized, never re-renders once mounted
+// Crystal SVG — Enhanced Multi-Tone Facets
 // ════════════════════════════════════════════════════════════
 const CRYSTAL_VARIANTS = {
   a: {
@@ -784,11 +791,11 @@ const CRYSTAL_VARIANTS = {
 };
 
 const CRYSTAL_TONES = {
-  highlight: ["#F2FBFF", "#BFE6FA"],
-  light: ["#D3EFFC", "#84C8ED"],
-  mid: ["#4FA3E0", "#2472C4"],
-  shadow: ["#1A5AA0", "#123F76"],
-  deep: ["#0D3868", "#082646"],
+  highlight: ["#FFFFFF", "#C5EBFB"],
+  light: ["#DBF3FE", "#74C8F5"],
+  mid: ["#449CE8", "#1E6FC4"],
+  shadow: ["#15539B", "#0E396B"],
+  deep: ["#0B2F58", "#061A33"],
 };
 
 const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a", flip = false }) {
@@ -813,7 +820,7 @@ const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a",
           key={i}
           d={f.d}
           fill={`url(#crystal-${variant}-${f.tone})`}
-          stroke="rgba(255,255,255,0.25)"
+          stroke="rgba(255,255,255,0.35)"
           strokeWidth="0.5"
           strokeLinejoin="round"
         />
@@ -823,7 +830,7 @@ const PointedCrystalSVG = React.memo(function PointedCrystalSVG({ variant = "a",
 });
 
 // ════════════════════════════════════════════════════════════
-// GameCard — single <Image>, memoized, no duplicate DOM
+// GameCard — memoized
 // ════════════════════════════════════════════════════════════
 const GameCard = React.memo(function GameCard({ game, index, featured, onClick, onNavigate }) {
   const cardStyle = useMemo(() => ({ animationDelay: `${Math.min(index, 20) * 22}ms` }), [index]);

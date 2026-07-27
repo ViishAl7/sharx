@@ -222,12 +222,24 @@ export default function Privacy() {
   return (
     <>
       <style>{`
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:ital,wght@0,100..900;1,100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa:ital,wght@0,300..700;1,300..700&display=swap');
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* FIX: this was ".body { ... }" before — a class selector that
+           matches nothing, since no element on this page has
+           class="body". It needs to be the bare element selector
+           "body" to actually reach the real <body> tag and set the
+           page-wide font fallback. Comfortaa's real supported weight
+           range is 300–700 (its variable axis doesn't go to 800/900 —
+           font-weight requests above 700 render as browser-synthesized
+           bold, which is normal, not a bug). */
+        body {
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
+        }
 
         .prv-root {
           height: 100vh;overflow-y: auto;overflow-x: hidden;
-          font-family: var(--font-comfortaa), sans-serif;;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
           background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
           scroll-behavior: smooth;
         }
@@ -264,7 +276,19 @@ export default function Privacy() {
           .lock-2, .shield-2 { opacity: 0.5; }
         }
 
-        /* ── NAVBAR ── */
+        /* ══════════════════════════════════════════════════════════════
+           NAVBAR — real Apple-style Liquid Glass
+           Layered like actual glass: a diagonal sheen gradient (light
+           catching the surface at an angle) sits UNDER the tint as a
+           second background layer — background layers always paint
+           behind element content, so nothing needs extra z-index
+           juggling. A bright 1px inset highlight along the top edge is
+           the "rim light" a glass edge shows when lit from above; a
+           soft inset shadow along the bottom gives the material a sense
+           of thickness. The drop shadow is tinted navy instead of pure
+           black so it reads as colored light bouncing off the page,
+           not a generic UI shadow.
+        ══════════════════════════════════════════════════════════════ */
         .nav-outer {
           display: flex;justify-content: center;
           position: fixed;top: 20px;left: 0;right: 0;
@@ -274,15 +298,30 @@ export default function Privacy() {
           width: 100%;max-width: 1100px;
           height: 56px;
           padding: 0 28px;
-          background: rgba(255,255,255,0.4);
-          backdrop-filter: blur(16px) saturate(180%);
+          background:
+            linear-gradient(120deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.16) 45%, rgba(255,255,255,0.05) 100%),
+            rgba(255,255,255,0.38);
+          backdrop-filter: blur(28px) saturate(220%);
+          -webkit-backdrop-filter: blur(28px) saturate(220%);
           border-radius: 80px;
-          border: 1px solid rgba(255,255,255,0.6);
-          box-shadow: 0 8px 32px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.3);
-          transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+          border: 1px solid rgba(255,255,255,0.55);
+          box-shadow:
+            0 12px 40px rgba(26, 46, 68, 0.10),
+            0 1px 0 rgba(255,255,255,0.9) inset,
+            0 -14px 26px rgba(26, 46, 68, 0.04) inset;
+          transition: background 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), border-color 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
           display: flex;align-items: center;justify-content: space-between;gap: 24px;
         }
-        .nav-wrap:hover { background: rgba(255,255,255,0.55);border-color: rgba(255,255,255,0.8); }
+        .nav-wrap:hover {
+          background:
+            linear-gradient(120deg, rgba(255,255,255,0.68) 0%, rgba(255,255,255,0.22) 45%, rgba(255,255,255,0.08) 100%),
+            rgba(255,255,255,0.5);
+          border-color: rgba(255,255,255,0.75);
+          box-shadow:
+            0 16px 48px rgba(26, 46, 68, 0.13),
+            0 1px 0 rgba(255,255,255,0.95) inset,
+            0 -14px 28px rgba(26, 46, 68, 0.05) inset;
+        }
 
         .nav-left { display: flex;align-items: center;gap: 6px; }
 
@@ -300,21 +339,27 @@ export default function Privacy() {
         }
 
         .nav-label {
-          font-family: 'Inter', sans-serif;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
           font-size: 18px;font-weight: 800;
           color: #1a2e44;letter-spacing: -0.02em;
           user-select: none;
         }
 
+        /* Nested inside the already-glass .nav-wrap — deliberately NOT
+           given its own backdrop-filter. Stacking two blurred layers
+           directly on top of each other (glass-on-glass) muddies the
+           effect and costs extra render time for no visible gain; the
+           parent's blur already does the work, this just needs a flat
+           tint that reads clearly against it. */
         .nav-right { display: flex;align-items: center;gap: 8px; }
         .nav-btn {
           height: 36px;padding: 0 16px;border: none;border-radius: 999px;
           display: flex;align-items: center;gap: 6px;
-          font-family: 'Inter', sans-serif;font-size: 13px;font-weight: 600;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
           color: #1a2e44;background: rgba(26,46,68,0.07);
-          cursor: pointer;transition: all 0.2s ease;
+          cursor: pointer;transition: background 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
-        .nav-btn:hover { background: rgba(26,46,68,0.12);transform: translateY(-1px); }
+        .nav-btn:hover { background: rgba(26,46,68,0.14);transform: translateY(-1px); }
 
         @media (max-width: 768px) {
           .nav-outer { top: 16px; padding: 0 16px; }
@@ -367,24 +412,56 @@ export default function Privacy() {
         .seen .quick-grid  { animation: fadeUp  0.55s ease forwards 0.20s; }
         .seen .two-col     { animation: fadeUp  0.50s ease forwards 0.00s; }
 
-        .hero-title { font-family: 'Inter', sans-serif;font-size: clamp(32px, 6vw, 72px);font-weight: 800;color: #1a2e44;line-height: 1.1;margin-bottom: 40px; }
+        .hero-title {
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
+          font-size: clamp(32px, 6vw, 72px);font-weight: 800;color: #1a2e44;line-height: 1.1;margin-bottom: 40px;
+        }
         .hero-btn {
           display: inline-flex;align-items: center;gap: 10px;
           padding: 12px 28px;background: #1a2e44;color: #fff;
-          font-family: 'Inter', sans-serif;font-size: 15px;font-weight: 600;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
+          font-size: 15px;font-weight: 600;
           border-radius: 50px;border: none;cursor: pointer;
           box-shadow: 0 6px 20px rgba(26,46,68,0.2);transition: all 0.3s ease;
         }
         .hero-btn:hover { transform: translateY(-3px);box-shadow: 0 12px 28px rgba(26,46,68,0.28); }
         @media (max-width: 480px) { .hero-btn { padding: 10px 20px;font-size: 13px;gap: 8px; } }
 
-        /* ── Quick Cards ── */
+        /* ══════════════════════════════════════════════════════════════
+           QUICK CARDS — Liquid Glass, same recipe as the navbar: a
+           diagonal sheen layer, a bright top rim, a soft inset shadow
+           for thickness, and a colored ambient drop shadow. Scales up
+           on hover for the same "surface catching more light" feel.
+        ══════════════════════════════════════════════════════════════ */
         .quick-grid { display: grid;grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));gap: 16px;margin-top: 60px; }
-        .quick-card { background: rgba(255,255,255,0.6);backdrop-filter: blur(8px);border: 1px solid rgba(255,255,255,0.8);border-radius: 20px;padding: 24px 16px;text-align: center;cursor: pointer;transition: all 0.3s ease; }
-        .quick-card:hover { background: white;transform: translateY(-6px);box-shadow: 0 16px 32px rgba(0,0,0,0.08); }
+        .quick-card {
+          background:
+            linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.08) 100%),
+            rgba(255,255,255,0.42);
+          backdrop-filter: blur(20px) saturate(200%);
+          -webkit-backdrop-filter: blur(20px) saturate(200%);
+          border: 1px solid rgba(255,255,255,0.6);
+          border-radius: 20px;
+          padding: 24px 16px;text-align: center;cursor: pointer;
+          box-shadow:
+            0 6px 20px rgba(26, 46, 68, 0.06),
+            0 1px 0 rgba(255,255,255,0.85) inset,
+            0 -10px 18px rgba(26, 46, 68, 0.03) inset;
+          transition: background 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .quick-card:hover {
+          background:
+            linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.42) 50%, rgba(255,255,255,0.16) 100%),
+            rgba(255,255,255,0.65);
+          transform: translateY(-6px);
+          box-shadow:
+            0 20px 40px rgba(26, 46, 68, 0.12),
+            0 1px 0 rgba(255,255,255,0.95) inset,
+            0 -10px 18px rgba(26, 46, 68, 0.04) inset;
+        }
         .quick-card-icon { width: 48px;height: 48px;border-radius: 16px;display: flex;align-items: center;justify-content: center;margin: 0 auto 14px;transition: transform 0.3s ease; }
         .quick-card:hover .quick-card-icon { transform: scale(1.08) rotate(-3deg); }
-        .quick-card h3 { font-family: 'Inter', sans-serif;font-size: 13px;font-weight: 700;color: #1a2e44;line-height: 1.4; }
+        .quick-card h3 { font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;font-size: 13px;font-weight: 700;color: #1a2e44;line-height: 1.4; }
 
         @media (max-width: 640px) {
           .quick-grid { gap: 12px;margin-top: 40px;grid-template-columns: repeat(2, 1fr); }
@@ -397,12 +474,46 @@ export default function Privacy() {
         /* ── Two Column Layout ── */
         .two-col { display: grid;grid-template-columns: 280px 1fr;gap: 56px;align-items: start; }
         .col-sticky { position: sticky;top: 100px; }
-        .section-tag { display: inline-flex;align-items: center;gap: 8px;padding: 5px 14px;background: rgba(26,46,68,0.06);border-radius: 100px;font-size: 11px;font-weight: 700;color: #1a2e44;text-transform: uppercase;margin-bottom: 16px; }
-        .col-num { font-family: 'Inter', sans-serif;font-weight: 800;font-size: 70px;color: rgba(26,46,68,0.05);line-height: 0.9;margin-bottom: -8px; }
-        .col-title { font-family: 'Inter', sans-serif;font-size: clamp(24px, 4vw, 40px);font-weight: 800;color: #1a2e44;line-height: 1.15;margin-bottom: 14px; }
+        /* ══════════════════════════════════════════════════════════
+           .section-tag — small pill label, given a LIGHT glass touch
+           (subtle blur, thin bright border) rather than the full
+           navbar/card treatment, since at this size a heavy sheen
+           would look busy rather than premium.
+        ══════════════════════════════════════════════════════════ */
+        .section-tag {
+          display: inline-flex;align-items: center;gap: 8px;padding: 5px 14px;
+          background:
+            linear-gradient(120deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 100%),
+            rgba(26,46,68,0.06);
+          backdrop-filter: blur(6px) saturate(180%);
+          -webkit-backdrop-filter: blur(6px) saturate(180%);
+          border: 1px solid rgba(255,255,255,0.35);
+          border-radius: 100px;font-size: 11px;font-weight: 700;color: #1a2e44;text-transform: uppercase;margin-bottom: 16px;
+        }
+        .col-num { font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;font-weight: 800;font-size: 70px;color: rgba(26,46,68,0.05);line-height: 0.9;margin-bottom: -8px; }
+        .col-title { font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;font-size: clamp(24px, 4vw, 40px);font-weight: 800;color: #1a2e44;line-height: 1.15;margin-bottom: 14px; }
         .col-desc { font-size: 14px;color: rgba(26,46,68,0.6);line-height: 1.7;margin-bottom: 24px; }
-        .back-top-btn { display: inline-flex;align-items: center;gap: 8px;padding: 9px 24px;background: transparent;border: 1.5px solid rgba(26,46,68,0.15);border-radius: 100px;font-family: 'Inter', sans-serif;font-size: 13px;font-weight: 600;color: #1a2e44;cursor: pointer;transition: all 0.25s ease; }
-        .back-top-btn:hover { background: #1a2e44;color: #fff;border-color: #1a2e44; }
+        /* .back-top-btn — glass at rest, solid navy on hover/press.
+           Apple's own Liquid Glass controls often firm up into a more
+           solid tint the moment they're actively engaged; keeping that
+           same at-rest-glass / active-solid split here. */
+        .back-top-btn {
+          display: inline-flex;align-items: center;gap: 8px;padding: 9px 24px;
+          background: rgba(255,255,255,0.28);
+          backdrop-filter: blur(10px) saturate(200%);
+          -webkit-backdrop-filter: blur(10px) saturate(200%);
+          border: 1.5px solid rgba(26,46,68,0.15);
+          border-radius: 100px;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
+          font-size: 13px;font-weight: 600;color: #1a2e44;cursor: pointer;
+          transition: background 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), color 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), border-color 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .back-top-btn:hover {
+          background: #1a2e44;color: #fff;border-color: #1a2e44;
+          backdrop-filter: none; -webkit-backdrop-filter: none;
+          transform: translateY(-2px);
+          box-shadow: 0 10px 24px rgba(26,46,68,0.25);
+        }
 
         @media (max-width: 900px) {
           .two-col { grid-template-columns: 1fr;gap: 32px; }
@@ -418,10 +529,44 @@ export default function Privacy() {
           .back-top-btn { padding: 7px 18px;font-size: 12px; }
         }
 
-        /* ── Accordion ── */
-        .acc { background: rgba(255,255,255,0.6);backdrop-filter: blur(8px);border: 1px solid rgba(255,255,255,0.8);border-radius: 40px;margin-bottom: 12px;cursor: pointer;transition: all 0.28s ease;overflow: hidden; }
-        .acc:hover { background: rgba(255,255,255,0.9);box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
-        .acc.acc-open { background: white;box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+        /* ══════════════════════════════════════════════════════════════
+           ACCORDION — same Liquid Glass recipe as the cards above:
+           diagonal sheen, bright top rim, colored ambient shadow. The
+           "open" state gets the brightest, most opaque glass of the
+           three states (rest / hover / open) so an expanded item reads
+           as the one currently catching the most light — a small but
+           real depth cue instead of a flat color-swap.
+        ══════════════════════════════════════════════════════════════ */
+        .acc {
+          background:
+            linear-gradient(120deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.06) 100%),
+            rgba(255,255,255,0.4);
+          backdrop-filter: blur(18px) saturate(200%);
+          -webkit-backdrop-filter: blur(18px) saturate(200%);
+          border: 1px solid rgba(255,255,255,0.55);
+          border-radius: 40px;margin-bottom: 12px;cursor: pointer;
+          box-shadow:
+            0 4px 16px rgba(26, 46, 68, 0.05),
+            0 1px 0 rgba(255,255,255,0.75) inset;
+          transition: background 0.32s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.32s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+          overflow: hidden;
+        }
+        .acc:hover {
+          background:
+            linear-gradient(120deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.1) 100%),
+            rgba(255,255,255,0.55);
+          box-shadow:
+            0 10px 28px rgba(26, 46, 68, 0.08),
+            0 1px 0 rgba(255,255,255,0.85) inset;
+        }
+        .acc.acc-open {
+          background:
+            linear-gradient(120deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.22) 100%),
+            rgba(255,255,255,0.82);
+          box-shadow:
+            0 14px 34px rgba(26, 46, 68, 0.10),
+            0 1px 0 rgba(255,255,255,0.95) inset;
+        }
         .acc-q { display: flex;align-items: center;justify-content: space-between;padding: 16px 20px;gap: 12px; }
         .acc-q span { font-size: clamp(13px, 4vw, 15px);font-weight: 600;color: #1a2e44;line-height: 1.4; }
         .acc-chevron { width: 28px;height: 28px;border-radius: 50%;display: flex;align-items: center;justify-content: center;background: rgba(26,46,68,0.08);color: #1a2e44;transition: transform 0.35s ease, background 0.25s;flex-shrink: 0; }
@@ -436,76 +581,159 @@ export default function Privacy() {
           .acc-a { padding: 10px 16px 14px; }
         }
 
-        /* ── FOOTER ── */
-        @keyframes footerFadeUp { from { opacity: 0;transform: translateY(30px); } to { opacity: 1;transform: translateY(0); } }
-        @keyframes softBounce { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
+        /* ══════════════════════════════════════════════════════════════
+   FOOTER — Poki-Style 3D Low-Poly Crystal Fold
+   Matches Home.js's footer structure exactly (shark-tank hover animation,
+   water wave, bubbles, droplets, splash rings, AND the top wavy
+   "footer-crystal-top" banner) — recolored throughout from Home.js's
+   ocean-blue (#0A6FBF / #6FC6F5 / #00C6FF etc.) to this page's own
+   navy (#1a2e44) / purple (#7c3aed) palette, so the footer reads as
+   part of THIS page rather than a blue patch dropped into a purple page.
+   The footer body itself sits on flat opaque white, so it deliberately
+   is NOT given the glass treatment above — blurring a flat white
+   background produces no visible effect, so glass only applies to
+   surfaces sitting over the colorful gradient + floating crystals.
+══════════════════════════════════════════════════════════════ */
+.site-footer {
+  --sx-sky: #a78bfa;          /* light purple, was a light blue */
+  --sx-deep: #1a2e44;         /* navy — matches Privacy page headings/nav */
+  --sx-deep-rgb: 26, 46, 68;  /* rgb() triplet of --sx-deep, for rgba() use */
+  --sx-accent: #7c3aed;       /* Privacy page's crystal purple, for glows */
 
-        .site-footer { position: relative;margin-top: 90px;background: transparent;animation: footerFadeUp 0.8s ease forwards;opacity: 0; }
-        .footer-wave-wrap { display: block;line-height: 0;overflow: hidden; }
-        .footer-wave-wrap svg { display: block;width: 100%;height: 90px; }
-        .footer-body { background: #ffffff;border-top: 1px solid rgba(226,232,240,0.5); }
-        .footer-content { max-width: 1100px;margin: 0 auto;padding: 0 48px 52px;position: relative;z-index: 1; }
-        .footer-main { display: flex;flex-direction: column;align-items: center;justify-content: center;padding: 56px 0 36px;border-bottom: 1px solid rgba(226,232,240,0.8);gap: 30px;text-align: center; }
+  position: relative;
+  margin-top: 140px;
+  width: 100%;
+}
 
-        .footer-logo {
-          display: flex;align-items: center;justify-content: center;
-          height: 36px;overflow: hidden;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        }
-        .footer-logo img {
-          height: 80px;width: auto;
-          display: block;object-fit: contain;
-          transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        }
-        .footer-logo:hover { transform: scale(1.08) rotate(-2deg);opacity: 0.8; }
-        .footer-logo:hover img { filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12)); }
+.footer-crystal-top {
+  position: relative;
+  width: 100%;
+  height: 90px;
+  margin-bottom: -2px;
+  overflow: hidden;
+  z-index: 2;
+  pointer-events: none;
+}
 
-        .footer-socials { display: flex;gap: 6px;padding: 6px;border-radius: 100px;background: #F1F5F9;border: 1px solid rgba(226,232,240,0.9); }
-        .social-icon { display: flex;align-items: center;justify-content: center;width: 42px;height: 42px;border-radius: 50%;background: transparent;cursor: pointer;transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);border: 1px solid transparent; }
-        .social-icon svg { width: 18px;height: 18px;fill: #1E293B;transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
-        .social-icon:hover { background: #1E293B;transform: translateY(-6px) scale(1.15) rotate(6deg);box-shadow: 0 12px 28px rgba(30,41,59,0.2);border-color: #1E293B; }
-        .social-icon:hover svg { fill: #fff;transform: rotate(-6deg) scale(1.1); }
-        .social-icon:nth-child(1) { animation: softBounce 0.6s ease 0.2s both; }
-        .social-icon:nth-child(2) { animation: softBounce 0.6s ease 0.3s both; }
+.crystal-poly-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
-        .footer-links { display: flex;justify-content: center;gap: 72px;padding: 40px 0 0;flex-wrap: wrap; }
-        .footer-col { text-align: center; }
-        .footer-col-title { font-family: var(--font-comfortaa), sans-serif;font-size: 11px;font-weight: 900;text-transform: uppercase;letter-spacing: 2.5px;color: #94A3B8;margin: 0 0 12px 0; }
-        .footer-col-links { display: flex;justify-content: center;align-items: center;gap: 30px;flex-wrap: wrap; }
-        .footer-link {
-          display: inline-block;margin: 0;font-family: var(--font-comfortaa), sans-serif;font-size: 14px;font-weight: 600;color: #475569;text-decoration: none;cursor: pointer;transition: all 0.3s ease;position: relative;
-        }
-        .footer-link::after { content: '';position: absolute;bottom: -4px;left: 0;width: 0;height: 2px;background: #1E293B;transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);border-radius: 2px; }
-        .footer-link:hover { color: #1E293B;transform: translateY(-2px); }
-        .footer-link:hover::after { width: 100%; }
-        .footer-link:nth-child(1) { animation: footerFadeUp 0.5s ease 0.4s both; }
-        .footer-link:nth-child(2) { animation: footerFadeUp 0.5s ease 0.5s both; }
-        .footer-link:nth-child(3) { animation: footerFadeUp 0.5s ease 0.6s both; }
+.footer-body {
+  background: #FFFFFF;
+  border-top: none;
+  position: relative;
+}
 
-        .footer-bottom { padding-top: 34px;display: flex;align-items: center;justify-content: center;text-align: center; }
-        .footer-copyright { font-family: var(--font-comfortaa), sans-serif;font-size: 12px;font-weight: 600;color: #94A3B8;letter-spacing: 0.3px;animation: footerFadeUp 0.8s ease 0.7s both;transition: color 0.3s ease; }
-        .footer-copyright:hover { color: #1E293B; }
+.footer-content { max-width: 1100px; margin: 0 auto; padding: 0 40px 48px; position: relative; z-index: 1; }
+.footer-main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 36px 0 32px; gap: 28px; text-align: center; }
+.footer-logo { display: flex; align-items: center; justify-content: center; height: 34px; overflow: hidden; cursor: pointer; transition: transform .35s cubic-bezier(.2,.9,.4,1.1); }
+.footer-logo img { height: 76px; width: auto; display: block; object-fit: contain; transition: filter .35s cubic-bezier(.2,.9,.4,1.1); }
+.footer-logo:hover { transform: scale(1.05); }
+.footer-logo:hover img { filter: drop-shadow(0 4px 10px rgba(124, 58, 237, 0.25)); }
 
-        @media (max-width: 768px) {
-          .footer-content { padding: 0 24px 40px; }
-          .footer-links { gap: 48px; }
-          .footer-col-links { gap: 20px; }
-          .footer-link { font-size: 13px; }
-          .social-icon { width: 36px;height: 36px; }
-          .social-icon svg { width: 16px;height: 16px; }
-          .footer-logo { height: 30px; }
-          .footer-logo img { height: 65px; }
-        }
-        @media (max-width: 560px) {
-          .footer-wave-wrap svg { height: 60px; }
-          .footer-links { flex-direction: column;align-items: center;gap: 30px; }
-          .footer-col-links { flex-direction: column;gap: 16px; }
-          .footer-link { display: block;margin: 0; }
-          .footer-bottom { padding-top: 24px; }
-        }
-        @media (max-width: 480px) { .footer-links { gap: 24px; } }
-        
+.shark-tank { position: relative; display: flex; align-items: center; justify-content: center; height: 60px; overflow: visible; cursor: pointer; }
+.shark-tank .footer-logo { position: relative; z-index: 4; }
+.shark-reflection {
+  position: absolute; top: 56%; left: 50%; transform: translateX(-50%) scaleY(-1);
+  width: 50px; height: 30px; overflow: hidden; opacity: 0; z-index: 1;
+  filter: blur(1px) brightness(.7); pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.5), transparent);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.5), transparent);
+  transition: opacity .35s ease;
+}
+.shark-reflection img { height: 76px; width: auto; display: block; margin: 0 auto; }
+.shark-tank:hover .shark-reflection { opacity: 1; }
+.shark-tank:hover .shark-reflection img { animation: sharkSwim 1.1s ease-in-out infinite; }
+
+.water-wrap {
+  position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+  width: 110px; height: 24px; overflow: hidden; border-radius: 0 0 55px 55px;
+  opacity: 0; transition: opacity .3s ease; z-index: 2; pointer-events: none;
+}
+.shark-tank:hover .water-wrap { opacity: 1; }
+.wave-svg { position: absolute; top: 0; left: 0; width: 170%; height: 100%; }
+.wave-back { fill: var(--sx-sky); opacity: .55; animation: waveScroll 5s linear infinite; }
+.wave-front { fill: var(--sx-deep); opacity: .9; animation: waveScroll 3.2s linear infinite reverse; }
+.foam-line { position: absolute; top: 1px; left: -10%; width: 120%; height: 3px; background: rgba(255,255,255,.8); border-radius: 100px; filter: blur(1.5px); animation: waveScroll 3.2s linear infinite reverse; }
+
+.splash-rings { position: absolute; bottom: 18px; left: 50%; width: 0; height: 0; z-index: 3; pointer-events: none; }
+.ring { position: absolute; top: 0; left: 0; width: 8px; height: 8px; margin: -4px; border: 1.5px solid rgba(167, 139, 250, .9); border-radius: 50%; transform: translate(-50%,-50%) scale(0); opacity: 0; }
+.shark-tank:hover .ring { animation: ringPop .65s ease-out forwards; }
+.shark-tank:hover .ring.r2 { animation-delay: .08s; }
+.shark-tank:hover .ring.r3 { animation-delay: .16s; }
+
+.droplets { position: absolute; bottom: 20px; left: 50%; width: 0; height: 0; z-index: 5; pointer-events: none; }
+.drop { position: absolute; top: 0; left: 0; width: 3px; height: 3px; border-radius: 50%; background: #ddd6fe; opacity: 0; }
+.shark-tank:hover .drop { animation: dropFly .5s ease-out forwards; }
+.shark-tank:hover .drop.d1 { --dx: -13px; --dy: -15px; }
+.shark-tank:hover .drop.d2 { --dx: -4px; --dy: -19px; animation-delay: .05s; }
+.shark-tank:hover .drop.d3 { --dx: 5px; --dy: -18px; animation-delay: .1s; }
+.shark-tank:hover .drop.d4 { --dx: 14px; --dy: -14px; animation-delay: .05s; }
+
+.bubble { position: absolute; bottom: 10px; width: 4px; height: 4px; background: rgba(255,255,255,.85); border-radius: 50%; opacity: 0; z-index: 3; pointer-events: none; }
+.bubble.b1 { left: 30% } .bubble.b2 { left: 44% } .bubble.b3 { left: 57% } .bubble.b4 { left: 70% }
+.shark-tank:hover .bubble { animation: bubbleRise 2s ease-in infinite; }
+.shark-tank:hover .bubble.b2 { animation-delay: .4s; }
+.shark-tank:hover .bubble.b3 { animation-delay: .85s; }
+.shark-tank:hover .bubble.b4 { animation-delay: 1.25s; }
+.shark-tank:hover .footer-logo img { animation: sharkSwim 1.1s ease-in-out infinite; transform-origin: 50% 70%; }
+
+.footer-socials { display: flex; gap: 6px; padding: 6px; border-radius: 100px; background: #FFFFFF; border: 1px solid rgba(226, 232, 240, 0.8); }
+.social-icon {
+  display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 50%; background: transparent; cursor: pointer; border: none;
+  transition: background .3s cubic-bezier(.2,.9,.4,1.1), transform .3s cubic-bezier(.2,.9,.4,1.1), box-shadow .3s cubic-bezier(.2,.9,.4,1.1);
+}
+.social-icon svg { width: 17px; height: 17px; fill: #1a2e44; transition: fill .3s cubic-bezier(.2,.9,.4,1.1); }
+.social-icon:hover { background: #000000; transform: translateY(-4px) scale(1.12) rotate(5deg); box-shadow: 0 6px 16px rgba(var(--sx-deep-rgb), .35); }
+.social-icon:hover svg { fill: #fff; }
+.social-icon:nth-child(1) { animation: softBounce .5s ease .2s both; }
+.social-icon:nth-child(2) { animation: softBounce .5s ease .3s both; }
+
+.footer-links { display: flex; justify-content: center; gap: 60px; padding: 36px 0 0; flex-wrap: wrap; }
+.footer-col { text-align: center; }
+.footer-col-title { font-family: var(--font-comfortaa), 'Comfortaa', sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #64748B; margin: 0 0 10px 0; }
+.footer-col-links { display: flex; justify-content: center; align-items: center; gap: 24px; flex-wrap: wrap; }
+.footer-link { display: inline-block; font-family: var(--font-comfortaa), 'Comfortaa', sans-serif; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; cursor: pointer; transition: color .2s ease; position: relative; }
+.footer-link:hover { color: #0F172A; text-decoration: underline; }
+.footer-bottom { padding-top: 28px; display: flex; align-items: center; justify-content: center; text-align: center; }
+.footer-copyright { font-family: var(--font-comfortaa), 'Comfortaa', sans-serif; font-size: 12px; font-weight: 700; color: #64748B; letter-spacing: .3px; transition: color .2s ease; }
+.footer-copyright:hover { color: #0F172A; }
+
+@media (max-width: 768px) {
+  .footer-crystal-top { height: 60px; }
+}
+
+@keyframes sharkSwim {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-2px) rotate(-2deg); }
+  75% { transform: translateX(2px) rotate(2deg); }
+}
+@keyframes waveScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-41%); }
+}
+@keyframes ringPop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: .8; }
+  100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+}
+@keyframes dropFly {
+  0% { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+}
+@keyframes bubbleRise {
+  0% { transform: translateY(0) scale(.6); opacity: 0; }
+  15% { opacity: .9; }
+  100% { transform: translateY(-42px) scale(1); opacity: 0; }
+}
+@keyframes softBounce {
+  0% { transform: translateY(6px); opacity: 0; }
+  60% { transform: translateY(-2px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
       `}</style>
 
       <div className="prv-root" ref={containerRef}>
@@ -636,17 +864,56 @@ export default function Privacy() {
 
         {/* ── FOOTER ── */}
         <footer className="site-footer">
-          <div className="footer-wave-wrap">
-            <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-              <path d="M0,58 C120,82 240,22 360,52 C480,82 600,16 720,46 C840,76 960,20 1080,50 C1200,80 1320,24 1440,54 L1440,90 L0,90 Z" fill="#ffffff"/>
+          <div className="footer-crystal-top" aria-hidden="true">
+            <svg viewBox="0 0 1440 90" preserveAspectRatio="none" className="crystal-poly-svg">
+              {/* Deep background purple 3D facet — was #00C6FF */}
+              <polygon points="0,45 320,5 560,60 1440,20 1440,90 0,90" fill="#7c3aed" opacity="0.75" />
+              {/* Bright lavender accent fold — was #00E5FF */}
+              <polygon points="320,5 560,60 420,90" fill="#a78bfa" opacity="0.6" />
+              {/* Darker navy shadow facet on peak fold — was #0A6FBF */}
+              <polygon points="0,65 320,5 420,90" fill="#1a2e44" opacity="0.25" />
+              {/* Front main white 3D low-poly crystal shape — unchanged */}
+              <polygon points="0,70 300,18 440,82 1440,25 1440,90 0,90" fill="#FFFFFF" />
+              {/* Subtle white facet shade — unchanged */}
+              <polygon points="300,18 440,82 300,82" fill="#F1F5F9" opacity="0.6" />
             </svg>
           </div>
+
           <div className="footer-body">
             <div className="footer-content">
               <div className="footer-main">
-                <div className="footer-logo" onClick={() => router.push("/")}>
-                  <img src="/sharx.png" alt="Sharx" draggable={false} />
+
+                <div className="shark-tank" onClick={() => router.push("/")}>
+                  <div className="footer-logo">
+                    <img src="/sharx.png" alt="Sharx" draggable={false} />
+                  </div>
+                  <div className="shark-reflection">
+                    <img src="/sharx.png" alt="" draggable={false} />
+                  </div>
+                  <div className="water-wrap">
+                    <svg className="wave-svg" viewBox="0 0 200 24" preserveAspectRatio="none">
+                      <path className="wave-back" d="M0,12 Q25,2 50,12 T100,12 T150,12 T200,12 L200,24 L0,24 Z" />
+                      <path className="wave-front" d="M0,16 Q25,8 50,16 T100,16 T150,16 T200,16 L200,24 L0,24 Z" />
+                    </svg>
+                    <div className="foam-line" />
+                  </div>
+                  <div className="splash-rings">
+                    <div className="ring r1" />
+                    <div className="ring r2" />
+                    <div className="ring r3" />
+                  </div>
+                  <div className="droplets">
+                    <div className="drop d1" />
+                    <div className="drop d2" />
+                    <div className="drop d3" />
+                    <div className="drop d4" />
+                  </div>
+                  <div className="bubble b1" />
+                  <div className="bubble b2" />
+                  <div className="bubble b3" />
+                  <div className="bubble b4" />
                 </div>
+
                 <div className="footer-socials">
                   <div className="social-icon" onClick={() => handleSocialClick("instagram")} title="Instagram">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -660,6 +927,7 @@ export default function Privacy() {
                   </div>
                 </div>
               </div>
+
               <div className="footer-links">
                 <div className="footer-col">
                   <p className="footer-col-title">Company</p>
@@ -670,6 +938,7 @@ export default function Privacy() {
                   </div>
                 </div>
               </div>
+
               <div className="footer-bottom">
                 <span className="footer-copyright">© {new Date().getFullYear()} Sharx. All rights reserved.</span>
               </div>
