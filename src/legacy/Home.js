@@ -838,7 +838,6 @@ const GameCard = React.memo(function GameCard({ game, index, featured, onClick, 
           src={imgSrc}
           alt={game.title || "Game thumbnail"}
           fill
-          unoptimized
           sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 20vw"
           loading={index < 4 ? "eager" : "lazy"}
           priority={index === 0}

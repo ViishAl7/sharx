@@ -885,10 +885,10 @@ export default function Privacy() {
 
                 <div className="shark-tank" onClick={() => router.push("/")}>
                   <div className="footer-logo">
-                    <img src="/sharx.png" alt="Sharx" draggable={false} />
+                    <img src="/sharx-logo.png" alt="Sharx" draggable={false} />
                   </div>
                   <div className="shark-reflection">
-                    <img src="/sharx.png" alt="" draggable={false} />
+                    <img src="/sharx-logo.png" alt="" draggable={false} />
                   </div>
                   <div className="water-wrap">
                     <svg className="wave-svg" viewBox="0 0 200 24" preserveAspectRatio="none">
