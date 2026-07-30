@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useProfile } from "../context/ProfileContext";
+import { X } from "lucide-react";
 import "./Home.css";
 
 const SidePanel = lazy(() => import("../legacy/SidePanel"));
@@ -17,11 +18,13 @@ const SocialComingSoonModal = lazy(() => import("../legacy/SocialComingSoonModal
 // ────────────────────────────────────────────────────────────
 // Constants
 // ────────────────────────────────────────────────────────────
+const ANNOUNCEMENT_DISMISSED_KEY = "sx_announcement_dismissed";
 const HISTORY_KEY = "pv_history";
 const MAX_HISTORY = 12;
 const GAMES_PER_PAGE = 50;
 const VISIBLE_INCREMENT = 20;
 const INITIAL_VISIBLE = 20;
+const IN_FEED_AD_INTERVAL = 12; // show an ad after every 12th game card
 const FEATURED_INDICES = new Set([0, 7, 16]);
 
 // ────────────────────────────────────────────────────────────
@@ -99,6 +102,10 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const [showProfile, setShowProfile] = useState(false);
   const [socialModal, setSocialModal] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Starts hidden so server-rendered HTML and the first client render match
+  // (no window/localStorage on the server) — the effect below turns it on
+  // right after mount, only for visitors who haven't dismissed it yet.
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   // ── Refs ───────────────────────────────────────────────────
   const logoClickCountRef = useRef(0);
@@ -122,6 +129,17 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     document.body.classList.toggle("modal-open", !!activeGame);
     return () => document.body.classList.remove("modal-open");
   }, [activeGame]);
+
+  useEffect(() => {
+    if (!localStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY)) {
+      setShowAnnouncement(true);
+    }
+  }, []);
+
+  const handleDismissAnnouncement = useCallback(() => {
+    localStorage.setItem(ANNOUNCEMENT_DISMISSED_KEY, "1");
+    setShowAnnouncement(false);
+  }, []);
 
   // ── Navigation into a game ─────────────────────────────────
   const openGame = useCallback((game) => {
@@ -396,6 +414,46 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         </Suspense>
       )}
 
+      {/* Announcement Bar — shows once per visitor, then stays dismissed */}
+      {showAnnouncement && (
+        <div className="announcement-bar" role="region" aria-label="Website update">
+          <div className="announcement-bar__track">
+            <div className="announcement-bar__message">
+              <span className="announcement-bar__badge">
+                <span className="announcement-bar__dot" />
+                NEW WEBSITE
+              </span>
+              <span className="announcement-bar__text">
+                You&apos;re among the first to explore Sharx. As we continue refining our newly
+                launched experience, you may occasionally come across a small issue. Thank you for
+                your patience, feedback, and support—we&apos;re listening, improving, and working to
+                make every visit better.
+              </span>
+            </div>
+            <div className="announcement-bar__message" aria-hidden="true">
+              <span className="announcement-bar__badge">
+                <span className="announcement-bar__dot" />
+                NEW WEBSITE
+              </span>
+              <span className="announcement-bar__text">
+                You&apos;re among the first to explore Sharx. As we continue refining our newly
+                launched experience, you may occasionally come across a small issue. Thank you for
+                your patience, feedback, and support—we&apos;re listening, improving, and working to
+                make every visit better.
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="announcement-bar__close"
+            onClick={handleDismissAnnouncement}
+            aria-label="Dismiss announcement"
+          >
+            <X size={16} strokeWidth={2.5} />
+          </button>
+        </div>
+      )}
+
       {/* Navigation */}
       <div className="nav-outer">
         <div className="nav-wrap">
@@ -496,18 +554,33 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
           </div>
         ) : (
           <>
+            <AdUnit
+              slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}
+              label="Banner Ad"
+              className="ad-slot ad-slot--banner"
+            />
+
             <div className="grid" id="games-grid">
               {displayedGames.map((game, i) => {
                 const key = game.id ?? game.title ?? i;
+                const showInFeedAd = (i + 1) % IN_FEED_AD_INTERVAL === 0;
                 return (
-                  <GameCard
-                    key={key}
-                    game={game}
-                    index={i}
-                    featured={isFeaturedFast(i)}
-                    onClick={game.id == null ? () => openGame(game) : undefined}
-                    onNavigate={game.id != null ? () => openGame(game) : undefined}
-                  />
+                  <React.Fragment key={key}>
+                    <GameCard
+                      game={game}
+                      index={i}
+                      featured={isFeaturedFast(i)}
+                      onClick={game.id == null ? () => openGame(game) : undefined}
+                      onNavigate={game.id != null ? () => openGame(game) : undefined}
+                    />
+                    {showInFeedAd && (
+                      <AdUnit
+                        slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_INFEED}
+                        label="Ad"
+                        className="ad-slot ad-slot--infeed"
+                      />
+                    )}
+                  </React.Fragment>
                 );
               })}
             </div>

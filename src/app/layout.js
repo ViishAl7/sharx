@@ -137,6 +137,21 @@ export default function RootLayout({ children }) {
             gtag('config', 'G-Z2BF3XNZ72');
           `}
         </Script>
+
+        {/*
+          Google AdSense — only injects once NEXT_PUBLIC_ADSENSE_CLIENT_ID
+          is set in your env vars (Vercel/Railway dashboard). Until then
+          this renders nothing, so there's no broken script / console
+          error while you're waiting on AdSense approval.
+        */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
       </head>
       <body>
         <Providers>{children}</Providers>

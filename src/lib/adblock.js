@@ -7,6 +7,18 @@
 const AD_BLOCK_SCRIPT = `
 (function() {
   'use strict';
+
+  // ── PUBLISHER ALLOWLIST ─────────────────────────────────────
+  // Once Sharx is registered as a GameMonetize publisher, their
+  // dashboard will tell you which ad domain(s) actually pay out.
+  // Add those domains here (e.g. 'googlesyndication.com' if that's
+  // what they use) so THOSE specific ads are let through while
+  // everything else below still gets blocked as before.
+  // Leave empty ([]) to keep blocking everything, same as today.
+  var AD_ALLOWLIST = [
+    // 'googlesyndication.com',
+  ];
+
   var AD_DOMAINS = [
     'doubleclick.net','googlesyndication.com','googleadservices.com',
     'adnxs.com','rubiconproject.com','openx.net','pubmatic.com',
@@ -29,7 +41,11 @@ const AD_BLOCK_SCRIPT = `
   function hostnameOf(url) {
     try { return new URL(url, window.location.href).hostname; } catch (e) { return ''; }
   }
+  function isAllowedHost(hostname) {
+    return AD_ALLOWLIST.some(function (d) { return hostname === d || hostname.endsWith('.' + d); });
+  }
   function isAdHost(hostname) {
+    if (isAllowedHost(hostname)) return false;
     return AD_DOMAINS.some(function (d) { return hostname === d || hostname.endsWith('.' + d); });
   }
 
