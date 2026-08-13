@@ -148,6 +148,7 @@ export default function Contact() {
       pill: "Coming Soon",
       bg: "rgba(255,0,0,0.1)",
       accent: "#ff0000",
+      url: "https://www.youtube.com/@sharxgames",
       comingSoon: true,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">

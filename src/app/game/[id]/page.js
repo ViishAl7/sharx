@@ -72,13 +72,14 @@ const gameId = id.match(/^gm_\d+/)?.[0] || id;
 }
 
 export default async function GamePage({ params }) {
-  const { id } = await params;
+const { id } = await params;
 
-  const [game, initialGames] = await Promise.all([
-    getGameById(id),
-    getInitialGames(),
-  ]);
+const gameId = id.match(/^gm_\d+/)?.[0] || id;
 
+const [game, initialGames] = await Promise.all([
+  getGameById(gameId),
+  getInitialGames(),
+]);
   if (!game) {
     notFound();
   }
