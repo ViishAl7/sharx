@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import Home from "../../../legacy/Home";
 import {
@@ -16,6 +17,56 @@ function decodeHtml(str = "") {
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
+}
+
+// Matches src/app/sitemap.ts's slugify() exactly — same lowercase, same
+// non-alphanumeric collapse, same trim. sitemap.ts does NOT decode HTML
+// entities before slugifying, so this doesn't either: an entity like
+// "&amp;" becomes the literal word "amp" in both places. If this ever
+// drifts from sitemap.ts, Related Games links and sitemap URLs for the
+// same game will point to different paths.
+function slugify(title = "") {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getGameHref(game) {
+  const slug = slugify(game?.title ?? "");
+  return `/game/${encodeURIComponent(game.id)}${slug ? `-${slug}` : ""}`;
+}
+
+// Picks up to `limit` related games out of the games list already fetched
+// by getInitialGames() — no extra fetch, no new endpoint. Same-category
+// games come first, other games fill any remaining slots. The current
+// game is excluded and duplicate ids (if the source list ever had any)
+// are collapsed via the id Set below.
+function getRelatedGames(currentGame, allGames, limit = 8) {
+  if (!currentGame || !Array.isArray(allGames)) return [];
+
+  const currentId = currentGame.id;
+  const currentCategory = currentGame.category;
+
+  const seen = new Set();
+  const sameCategory = [];
+  const otherCategory = [];
+
+  for (const g of allGames) {
+    if (!g || g.id == null) continue;
+    if (g.id === currentId) continue;
+    if (seen.has(g.id)) continue;
+    seen.add(g.id);
+
+    if (currentCategory && g.category === currentCategory) {
+      sameCategory.push(g);
+    } else {
+      otherCategory.push(g);
+    }
+  }
+
+  return [...sameCategory, ...otherCategory].slice(0, limit);
 }
 
 export async function generateMetadata({ params }) {
@@ -93,6 +144,8 @@ export default async function GamePage({ params }) {
 
   const gameTitle = decodeHtml(game.title);
 
+  const relatedGames = getRelatedGames(game, initialGames, 8);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "VideoGame",
@@ -128,32 +181,34 @@ export default async function GamePage({ params }) {
         }}
       />
 
-      {/* SEO content */}
-      <section
-        style={{
-          position: "absolute",
-          width: "1px",
-          height: "1px",
-          padding: 0,
-          margin: "-1px",
-          overflow: "hidden",
-          clip: "rect(0, 0, 0, 0)",
-          whiteSpace: "nowrap",
-          border: 0,
-        }}
-      >
-        <h1>Play {gameTitle} Online Free</h1>
+      {relatedGames.length > 0 && (
+        <section className="related-games" aria-labelledby="related-games-heading">
+          <h2 id="related-games-heading" className="related-games-heading">
+            Related Games
+          </h2>
 
-        <p>
-          Play {gameTitle} online for free on Sharx. Enjoy this{" "}
-          {game.category || "browser"} game directly in your browser with no
-          download required.
-        </p>
-
-        <p>
-          Category: {game.category || "Other"}
-        </p>
-      </section>
+          <div className="related-games-grid">
+            {relatedGames.map((rg) => {
+              const rgTitle = decodeHtml(rg.title);
+              return (
+                <Link key={rg.id} href={getGameHref(rg)} className="related-game-card">
+                  {rg.thumb && (
+                    <img
+                      className="related-game-thumb"
+                      src={rg.thumb}
+                      alt={rgTitle}
+                      loading="lazy"
+                      width={512}
+                      height={384}
+                    />
+                  )}
+                  <span className="related-game-title">{rgTitle}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </>
   );
 }
