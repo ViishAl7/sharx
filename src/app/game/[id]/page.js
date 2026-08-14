@@ -19,9 +19,9 @@ function decodeHtml(str = "") {
 }
 
 export async function generateMetadata({ params }) {
-const { id } = await params;
+  const { id } = await params;
 
-const gameId = id.match(/^gm_\d+/)?.[0] || id;
+  const gameId = id.match(/^gm_\d+/)?.[0] || id;
 
   const game = await getGameById(gameId);
 
@@ -34,6 +34,7 @@ const gameId = id.match(/^gm_\d+/)?.[0] || id;
   const gameTitle = decodeHtml(game.title);
 
   const title = `Play ${gameTitle} Online Free | Sharx`;
+
   const description = `Play ${gameTitle} instantly in your browser. No download. Free on Sharx.`;
 
   const url = `${SITE_URL}/game/${encodeURIComponent(id)}`;
@@ -43,7 +44,7 @@ const gameId = id.match(/^gm_\d+/)?.[0] || id;
         {
           url: game.thumb,
           width: 512,
-          height: 512,
+          height: 384,
           alt: gameTitle,
         },
       ]
@@ -52,9 +53,11 @@ const gameId = id.match(/^gm_\d+/)?.[0] || id;
   return {
     title,
     description,
+
     alternates: {
       canonical: `/game/${encodeURIComponent(id)}`,
     },
+
     openGraph: {
       type: "website",
       url,
@@ -62,6 +65,7 @@ const gameId = id.match(/^gm_\d+/)?.[0] || id;
       description,
       images,
     },
+
     twitter: {
       card: "summary_large_image",
       title,
@@ -72,14 +76,15 @@ const gameId = id.match(/^gm_\d+/)?.[0] || id;
 }
 
 export default async function GamePage({ params }) {
-const { id } = await params;
+  const { id } = await params;
 
-const gameId = id.match(/^gm_\d+/)?.[0] || id;
+  const gameId = id.match(/^gm_\d+/)?.[0] || id;
 
-const [game, initialGames] = await Promise.all([
-  getGameById(gameId),
-  getInitialGames(),
-]);
+  const [game, initialGames] = await Promise.all([
+    getGameById(gameId),
+    getInitialGames(),
+  ]);
+
   if (!game) {
     notFound();
   }
@@ -94,16 +99,19 @@ const [game, initialGames] = await Promise.all([
     name: gameTitle,
     image: game.thumb,
     genre: game.category || undefined,
+
     publisher: {
       "@type": "Organization",
       name: "Sharx",
       url: SITE_URL,
     },
+
     url: `${SITE_URL}/game/${encodeURIComponent(id)}`,
   };
 
   return (
     <>
+      {/* Structured data for Google */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -111,6 +119,7 @@ const [game, initialGames] = await Promise.all([
         }}
       />
 
+      {/* Main game UI */}
       <Home
         initialGames={initialGames}
         initialActiveGame={{
@@ -118,6 +127,33 @@ const [game, initialGames] = await Promise.all([
           title: gameTitle,
         }}
       />
+
+      {/* SEO content */}
+      <section
+        style={{
+          position: "absolute",
+          width: "1px",
+          height: "1px",
+          padding: 0,
+          margin: "-1px",
+          overflow: "hidden",
+          clip: "rect(0, 0, 0, 0)",
+          whiteSpace: "nowrap",
+          border: 0,
+        }}
+      >
+        <h1>Play {gameTitle} Online Free</h1>
+
+        <p>
+          Play {gameTitle} online for free on Sharx. Enjoy this{" "}
+          {game.category || "browser"} game directly in your browser with no
+          download required.
+        </p>
+
+        <p>
+          Category: {game.category || "Other"}
+        </p>
+      </section>
     </>
   );
 }
