@@ -8,13 +8,7 @@
  /* ══════════════════════════════════════════════════════════════
    RELATED GAMES
 ══════════════════════════════════════════════════════════════ */
-.related-games {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 40px 60px;
-  box-sizing: border-box;
-}
+
 
 .related-games-heading {
   font-family: var(--font-comfortaa), sans-serif;
