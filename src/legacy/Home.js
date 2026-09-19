@@ -143,7 +143,7 @@ function AnnouncementPopup() {
         <div className="sx-ann-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/Sharx.png"
+            src="/sharx.png"
             alt="Sharx"
             className="sx-ann-logo"
             draggable={false}
