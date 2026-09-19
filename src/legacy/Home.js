@@ -23,6 +23,7 @@ const GAMES_PER_PAGE = 50;
 const VISIBLE_INCREMENT = 20;
 const INITIAL_VISIBLE = 20;
 const FEATURED_INDICES = new Set([0, 7, 16]);
+const INSTAGRAM_URL = "https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4";
 
 // ────────────────────────────────────────────────────────────
 // Utility functions
@@ -76,16 +77,23 @@ const slugify = (title = "") =>
 const isFeaturedFast = (i) => FEATURED_INDICES.has(i);
 
 // ════════════════════════════════════════════════════════════
+// Instagram icon (shared by popup + teaser)
+// ════════════════════════════════════════════════════════════
+const InstagramGlyph = React.memo(function InstagramGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+    </svg>
+  );
+});
+
+// ════════════════════════════════════════════════════════════
 // ANNOUNCEMENT POPUP — opens INSTANTLY on page load
 // ════════════════════════════════════════════════════════════
 function AnnouncementPopup() {
-  // Start CLOSED so SSR + initial hydration match.
-  // Then flip to OPEN in the next microtask — before paint.
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // Use requestAnimationFrame for zero-flash instant open.
-    // On next paint the popup is already rendered.
     const raf = requestAnimationFrame(() => setOpen(true));
     return () => cancelAnimationFrame(raf);
   }, []);
@@ -181,14 +189,12 @@ function AnnouncementPopup() {
 
           <a
             className="sx-ann-follow"
-            href="https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4"
+            href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
           >
             <span className="sx-ann-follow-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
-              </svg>
+              <InstagramGlyph />
             </span>
             <span>Follow</span>
           </a>
@@ -197,6 +203,98 @@ function AnnouncementPopup() {
     </div>
   );
 }
+
+// ════════════════════════════════════════════════════════════
+// TEASER PILL — stays visible after the popup is closed.
+// Click to open a small "coming soon" card.
+// ════════════════════════════════════════════════════════════
+const TeaserPill = React.memo(function TeaserPill() {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  const toggle = useCallback(() => setOpen((v) => !v), []);
+  const close = useCallback(() => setOpen(false), []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    const onDown = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [open]);
+
+  return (
+    <div className="sx-teaser-outer">
+      <div className="sx-teaser" ref={wrapRef}>
+        <button
+          type="button"
+          className={`sx-teaser-pill${open ? " is-open" : ""}`}
+          onClick={toggle}
+          aria-expanded={open}
+          aria-controls="sx-teaser-card"
+        >
+          <span className="sx-teaser-dot" aria-hidden="true" />
+          <span className="sx-teaser-text">Something new is brewing</span>
+          <span className="sx-teaser-spark" aria-hidden="true">✦</span>
+        </button>
+
+        {open && (
+          <div className="sx-teaser-card" id="sx-teaser-card" role="dialog" aria-label="Coming soon">
+            <button
+              type="button"
+              className="sx-teaser-x"
+              onClick={close}
+              aria-label="Close"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+
+            <div className="sx-teaser-tag">
+              <span className="sx-teaser-tag-dot" aria-hidden="true" />
+              Coming soon
+            </div>
+
+            <h3 className="sx-teaser-title">
+              A new chapter is <span className="sx-teaser-hl">loading</span>.
+            </h3>
+
+            <p className="sx-teaser-body">
+A little something is brewing… and we’re not spilling the tea just yet.
+            </p>
+
+            <div className="sx-teaser-progress" aria-hidden="true">
+              <span className="sx-teaser-progress-bar" />
+            </div>
+
+            <a
+              className="sx-teaser-follow"
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="sx-teaser-follow-icon" aria-hidden="true">
+                <InstagramGlyph />
+              </span>
+              <span>Follow for updates</span>
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
 
 // ════════════════════════════════════════════════════════════
 // HOME
@@ -485,6 +583,8 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const skeletonArray = useMemo(() => Array.from({ length: 18 }), []);
   const avatarElement = useMemo(() => renderMiniAvatar(profile), [profile]);
 
+  const showCategories = !loading && !error && categories.length > 1;
+
   return (
     <>
       {/* Background */}
@@ -517,7 +617,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
             <div className="nav-logo" onClick={handleNavLogoClickWithNavigate}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/sharx1.png" alt="Sharx Logo" className="nav-logo-img" draggable={false} decoding="async" />
-                          </div>
+            </div>
 
             <div className="nav-search">
               <div className="nav-si-wrap">
@@ -563,9 +663,12 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         </div>
       </div>
 
+      {/* Teaser pill — stays after popup closes */}
+      <TeaserPill />
+
       {/* Categories */}
-      {!loading && !error && categories.length > 1 && (
-        <div className="cats-outer">
+      {showCategories && (
+        <div className="cats-outer cats-outer-after-teaser">
           <div className="cats-wrap">
             <div className="cats-row">
               {categories.map((c) => (
@@ -584,7 +687,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
       )}
 
       {/* Main Content */}
-      <main className={`page-content${loading || error || categories.length <= 1 ? " page-content-top" : ""}`}>
+      <main className={`page-content${loading || error || categories.length <= 1 ? " page-content-top page-content-after-teaser" : ""}`}>
         {loading ? (
           <div className="skels">
             {skeletonArray.map((_, i) => (
@@ -711,7 +814,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               <div className="shark-tank" onClick={handleSharkNavigate}>
                 <div className="footer-logo">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-<img src="/sharx1.png" alt="Sharx" className="footer-logo-img" draggable={false} decoding="async" />
+                  <img src="/sharx1.png" alt="Sharx" className="footer-logo-img" draggable={false} decoding="async" />
                 </div>
                 <div className="water-wrap">
                   <svg className="wave-svg" viewBox="0 0 800 50" preserveAspectRatio="none" aria-hidden="true">
@@ -744,15 +847,13 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               <div className="footer-socials">
                 <a
                   className="social-icon"
-                  href="https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4"
+                  href={INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Instagram"
                   aria-label="Sharx on Instagram"
                 >
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
-                  </svg>
+                  <InstagramGlyph />
                 </a>
                 <button
                   className="social-icon"
