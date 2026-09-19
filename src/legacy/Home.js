@@ -143,7 +143,7 @@ function AnnouncementPopup() {
         <div className="sx-ann-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/sharx.png"
+            src="/Sharx.png"
             alt="Sharx"
             className="sx-ann-logo"
             draggable={false}
@@ -516,7 +516,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
           <nav className="nav">
             <div className="nav-logo" onClick={handleNavLogoClickWithNavigate}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/sharx.png" alt="Sharx Logo" className="nav-logo-img" draggable={false} decoding="async" />
+              <img src="/Sharx.png" alt="Sharx Logo" className="nav-logo-img" draggable={false} decoding="async" />
             </div>
 
             <div className="nav-search">
@@ -711,7 +711,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
               <div className="shark-tank" onClick={handleSharkNavigate}>
                 <div className="footer-logo">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/sharx.png" alt="Sharx" className="footer-logo-img" draggable={false} decoding="async" />
+                  <img src="/Sharx.png" alt="Sharx" className="footer-logo-img" draggable={false} decoding="async" />
                 </div>
                 <div className="water-wrap">
                   <svg className="wave-svg" viewBox="0 0 800 50" preserveAspectRatio="none" aria-hidden="true">
@@ -737,7 +737,7 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                 <span className="bubble b4" />
                 <div className="shark-reflection">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/sharx.png" alt="" draggable={false} decoding="async" />
+                  <img src="/Sharx.png" alt="" draggable={false} decoding="async" />
                 </div>
               </div>
 
