@@ -76,6 +76,129 @@ const slugify = (title = "") =>
 const isFeaturedFast = (i) => FEATURED_INDICES.has(i);
 
 // ════════════════════════════════════════════════════════════
+// ANNOUNCEMENT POPUP — opens INSTANTLY on page load
+// ════════════════════════════════════════════════════════════
+function AnnouncementPopup() {
+  // Start CLOSED so SSR + initial hydration match.
+  // Then flip to OPEN in the next microtask — before paint.
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    // Use requestAnimationFrame for zero-flash instant open.
+    // On next paint the popup is already rendered.
+    const raf = requestAnimationFrame(() => setOpen(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const close = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, close]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="sx-ann-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sx-ann-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
+      <div className="sx-ann-card">
+        <span className="sx-ann-doodle sx-ann-doodle-tl" aria-hidden="true" />
+        <span className="sx-ann-doodle sx-ann-doodle-br" aria-hidden="true" />
+
+        <button
+          type="button"
+          className="sx-ann-close"
+          onClick={close}
+          aria-label="Close announcement"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+
+        {/* Logo */}
+        <div className="sx-ann-logo-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/Sharx.png"
+            alt="Sharx"
+            className="sx-ann-logo"
+            draggable={false}
+            decoding="async"
+            loading="eager"
+            fetchPriority="high"
+          />
+        </div>
+
+        <div className="sx-ann-eyebrow">
+          <span className="sx-ann-eyebrow-dot" />
+          Something new is brewing
+          <span className="sx-ann-sparkle" aria-hidden="true">✦</span>
+        </div>
+
+        <h2 id="sx-ann-title" className="sx-ann-title">
+          A new chapter is <span className="sx-ann-title-hl">loading</span>.
+        </h2>
+
+        <p className="sx-ann-body">
+          We&apos;ve been quietly building something for you.
+          <br />
+          A refined experience is on its way.
+        </p>
+
+        <div className="sx-ann-actions">
+          <button type="button" className="sx-ann-btn" onClick={close}>
+            <span>Stay Tuned</span>
+            <span className="sx-ann-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </span>
+          </button>
+
+          <a
+            className="sx-ann-follow"
+            href="https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="sx-ann-follow-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+              </svg>
+            </span>
+            <span>Follow</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
 // HOME
 // ════════════════════════════════════════════════════════════
 export default function Home({ initialGames = [], initialActiveGame = null }) {
@@ -83,7 +206,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const { logout: authLogout } = useAuth();
   const { profile, updateProfile } = useProfile();
 
-  // ── State ──────────────────────────────────────────────────
   const [allGames, setAllGames] = useState(() => dedupeById(initialGames));
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [hasMore, setHasMore] = useState(initialGames.length === GAMES_PER_PAGE);
@@ -100,7 +222,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const [socialModal, setSocialModal] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ── Refs ───────────────────────────────────────────────────
   const logoClickCountRef = useRef(0);
   const logoClickTimerRef = useRef(null);
   const pushedOwnHistoryRef = useRef(false);
@@ -109,7 +230,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
   const totalGamesRef = useRef(dedupeById(initialGames).length);
   const currentPageRef = useRef(initialGames.length > 0 ? 1 : 0);
 
-  // ── One-time / auth effects ────────────────────────────────
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setIsLoggedIn(!!localStorage.getItem("token"));
@@ -123,7 +243,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     return () => document.body.classList.remove("modal-open");
   }, [activeGame]);
 
-  // ── Navigation into a game ─────────────────────────────────
   const openGame = useCallback((game) => {
     addToHistory(game);
     setActiveGame(game);
@@ -149,7 +268,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, [router]);
 
-  // ── Fetch games ───────────────────────────────────────────
   const fetchGames = useCallback(async (pageNum, isFirst) => {
     if (fetchInFlightRef.current) return false;
     fetchInFlightRef.current = true;
@@ -228,7 +346,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, []);
 
-  // ── Load more ──────────────────────────────────────────────
   const loadMore = useCallback(async () => {
     if (loadingMore || fetchInFlightRef.current) return;
 
@@ -255,7 +372,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     );
   }, [loadingMore, visibleCount, hasMore, fetchGames]);
 
-  // ── Initial load ───────────────────────────────────────────
   useEffect(() => {
     if (initialGames.length > 0) return;
 
@@ -265,7 +381,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     })();
   }, [fetchGames, initialGames.length]);
 
-  // ── Logo easter egg ────────────────────────────────────────
   const handleNavLogoClick = useCallback(() => {
     logoClickCountRef.current += 1;
     if (logoClickTimerRef.current) clearTimeout(logoClickTimerRef.current);
@@ -288,7 +403,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     }
   }, [handleNavLogoClick, activeGame, handleCloseModal, router]);
 
-  // ── Simple UI handlers ─────────────────────────────────────
   const handleSearchChange = useCallback((e) => setSearch(e.target.value), []);
   const handleCategoryClick = useCallback((c) => {
     setCategory(c);
@@ -315,7 +429,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     void loadMore();
   }, [loadMore]);
 
-  // ── Escape key closes modal ────────────────────────────────
   useEffect(() => {
     const handleEscapeKey = (e) => {
       if (e.key === "Escape") handleCloseModal();
@@ -324,7 +437,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     return () => window.removeEventListener("keydown", handleEscapeKey);
   }, [handleCloseModal]);
 
-  // ── Browser back/forward syncs modal state ─────────────────
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
@@ -348,7 +460,6 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [allGames, initialActiveGame]);
 
-  // ── Derived / memoized data ─────────────────────────────────
   const searchLower = useMemo(() => search.trim().toLowerCase(), [search]);
   const categoryFilter = useMemo(() => (category === "All" ? null : category), [category]);
 
@@ -389,6 +500,9 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         <div className="crystal-cluster glow crystal-accent a4" />
       </div>
 
+      {/* Announcement popup — instant */}
+      <AnnouncementPopup />
+
       {/* Easter Egg */}
       {showEasterEgg && (
         <Suspense fallback={null}>
@@ -401,7 +515,8 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         <div className="nav-wrap">
           <nav className="nav">
             <div className="nav-logo" onClick={handleNavLogoClickWithNavigate}>
-              <Image src="/sharx.png" alt="Sharx Logo" width={80} height={80} draggable={false} priority />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/sharx1.png" alt="Sharx Logo" className="nav-logo-img" draggable={false} decoding="async" />
             </div>
 
             <div className="nav-search">
@@ -578,19 +693,14 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
         </Suspense>
       )}
 
-      {/* Footer — Poki Style 3D Low Poly Crystal Top Fold */}
+      {/* Footer */}
       <footer className="site-footer">
         <div className="footer-crystal-top" aria-hidden="true">
           <svg viewBox="0 0 1440 90" preserveAspectRatio="none" className="crystal-poly-svg">
-            {/* Deep background turquoise 3D facet */}
             <polygon points="0,45 320,5 560,60 1440,20 1440,90 0,90" fill="#00C6FF" opacity="0.75" />
-            {/* Bright cyan accent fold */}
             <polygon points="320,5 560,60 420,90" fill="#00E5FF" opacity="0.6" />
-            {/* Darker shadow facet on peak fold */}
             <polygon points="0,65 320,5 420,90" fill="#0A6FBF" opacity="0.25" />
-            {/* Front main white 3D low-poly crystal shape */}
             <polygon points="0,70 300,18 440,82 1440,25 1440,90 0,90" fill="#FFFFFF" />
-            {/* Subtle white facet shade */}
             <polygon points="300,18 440,82 300,82" fill="#F1F5F9" opacity="0.6" />
           </svg>
         </div>
@@ -600,7 +710,8 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
             <div className="footer-main">
               <div className="shark-tank" onClick={handleSharkNavigate}>
                 <div className="footer-logo">
-                  <Image src="/sharx.png" alt="Sharx" width={76} height={76} draggable={false} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/sharx1.png" alt="Sharx" className="footer-logo-img" draggable={false} decoding="async" />
                 </div>
                 <div className="water-wrap">
                   <svg className="wave-svg" viewBox="0 0 800 50" preserveAspectRatio="none" aria-hidden="true">
@@ -625,7 +736,8 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                 <span className="bubble b3" />
                 <span className="bubble b4" />
                 <div className="shark-reflection">
-                  <Image src="/sharx.png" alt="" width={76} height={76} draggable={false} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/sharx1.png" alt="" draggable={false} decoding="async" />
                 </div>
               </div>
 
@@ -648,10 +760,8 @@ export default function Home({ initialGames = [], initialActiveGame = null }) {
                   onClick={() => handleSocialClick("youtube")}
                   title="YouTube"
                   aria-label="Sharx on YouTube"
-                  
                 >
                   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
                 </button>
@@ -722,7 +832,7 @@ function renderMiniAvatar(profile) {
 }
 
 // ════════════════════════════════════════════════════════════
-// Crystal SVG — Enhanced Multi-Tone Facets
+// Crystal SVG
 // ════════════════════════════════════════════════════════════
 const CRYSTAL_VARIANTS = {
   a: {
