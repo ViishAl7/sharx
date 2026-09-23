@@ -1,25 +1,25 @@
-// ProfileSidePanel.js - CLOSE BUTTON OVERLAP FIXED FOR MOBILE
+// ProfileSidePanel.js — Crayon · Clean · Playful
 import { useState, useEffect, useRef, useCallback } from "react";
 
 /* ─────────── Constants ─────────── */
 const SHAPES = ["square", "star", "circle", "hexagon", "heart"];
 const EYES   = ["oval", "round", "wink", "sleepy"];
-const COLORS = ["#FFD93D", "#FF8FA3", "#7FD1C6", "#8FB8FF", "#C8A2FF"];
+const COLORS = ["#FFD966", "#FF8B7B", "#7BE5B5", "#8FB8FF", "#C7B4FF"];
 
 const COLOR_CONFIG = {
-  "#FFD93D": { bg1: "#FFF3A3", bg2: "#FFD93D", blob: "#FFB700", text: "#7A5C00" },
-  "#FF8FA3": { bg1: "#FFE4EA", bg2: "#FFB3C1", blob: "#FF6B8A", text: "#8B1A35" },
-  "#7FD1C6": { bg1: "#D4F5F1", bg2: "#7FD1C6", blob: "#3BBFB3", text: "#1A5F5A" },
-  "#8FB8FF": { bg1: "#DDE9FF", bg2: "#8FB8FF", blob: "#4D88FF", text: "#1A3A80" },
-  "#C8A2FF": { bg1: "#EDE0FF", bg2: "#C8A2FF", blob: "#9B5FFF", text: "#3D1A80" },
+  "#FFD966": { bg1: "#FFF6D6", bg2: "#FFE7A3", blob: "#FFD966", text: "#7A5C00" },
+  "#FF8B7B": { bg1: "#FFE8E3", bg2: "#FFC7BC", blob: "#FF8B7B", text: "#8B1A35" },
+  "#7BE5B5": { bg1: "#DDF9EE", bg2: "#B8F0D8", blob: "#7BE5B5", text: "#1A5F5A" },
+  "#8FB8FF": { bg1: "#E0EBFF", bg2: "#C4D8FF", blob: "#8FB8FF", text: "#1A3A80" },
+  "#C7B4FF": { bg1: "#EDE5FF", bg2: "#D9C8FF", blob: "#C7B4FF", text: "#3D1A80" },
 };
 
-const STROKE = "#0F2E5C";
-const ACCENT = "#1FA9F5";
+const STROKE = "#1B2A41";
+const ACCENT = "#2E7FE8";
 const USERNAME_LOCK_MS = 30 * 24 * 60 * 60 * 1000;
 
 /* ─────────── Avatar SVG ─────────── */
-export function AvatarSVG({ shape = "square", eyes = "oval", color = "#FFD93D", size = 220 }) {
+export function AvatarSVG({ shape = "square", eyes = "oval", color = "#FFD966", size = 220 }) {
   const s = size, cx = s / 2, cy = s / 2;
   const sw = Math.max(4.5, s * 0.044);
 
@@ -104,7 +104,7 @@ export function AvatarSVG({ shape = "square", eyes = "oval", color = "#FFD93D", 
     <svg
       width={size} height={size}
       viewBox={`0 0 ${s} ${s}`}
-      style={{ overflow: "visible", filter: `drop-shadow(0 ${sw}px ${sw * 1.8}px rgba(0,0,0,0.16))` }}
+      style={{ overflow: "visible", filter: `drop-shadow(3px 3px 0 ${STROKE})` }}
     >
       <Body />
       <ellipse
@@ -188,20 +188,33 @@ const I = {
 
 /* ─────────── CSS ─────────── */
 const STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700;800&display=swap');
 
 .psp-root *, .psp-root *::before, .psp-root *::after { box-sizing: border-box; }
-.psp-root { font-family: 'Nunito', system-ui, sans-serif; color: ${STROKE}; }
+.psp-root {
+  font-family: 'Comfortaa', system-ui, sans-serif;
+  color: ${STROKE};
+  --ink: ${STROKE};
+  --paper: #FFFDF7;
+  --blue: ${ACCENT};
+  --yellow: #FFD966;
+  --coral: #FF8B7B;
+  --mint: #7BE5B5;
+  --lilac: #C7B4FF;
+  --border: 1.5px solid var(--ink);
+  --shadow-sm: 2px 2px 0 var(--ink);
+  --shadow-md: 3px 3px 0 var(--ink);
+  --shadow-lg: 4px 4px 0 var(--ink);
+}
 
 /* ── Keyframes ── */
 @keyframes psp-slideIn  { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 @keyframes psp-slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
 @keyframes psp-fade     { from { opacity: 0; } to { opacity: 1; } }
 
-@keyframes psp-float    {
+@keyframes psp-float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33%       { transform: translateY(-12px) rotate(1deg); }
-  66%       { transform: translateY(-6px) rotate(-0.8deg); }
+  50%      { transform: translateY(-6px) rotate(0.5deg); }
 }
 @keyframes psp-pop {
   0%   { transform: scale(1); }
@@ -223,36 +236,23 @@ const STYLES = `
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* Soft CSS blobs floating in bg */
 @keyframes psp-blob1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(18px, -22px) scale(1.05); }
-  66%  { transform: translate(-12px, 14px) scale(0.96); }
+  50%      { transform: translate(18px, -22px) scale(1.05); }
 }
 @keyframes psp-blob2 {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  40%  { transform: translate(-20px, 18px) scale(1.08); }
-  70%  { transform: translate(14px, -10px) scale(0.94); }
-}
-@keyframes psp-blob3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(10px, -28px) scale(1.04); }
-}
-@keyframes psp-shadowPulse {
-  0%, 100% { opacity: 0.12; transform: scaleX(1); }
-  50%  { opacity: 0.08; transform: scaleX(0.85); }
+  50%      { transform: translate(-20px, 18px) scale(1.08); }
 }
 @keyframes psp-ringPop {
-  0%   { transform: scale(1); opacity: 0.22; }
-  50%  { transform: scale(1.04); opacity: 0.12; }
-  100% { transform: scale(1); opacity: 0.22; }
+  0%, 100% { transform: scale(1); opacity: 0.35; }
+  50%      { transform: scale(1.03); opacity: 0.2; }
 }
 
 /* ── Backdrop ── */
 .psp-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0, 0, 0, 0.24);
+  background: rgba(27, 42, 65, 0.35);
   z-index: 999;
   animation: psp-fade 0.26s ease;
   backdrop-filter: blur(4px);
@@ -267,18 +267,15 @@ const STYLES = `
   overflow: hidden;
   animation: psp-slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.psp-panel.closing {
-  animation: psp-slideOut 0.22s ease forwards;
-}
+.psp-panel.closing { animation: psp-slideOut 0.22s ease forwards; }
 
-/* Gradient BG */
 .psp-panelBg {
   position: absolute; inset: 0; z-index: 0;
   background: var(--psp-grad);
   transition: background 0.45s ease;
 }
 
-/* ── Soft CSS blob decorations ── */
+/* ── Soft blobs ── */
 .psp-blob {
   position: absolute; border-radius: 50%;
   pointer-events: none; z-index: 1;
@@ -288,39 +285,35 @@ const STYLES = `
   width: 220px; height: 220px;
   top: -60px; right: -60px;
   background: var(--psp-blob-color);
-  opacity: 0.28;
+  opacity: 0.3;
   animation: psp-blob1 8s ease-in-out infinite;
 }
 .psp-blob2 {
   width: 180px; height: 180px;
   bottom: 60px; left: -50px;
   background: var(--psp-blob-color);
-  opacity: 0.2;
+  opacity: 0.22;
   animation: psp-blob2 10s ease-in-out infinite 1.5s;
 }
 .psp-blob3 {
   width: 120px; height: 120px;
   top: 45%; right: 10px;
   background: var(--psp-blob-color);
-  opacity: 0.15;
-  animation: psp-blob3 7s ease-in-out infinite 3s;
+  opacity: 0.18;
+  animation: psp-blob1 7s ease-in-out infinite 3s;
 }
 
-/* ── Close button (external chevron) ──
-   FIX: added .hidden class controlled by showEditor in JSX below.
-   This button now fades and becomes unclickable while the editor
-   overlay is open, on ALL screen sizes — not just mobile. Reason:
-   the editor renders its own X (cancel) button in the same
-   top-right corner on mobile, and this external chevron was
-   sitting on top of it. */
+/* ── External close (crayon pill) ── */
 .psp-extClose {
   position: fixed; top: 50%; left: 480px;
   transform: translate(-50%, -50%);
   width: 50px; height: 50px; border-radius: 50%;
-  background: #fff; border: none; cursor: pointer; z-index: 1001;
+  background: var(--paper);
+  border: var(--border);
+  cursor: pointer; z-index: 1001;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
-  transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s, background 0.18s;
   opacity: 1;
   pointer-events: auto;
 }
@@ -330,29 +323,43 @@ const STYLES = `
 }
 .psp-extClose:hover {
   transform: translate(-50%, -50%) scale(1.08);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
+  background: var(--yellow);
+}
+.psp-extClose:active {
+  transform: translate(-50%, -50%) scale(0.96);
+  box-shadow: var(--shadow-sm);
 }
 @media (max-width: 520px) {
   .psp-panel { width: 100vw; }
   .psp-extClose { left: auto; right: 14px; top: 14px; transform: none; }
   .psp-extClose:hover { transform: scale(1.08); }
+  .psp-extClose:active { transform: scale(0.96); }
 }
 
-/* ── Menu ── */
+/* ── Menu buttons (crayon circle) ── */
 .psp-menuCol {
   position: absolute; top: 20px; left: 20px; z-index: 6;
   display: flex; flex-direction: column; gap: 10px;
 }
 .psp-circleBtn {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: ${ACCENT}; color: #fff; border: none; cursor: pointer;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: var(--paper);
+  border: var(--border);
+  color: var(--ink);
+  cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 3px 0 rgba(0,0,0,0.1), 0 6px 18px rgba(31,169,245,0.36);
-  transition: transform 0.16s, box-shadow 0.16s;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s cubic-bezier(.34,1.4,.4,1), box-shadow 0.18s, background 0.18s;
 }
 .psp-circleBtn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 5px 0 rgba(0,0,0,0.1), 0 10px 24px rgba(31,169,245,0.5);
+  background: var(--yellow);
+  transform: translate3d(-2px, -2px, 0) rotate(-4deg);
+  box-shadow: var(--shadow-md);
+}
+.psp-circleBtn:active {
+  transform: translate3d(0, 0, 0);
+  box-shadow: var(--shadow-sm);
 }
 .psp-menuItem {
   animation: psp-menuDrop 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -370,23 +377,22 @@ const STYLES = `
   overflow: hidden;
 }
 
-/* Soft ring behind avatar */
+/* Soft rings behind avatar */
 .psp-avatarRing {
   position: absolute;
   width: 248px; height: 248px; border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.38);
+  border: 2px dashed rgba(27, 42, 65, 0.18);
   pointer-events: none;
   animation: psp-ringPop 4s ease-in-out infinite;
 }
 .psp-avatarRing2 {
   position: absolute;
   width: 296px; height: 296px; border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(27, 42, 65, 0.12);
   pointer-events: none;
   animation: psp-ringPop 4s ease-in-out infinite 1.4s;
 }
 
-/* Avatar floats */
 .psp-avatarWrap {
   position: relative; z-index: 3;
   animation: psp-float 4.5s ease-in-out infinite;
@@ -397,24 +403,27 @@ const STYLES = `
 
 .psp-shadow {
   width: 100px; height: 10px; border-radius: 50%;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(27, 42, 65, 0.14);
   filter: blur(6px);
   margin-top: 2px;
   margin-bottom: 22px;
   flex-shrink: 0;
-  animation: psp-shadowPulse 4.5s ease-in-out infinite;
 }
 
-/* ── Name + sub below ── */
+/* ── Name + sub ── */
 .psp-nameBlock {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
   animation: psp-nameIn 0.45s 0.2s both ease;
 }
 .psp-title {
-  font-size: 30px; font-weight: 900; letter-spacing: -0.5px; margin: 0;
+  font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin: 0;
+  color: var(--ink);
+  text-shadow: 3px 3px 0 var(--yellow);
+  transform: rotate(-0.8deg);
 }
 .psp-sub {
-  font-size: 13px; font-weight: 700; opacity: 0.58; margin: 0;
+  font-size: 13px; font-weight: 700; opacity: 0.75; margin: 0;
+  color: var(--ink);
 }
 
 /* ── Editor ── */
@@ -437,7 +446,7 @@ const STYLES = `
   padding: 68px 24px 18px;
 }
 
-/* ── Editor Actions ── */
+/* ── Editor Actions — crayon buttons ── */
 .psp-edActions {
   position: absolute;
   top: 20px;
@@ -454,123 +463,193 @@ const STYLES = `
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: none;
+  border: var(--border);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.16s;
+  transition: transform 0.18s cubic-bezier(.34,1.4,.4,1), box-shadow 0.18s;
   flex-shrink: 0;
 }
-.psp-edAction:hover { transform: scale(1.1) !important; }
-.psp-edAction.x  {
-  background: #FF5C6E;
-  box-shadow: 0 4px 0 #b8243a, 0 6px 20px rgba(255,92,110,0.42);
+.psp-edAction:hover {
+  transform: translate3d(-2px, -2px, 0) rotate(-3deg);
+}
+.psp-edAction:active {
+  transform: translate3d(0, 0, 0);
+  box-shadow: var(--shadow-sm);
+}
+.psp-edAction.x {
+  background: var(--coral);
+  box-shadow: var(--shadow-md);
+}
+.psp-edAction.x:hover {
+  box-shadow: var(--shadow-lg);
 }
 .psp-edAction.ok {
-  background: ${ACCENT};
-  box-shadow: 0 4px 0 #1379b3, 0 6px 20px rgba(31,169,245,0.42);
+  background: var(--blue);
+  box-shadow: var(--shadow-md);
+}
+.psp-edAction.ok:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .psp-unameLabel {
   font-size: 11px; font-weight: 800; letter-spacing: 3.5px;
-  opacity: 0.48; margin-top: 18px; text-transform: uppercase;
+  opacity: 0.7; margin-top: 18px; text-transform: uppercase;
+  color: var(--ink);
 }
 .psp-unameField {
   margin-top: 8px; width: min(380px, 90%); height: 48px; border-radius: 24px;
-  background: rgba(255, 255, 255, 0.42);
-  border: 2px solid rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(8px);
+  background: var(--paper);
+  border: var(--border);
   display: flex; align-items: center; padding: 0 16px; gap: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
 }
-.psp-unameField:focus-within { border-color: rgba(255, 255, 255, 0.96); }
+.psp-unameField:focus-within {
+  box-shadow: var(--shadow-md);
+}
 .psp-unameInput {
   flex: 1; border: none; background: transparent; outline: none;
-  font: 800 15px/1 'Comfortaa', sans-serif
-  color: ${STROKE}; text-align: center;
+  font: 800 15px/1 'Comfortaa', sans-serif;
+  color: var(--ink); text-align: center;
+  font-family: 'Comfortaa', sans-serif;
 }
-.psp-unameInput::placeholder { color: rgba(15, 46, 92, 0.35); }
-.psp-unameInput:disabled { opacity: 0.48; cursor: not-allowed; }
-.psp-lockNote { font-size: 11px; font-weight: 700; opacity: 0.46; margin-top: 5px; }
+.psp-unameInput::placeholder { color: rgba(27, 42, 65, 0.35); }
+.psp-unameInput:disabled { opacity: 0.5; cursor: not-allowed; }
+.psp-lockNote {
+  font-size: 11px; font-weight: 700; opacity: 0.65; margin-top: 6px;
+  color: var(--ink);
+}
 
-/* ── Bottom sheet ── */
+/* ── Bottom sheet — clean paper ── */
 .psp-sheet {
-  background: #fff; border-radius: 24px 24px 0 0;
+  background: var(--paper);
+  border-top: var(--border);
+  border-radius: 24px 24px 0 0;
   padding: 6px 0 20px;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 -4px 24px rgba(27, 42, 65, 0.08);
   flex-shrink: 0; position: relative; z-index: 2;
 }
 .psp-tabs {
   display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 0 8px;
+  border-bottom: 1.5px dashed rgba(27, 42, 65, 0.15);
 }
 .psp-tab {
-  background: none; border: none; cursor: pointer; padding: 13px 0;
-  font: 800 13px 'Comfortaa', sans-serif color: #9aa3b2;
+  background: none; border: none; cursor: pointer; padding: 14px 0;
+  font: 800 13px 'Comfortaa', sans-serif;
+  color: var(--ink-soft, #5A6B82);
   display: flex; align-items: center; justify-content: center;
   gap: 6px; position: relative; transition: color 0.16s;
+  font-family: 'Comfortaa', sans-serif;
 }
-.psp-tab.active { color: ${ACCENT}; }
+.psp-tab.active { color: var(--blue); }
 .psp-tab.active::after {
-  content: ''; position: absolute; left: 22%; right: 22%; bottom: 0;
-  height: 2.5px; background: ${ACCENT}; border-radius: 2px;
+  content: ''; position: absolute; left: 22%; right: 22%; bottom: -1.5px;
+  height: 3px; background: var(--blue); border-radius: 100px;
 }
+
 .psp-tabPanel {
-  padding: 18px 18px 6px; min-height: 88px;
+  padding: 20px 18px 6px; min-height: 100px;
   display: flex; align-items: center; justify-content: center;
   gap: 14px; flex-wrap: wrap;
 }
+
 .psp-pickBtn {
-  background: none; border: none; cursor: pointer; padding: 8px;
-  border-radius: 14px;
-  transition: transform 0.14s, background 0.14s, box-shadow 0.14s;
+  background: var(--paper);
+  border: var(--border);
+  cursor: pointer; padding: 10px;
+  border-radius: 14px 16px 12px 18px;
+  transition: transform 0.18s cubic-bezier(.34,1.4,.4,1), box-shadow 0.18s, background 0.18s;
   display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm);
 }
-.psp-pickBtn:hover { transform: scale(1.12); }
+.psp-pickBtn:hover {
+  transform: translate3d(-2px, -2px, 0) rotate(-3deg);
+  box-shadow: var(--shadow-md);
+  background: var(--yellow);
+}
+.psp-pickBtn:active { transform: translate3d(0,0,0); box-shadow: var(--shadow-sm); }
 .psp-pickBtn.active {
-  background: #EAF6FF;
-  box-shadow: inset 0 0 0 2.5px ${ACCENT};
-  transform: scale(1.05);
+  background: var(--blue);
+  box-shadow: var(--shadow-md);
+  transform: translate3d(-2px, -2px, 0);
 }
+.psp-pickBtn.active svg,
+.psp-pickBtn.active svg * {
+  stroke: #fff;
+}
+
 .psp-colorDot {
-  width: 42px; height: 42px; border-radius: 50%;
-  border: 4px solid #fff;
-  box-shadow: 0 0 0 1.5px transparent, 0 3px 10px rgba(0, 0, 0, 0.1);
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2.5px solid var(--ink);
   cursor: pointer;
-  transition: transform 0.14px, box-shadow 0.18s;
+  transition: transform 0.18s cubic-bezier(.34,1.4,.4,1), box-shadow 0.18s;
+  box-shadow: var(--shadow-sm);
 }
-.psp-colorDot:hover { transform: scale(1.1); }
+.psp-colorDot:hover { transform: translate3d(-2px, -2px, 0) rotate(-6deg); box-shadow: var(--shadow-md); }
 .psp-colorDot.active {
-  box-shadow: 0 0 0 3px ${ACCENT}, 0 5px 14px rgba(0, 0, 0, 0.13);
-  transform: scale(1.12);
+  box-shadow: 0 0 0 3px var(--blue), var(--shadow-md);
+  transform: translate3d(-2px, -2px, 0) scale(1.1);
 }
 
 /* ── Modal ── */
 .psp-modalOverlay {
   position: fixed; inset: 0; z-index: 2000;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(27, 42, 65, 0.42);
   display: flex; align-items: center; justify-content: center;
   animation: psp-fade 0.18s ease;
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .psp-modal {
-  background: #fff; border-radius: 28px; padding: 28px 24px 24px;
-  width: 292px; text-align: center;
+  background: var(--paper);
+  border: var(--border);
+  border-radius: 24px;
+  padding: 28px 24px 24px;
+  width: 300px; text-align: center;
   animation: psp-bounceIn 0.36s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
 }
-.psp-modal h4 { margin: 4px 0 8px; font-size: 20px; font-weight: 900; }
-.psp-modal p  { margin: 0 0 20px; font-size: 13px; color: #6b7280; font-weight: 600; line-height: 1.5; }
+.psp-modal h4 {
+  margin: 4px 0 8px; font-size: 20px; font-weight: 800;
+  color: var(--ink);
+  font-family: 'Comfortaa', sans-serif;
+}
+.psp-modal p {
+  margin: 0 0 20px; font-size: 13px;
+  color: var(--ink-soft, #5A6B82);
+  font-weight: 600; line-height: 1.55;
+  font-family: 'Comfortaa', sans-serif;
+}
 .psp-modalBtns { display: flex; gap: 10px; }
 .psp-modalBtn {
-  flex: 1; padding: 13px; border: none; border-radius: 999px;
-  font: 800 14px 'Comfortaa', sans-serif cursor: pointer;
-  transition: transform 0.14s;
+  flex: 1; padding: 13px;
+  border: var(--border);
+  border-radius: 100px;
+  font: 800 14px 'Comfortaa', sans-serif;
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(.34,1.4,.4,1), box-shadow 0.16s, background 0.16s;
+  font-family: 'Comfortaa', sans-serif;
 }
-.psp-modalBtn:hover { transform: scale(1.03); }
-.psp-modalBtn.cancel { background: #F1F3F7; color: #6b7280; }
-.psp-modalBtn.ok { background: #FF5C6E; color: #fff; box-shadow: 0 4px 0 #b8243a; }
+.psp-modalBtn:hover {
+  transform: translate3d(-2px, -2px, 0);
+  box-shadow: var(--shadow-sm);
+}
+.psp-modalBtn:active {
+  transform: translate3d(0, 0, 0);
+  box-shadow: none;
+}
+.psp-modalBtn.cancel {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.psp-modalBtn.ok {
+  background: var(--coral);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
 `;
 
 /* ─────────── Editor ─────────── */
@@ -584,7 +663,7 @@ function Editor({ shape, eyes, color, username, locked, onSave, onCancel }) {
 
   const bump = (fn, val) => { fn(val); setPop(p => p + 1); };
 
-  const cfg  = COLOR_CONFIG[c] || COLOR_CONFIG["#FFD93D"];
+  const cfg  = COLOR_CONFIG[c] || COLOR_CONFIG["#FFD966"];
   const grad = `linear-gradient(160deg, ${cfg.bg1} 0%, ${cfg.bg2} 100%)`;
 
   return (
@@ -630,8 +709,8 @@ function Editor({ shape, eyes, color, username, locked, onSave, onCancel }) {
 
       <div className="psp-sheet">
         <div className="psp-tabs">
-          <button className={`psp-tab ${tab === "body"  ? "active" : ""}`} onClick={() => setTab("body")} ><I.Body />    Body</button>
-          <button className={`psp-tab ${tab === "eyes"  ? "active" : ""}`} onClick={() => setTab("eyes")} ><I.EyeTab /> Eyes</button>
+          <button className={`psp-tab ${tab === "body"  ? "active" : ""}`} onClick={() => setTab("body")}><I.Body />    Body</button>
+          <button className={`psp-tab ${tab === "eyes"  ? "active" : ""}`} onClick={() => setTab("eyes")}><I.EyeTab /> Eyes</button>
           <button className={`psp-tab ${tab === "color" ? "active" : ""}`} onClick={() => setTab("color")}><I.Palette /> Color</button>
         </div>
         <div className="psp-tabPanel">
@@ -665,7 +744,7 @@ const DEFAULT_PROFILE = {
   stylishUsername: "Your account",
   avatarShape: "square",
   avatarEyes: "oval",
-  avatarColor: "#FFD93D",
+  avatarColor: "#FFD966",
   loginMethod: "Google",
   usernameChangedAt: null,
 };
@@ -702,7 +781,7 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
   const locked = !!local.usernameChangedAt &&
     Date.now() - new Date(local.usernameChangedAt).getTime() < USERNAME_LOCK_MS;
 
-  const cfg  = COLOR_CONFIG[local.avatarColor] || COLOR_CONFIG["#FFD93D"];
+  const cfg  = COLOR_CONFIG[local.avatarColor] || COLOR_CONFIG["#FFD966"];
   const grad = `linear-gradient(160deg, ${cfg.bg1} 0%, ${cfg.bg2} 100%)`;
 
   const handleSave = v => {
@@ -726,9 +805,9 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("profile");
-    
+
     handleClose();
-    
+
     setTimeout(() => {
       if (onLogout) {
         onLogout();
@@ -747,13 +826,8 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
         ref={panelRef}
         className={`psp-panel ${closing ? "closing" : ""}`}
       >
-        {/* Gradient BG */}
-        <div
-          className="psp-panelBg"
-          style={{ "--psp-grad": grad }}
-        />
+        <div className="psp-panelBg" style={{ "--psp-grad": grad }} />
 
-        {/* Soft floating blobs */}
         <div className="psp-blob psp-blob1" style={{ "--psp-blob-color": cfg.blob }} />
         <div className="psp-blob psp-blob2" style={{ "--psp-blob-color": cfg.blob }} />
         <div className="psp-blob psp-blob3" style={{ "--psp-blob-color": cfg.blob }} />
@@ -785,12 +859,11 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
           )}
         </div>
 
-        {/* ── Hero ── */}
+        {/* Hero */}
         <div className="psp-hero">
           <div className="psp-avatarRing"  />
           <div className="psp-avatarRing2" />
 
-          {/* Avatar */}
           <div
             className={`psp-avatarWrap ${pop ? "pop" : ""}`}
             key={`${local.avatarShape}-${local.avatarEyes}-${local.avatarColor}-${pop}`}
@@ -805,14 +878,12 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
           </div>
           <div className="psp-shadow" />
 
-          {/* Name + login */}
           <div className="psp-nameBlock">
             <h2 className="psp-title">{local.stylishUsername}</h2>
             <p className="psp-sub">Logged in with {local.loginMethod || "Google"}</p>
           </div>
         </div>
 
-        {/* Editor overlay */}
         {showEditor && (
           <Editor
             shape={local.avatarShape}
@@ -826,8 +897,6 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
         )}
       </div>
 
-      {/* Close chevron — FIX: hidden while editor is open so it never
-          overlaps the editor's own X/Check buttons on mobile */}
       <button
         className={`psp-extClose ${showEditor ? "hidden" : ""}`}
         onClick={handleClose}
@@ -837,7 +906,6 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
         <I.ChevL />
       </button>
 
-      {/* Logout modal */}
       {showLogout && (
         <div className="psp-modalOverlay" onClick={() => setShowLogout(false)}>
           <div className="psp-modal" onClick={ev => ev.stopPropagation()}>
@@ -847,10 +915,7 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
               <button className="psp-modalBtn cancel" onClick={() => setShowLogout(false)}>
                 Stay
               </button>
-              <button
-                className="psp-modalBtn ok"
-                onClick={handleLogout}
-              >
+              <button className="psp-modalBtn ok" onClick={handleLogout}>
                 Sign Out
               </button>
             </div>
@@ -863,26 +928,26 @@ export default function ProfileSidePanel({ onClose, profile: propProfile, onUpda
 
 export function ProfileButton({ profile, onClick }) {
   if (!profile) return null;
-  const cfg = COLOR_CONFIG[profile.avatarColor] || COLOR_CONFIG["#FFD93D"];
+  const cfg = COLOR_CONFIG[profile.avatarColor] || COLOR_CONFIG["#FFD966"];
   return (
     <button
       onClick={onClick}
       style={{
-        width: 44, height: 44, borderRadius: "50%",
-        border: "none", cursor: "pointer",
+        width: 46, height: 46, borderRadius: "50%",
+        border: `1.5px solid ${STROKE}`, cursor: "pointer",
         background: `linear-gradient(135deg, ${cfg.bg1}, ${cfg.bg2})`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.13)",
+        boxShadow: `3px 3px 0 ${STROKE}`,
         padding: 0, overflow: "hidden",
-        transition: "transform 0.16s, box-shadow 0.16s",
+        transition: "transform 0.18s cubic-bezier(.34,1.4,.4,1), box-shadow 0.18s",
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.transform = "scale(1.08)";
-        e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.18)";
+        e.currentTarget.style.transform = "translate(-2px, -2px) rotate(-4deg)";
+        e.currentTarget.style.boxShadow = `4px 4px 0 ${STROKE}`;
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.13)";
+        e.currentTarget.style.transform = "translate(0, 0)";
+        e.currentTarget.style.boxShadow = `3px 3px 0 ${STROKE}`;
       }}
       aria-label="Open profile"
     >

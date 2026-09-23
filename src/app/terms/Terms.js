@@ -2,50 +2,136 @@
 
 import React, { useState, useEffect, useRef, useCallback, memo, lazy, Suspense } from "react";
 import {
-  ChevronDown, ArrowLeft, Shield, Database,
-  Cookie, Fingerprint, ArrowUp, AlertCircle
+  ChevronDown, ArrowLeft, Shield, FileText,
+  Scale, AlertCircle, ArrowUp, UserCheck,
+  Ban, Copyright, Mail, Globe, RefreshCw,
+  Trash2, Cookie
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const SocialComingSoonModal = lazy(() => import("../../legacy/SocialComingSoonModal"));
 
-const PRIVACY_EMAIL = "hello@sharx.in";
+const TERMS_EMAIL = "vishalxr92@gmail.com";
 const LAST_UPDATED = "Sept 2026";
 
+/* ─── Quick cards (hero) ─── */
 const QUICK_CARDS = [
-  { icon: <Database size={20} strokeWidth={2.2} />, label: "What we collect", color: "#D4F5E7", accent: "#0EA56B", i: 1 },
-  { icon: <Cookie size={20} strokeWidth={2.2} />, label: "Cookies & storage", color: "#EAE0FF", accent: "#7C4DFF", i: 2 },
-  { icon: <Fingerprint size={20} strokeWidth={2.2} />, label: "Your rights", color: "#FFE0DA", accent: "#FF5A4A", i: 3 },
-  { icon: <Shield size={20} strokeWidth={2.2} />, label: "Security", color: "#FFF2CC", accent: "#E8A100", i: 3 },
+  { icon: <UserCheck size={20} strokeWidth={2.2} />, label: "Eligibility", color: "#D4F5E7", accent: "#0EA56B", i: 1 },
+  { icon: <Ban size={20} strokeWidth={2.2} />, label: "User Conduct", color: "#EAE0FF", accent: "#7C4DFF", i: 2 },
+  { icon: <Globe size={20} strokeWidth={2.2} />, label: "Third-Party Services", color: "#FFE0DA", accent: "#FF5A4A", i: 3 },
+  { icon: <Shield size={20} strokeWidth={2.2} />, label: "Your Rights", color: "#FFF2CC", accent: "#E8A100", i: 4 },
 ];
 
-const DATA_ITEMS = [
-  { q: "Account information", a: "When you create an account, we collect your name and email address. If you sign in using Google, we receive your name, email address, and profile identifier from Google. We do not receive or store your Google password. Your account creation date and basic preferences are also stored so your account works as expected." },
-  { q: "Device and technical information", a: "We log basic technical information — such as your browser type, device type, operating system, and IP address — to keep the platform secure, diagnose errors, and prevent abuse. Some of this information may be processed automatically when you load the site or play a game." },
-  { q: "Usage information", a: "We may keep basic usage information such as which games you open and your recent activity, so features like your history and saved preferences can work correctly." },
-  { q: "Support and contact information", a: "If you contact us through the contact form or email, we collect your name, email address, and the content of your message so we can respond to you." },
-  { q: "Information from third-party sign-in", a: "If you sign in with Google, we receive limited information from Google to create and manage your account. Google's own privacy policy also applies to how they handle your data. We never receive or store your Google password." }
+/* ─── Section 01 — Acceptance & Eligibility ─── */
+const ACCEPTANCE_ITEMS = [
+  {
+    q: "1. Acceptance of Terms",
+    a: "By accessing or using SHARX (the \"Website\"), you agree to be bound by these Terms of Service (\"Terms\"). If you do not agree with any part of these Terms, you must not use the Website. These Terms apply to all visitors, users, and others who access or use SHARX.",
+  },
+  {
+    q: "2. Eligibility",
+    a: "You must be at least 13 years old (or the minimum age of digital consent in your jurisdiction, whichever is higher) to use SHARX. If you are under 18, you may only use SHARX with the involvement and consent of a parent or legal guardian. By using SHARX, you represent and warrant that you meet these requirements and that you have the legal capacity to enter into these Terms.",
+  },
+  {
+    q: "3. Description of Service",
+    a: "SHARX is an online platform that displays and embeds HTML5 browser games provided by third-party game providers, including but not limited to GameMonetize.com (GMO Holding Ltd.) and other game development partners. SHARX does not develop, own, publish, or control these games. The Website is provided free of charge. Some features (such as saving a profile or avatar) require an optional account, but you can access and play games without signing up.",
+  },
+  {
+    q: "4. No Real-Money Gambling or Prizes",
+    a: "SHARX is an entertainment platform. None of the games on SHARX involve real-money gambling, betting, or cash prizes. No deposits or withdrawals are possible. If any game ever appears to offer real-money rewards, that game is not endorsed by SHARX and SHARX is not responsible for such claims.",
+  },
 ];
 
-const COOKIE_ITEMS = [
-  { q: "Essential cookies and storage", a: "We use essential cookies and browser storage (such as localStorage) to keep you signed in, remember your session, and protect your account. Without these, the platform cannot work correctly. These are not used for advertising or unrelated tracking." },
-  { q: "Preference storage", a: "We may store basic preferences — such as your chosen display settings, recently viewed games, or profile details — so the site feels consistent when you return." },
-  { q: "Analytics", a: "We do not currently run a dedicated analytics provider. If this changes in the future, this section will be updated before any such tool is added." },
-  { q: "How to manage cookies and storage", a: "You can clear cookies and site data from your browser settings at any time. Clearing essential cookies will sign you out and may reset saved preferences. Some browser settings may block certain features from working properly." }
+/* ─── Section 02 — User Conduct & Accounts ─── */
+const CONDUCT_ITEMS = [
+  {
+    q: "1. Acceptable Use",
+    a: "You agree to use SHARX only for lawful, personal, and non-commercial purposes. You must not use the Website in any way that could damage, disable, overburden, or impair SHARX or interfere with any other party's use of SHARX.",
+  },
+  {
+    q: "2. Prohibited Activities",
+    a: "You agree NOT to: (a) use bots, scrapers, automated tools, or any other method to access or copy the Website; (b) hack, reverse-engineer, or attempt to gain unauthorised access to any part of SHARX or its systems; (c) use SHARX to upload, share, or distribute illegal, harmful, threatening, abusive, defamatory, obscene, or infringing content; (d) click on advertisements artificially or generate fake ad impressions (this violates Google AdSense and GameMonetize policies); (e) impersonate any person or entity; (f) collect or store personal data about other users; (g) use SHARX in any way that violates applicable laws and regulations.",
+  },
+  {
+    q: "3. Optional Accounts",
+    a: "Creating an account on SHARX is optional. If you create one, you are responsible for: (a) providing accurate information; (b) keeping your login credentials and passkey secure; (c) all activities that occur under your account. You must notify us immediately of any unauthorised use of your account. We may suspend or terminate accounts at our sole discretion.",
+  },
+  {
+    q: "4. User-Generated Content",
+    a: "If you submit any content to SHARX (such as a display name, avatar, or feedback), you grant SHARX a non-exclusive, worldwide, royalty-free licence to use, store, and display that content solely for operating the Website. You represent that you own or have the necessary rights to any content you submit. We may remove any content that violates these Terms.",
+  },
+  {
+    q: "5. Enforcement and Termination",
+    a: "We reserve the right to terminate or suspend your access to SHARX, without notice and at our sole discretion, if we believe you have violated these Terms or if required by law. We may also remove or disable access to any content at any time. Sections of these Terms that by their nature should survive termination (including IP, indemnity, and liability sections) will survive.",
+  },
 ];
 
-const RIGHTS_ITEMS = [
-  { q: "Access your information", a: `You can request a copy of the personal information we hold about you by contacting us at ${PRIVACY_EMAIL}. We will respond within a reasonable time.` },
-  { q: "Correct your information", a: `You can update your name directly from your profile. For other corrections, contact us at ${PRIVACY_EMAIL} and we will help where we can.` },
-  { q: "Delete your account", a: `You can request account deletion by contacting us at ${PRIVACY_EMAIL}. We will remove your account and associated personal data, except where we are required to keep certain information for legal, security, or fraud-prevention reasons. Some data may remain in backups for a limited time before being overwritten.` },
-  { q: "Withdraw consent", a: "Where we rely on your consent, you can withdraw it at any time. Withdrawing consent may affect features that depend on it, including your account." },
-  { q: "Children and younger users", a: `SHARX is not intended to knowingly collect personal information from children without the required safeguards. If you are a parent or guardian and believe a child has provided personal information improperly, please contact us at ${PRIVACY_EMAIL} and we will review and take appropriate action.` },
-  { q: "Security", a: "We use reasonable technical and organisational measures designed to protect information against unauthorised access, loss, misuse, or alteration. These include HTTPS encryption in transit, hashed password storage, and authentication tokens. No method of transmission over the internet is completely secure, and we cannot guarantee absolute security." },
-  { q: "Changes to this policy", a: `We may update this policy from time to time. When we make meaningful changes, we will update the "Last updated" date at the top of this page. We encourage you to review this page periodically.` },
-  { q: "Contact us about privacy", a: `For any privacy-related question or request, email us at ${PRIVACY_EMAIL}. We try to respond as quickly as we can.` }
+/* ─── Section 03 — Third-Party Services (GameMonetize + AdSense) ─── */
+const THIRD_PARTY_ITEMS = [
+  {
+    q: "1. Games Provided by GameMonetize and Others",
+    a: "Most of the games displayed on SHARX are provided by third-party game providers, including GameMonetize.com (GMO Holding Ltd.), and their partner studios. SHARX embeds these games but does not own, control, or operate them. All game content — including graphics, audio, gameplay, and in-game advertising — is the property of the respective game providers and their licensors.",
+  },
+  {
+    q: "2. What This Means for You",
+    a: "Because the games are provided by third parties, SHARX does not guarantee: (a) that any game will be available at any given time (games may be added, changed, or removed by GameMonetize without notice); (b) that any game will be free of bugs, errors, or security issues; (c) that in-game advertisements (which may appear inside games provided by GameMonetize) will be relevant, safe, or appropriate. Your use of these games is at your own risk and is also subject to the game provider's own terms and privacy policies.",
+  },
+  {
+    q: "3. In-Game Advertising by GameMonetize",
+    a: "Games provided by GameMonetize may include in-game advertisements served by GameMonetize or its advertising partners. SHARX does not control which ads are shown inside these games. Revenue from these ads (where applicable) goes to GameMonetize per our agreement with them. You should review GameMonetize's privacy policy and terms for details on how they handle advertising data.",
+  },
+  {
+    q: "4. Display Advertising on SHARX",
+    a: "SHARX may display its own advertisements on the Website (outside of games) served through third-party advertising networks such as Google AdSense. These ads help keep SHARX free to use. We do not control which specific advertisements are shown, and the content of any ad is the sole responsibility of the advertiser and the ad network. Any dealings you have with advertisers found on SHARX are solely between you and the advertiser.",
+  },
+  {
+    q: "5. External Links",
+    a: "SHARX may contain links to third-party websites that are not owned or controlled by us. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party websites. By using SHARX, you acknowledge and agree that SHARX shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with the use of any such third-party content, goods, or services.",
+  },
 ];
 
+/* ─── Section 04 — IP, Liability, Legal ─── */
+const LEGAL_ITEMS = [
+  {
+    q: "1. Intellectual Property",
+    a: "The SHARX name, logo, design, source code, and original content are owned by SHARX and protected by copyright and trademark laws. You may not copy, modify, distribute, or create derivative works of SHARX's original content without our prior written consent. Game content belongs to the respective game providers and is used by SHARX under the terms of our agreements with them.",
+  },
+  {
+    q: "2. Copyright Complaints (DMCA)",
+    a: `If you believe that any content on SHARX infringes your copyright, please see our separate DMCA / Copyright Policy page for the procedure to submit a notice. You may also contact us at ${TERMS_EMAIL} for any copyright-related questions. We take copyright claims seriously and will act on valid notices.`,
+  },
+  {
+    q: "3. Disclaimer of Warranties",
+    a: "SHARX is provided \"AS IS\" and \"AS AVAILABLE\", without any warranties of any kind, whether express, implied, or statutory. To the fullest extent permitted by law, SHARX disclaims all warranties, including (but not limited to) implied warranties of merchantability, fitness for a particular purpose, and non-infringement. We do not warrant that the Website will be uninterrupted, error-free, secure, or free of viruses or other harmful components.",
+  },
+  {
+    q: "4. Limitation of Liability",
+    a: "To the maximum extent permitted by applicable law, SHARX, its founder, and its affiliates shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, data, or goodwill, arising out of or in connection with your use of the Website or the games, whether based on warranty, contract, tort, or any other legal theory. Where liability cannot be excluded, our total liability to you shall not exceed INR 500 or the amount you have paid SHARX (if any), whichever is greater.",
+  },
+  {
+    q: "5. Indemnification",
+    a: "You agree to indemnify, defend, and hold harmless SHARX, its founder, and its affiliates from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable legal fees) arising out of or in connection with: (a) your use of SHARX; (b) your violation of these Terms; (c) your violation of any third-party rights, including any intellectual property or privacy rights; or (d) any content you submit to SHARX.",
+  },
+  {
+    q: "6. Modifications to the Service and Terms",
+    a: `We may change, suspend, or discontinue any part of SHARX at any time, with or without notice. We may also update these Terms from time to time. When we make meaningful changes, we will update the "Last updated" date at the top of this page. Your continued use of SHARX after any changes take effect constitutes your acceptance of the updated Terms.`,
+  },
+  {
+    q: "7. Governing Law and Dispute Resolution",
+    a: "These Terms shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts located in India. Before initiating any formal legal proceeding, you agree to first contact us at " + TERMS_EMAIL + " to attempt to resolve the matter informally in good faith.",
+  },
+  {
+    q: "8. Grievance Officer (India IT Rules, 2021)",
+    a: `In accordance with the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021 (India), SHARX has appointed a Grievance Officer. Name: Vishal (Founder, SHARX). Email: ${TERMS_EMAIL}. Response time: We aim to acknowledge complaints within 24 hours and resolve them within 15 days. This contact is for complaints related to content, users, or SHARX's services.`,
+  },
+  {
+    q: "9. Miscellaneous",
+    a: "If any provision of these Terms is held to be invalid or unenforceable, the remaining provisions shall remain in full force and effect. Our failure to enforce any right or provision shall not be considered a waiver of that right or provision. These Terms, together with our Privacy Policy, Cookie Policy, Disclaimer, and DMCA Policy, constitute the entire agreement between you and SHARX regarding your use of the Website.",
+  },
+];
+
+/* ─── Accordion ─── */
 const AccordionItem = memo(function AccordionItem({ item, isOpen, onToggle, id }) {
   const panelId = `acc-panel-${id}`;
   const buttonId = `acc-btn-${id}`;
@@ -78,11 +164,12 @@ const AccordionItem = memo(function AccordionItem({ item, isOpen, onToggle, id }
   );
 });
 
-export default function Privacy() {
+export default function Terms() {
   const router = useRouter();
-  const [openData, setOpenData] = useState(null);
-  const [openCookie, setOpenCookie] = useState(null);
-  const [openRights, setOpenRights] = useState(null);
+  const [openAcceptance, setOpenAcceptance] = useState(null);
+  const [openConduct, setOpenConduct] = useState(null);
+  const [openThirdParty, setOpenThirdParty] = useState(null);
+  const [openLegal, setOpenLegal] = useState(null);
   const [seenSections, setSeenSections] = useState(() => new Set([0]));
   const [socialModal, setSocialModal] = useState(null);
   const [navHidden, setNavHidden] = useState(false);
@@ -267,10 +354,6 @@ export default function Privacy() {
           0%   { opacity: 0; transform: translate3d(0, 40px, 0); }
           100% { opacity: 1; transform: translate3d(0, 0, 0); }
         }
-        @keyframes floaty {
-          0%, 100% { transform: translate3d(0, 0, 0) rotate(-1.5deg); }
-          50%      { transform: translate3d(0, -6px, 0) rotate(1.5deg); }
-        }
 
         .hero-inner, .hero-btn-wrap, .quick-grid, .two-col { opacity: 0; will-change: opacity, transform; position: relative; z-index: 1; }
         .seen .hero-inner { animation: drawIn 0.65s cubic-bezier(.34,1.3,.4,1) forwards 0.05s; }
@@ -278,61 +361,39 @@ export default function Privacy() {
         .seen .quick-grid  { animation: drawIn 0.65s cubic-bezier(.34,1.3,.4,1) forwards 0.30s; }
         .seen .two-col     { animation: drawIn 0.65s cubic-bezier(.34,1.3,.4,1) forwards 0.10s; }
 
-        /* ─── HEADER ─── */
         .navbar {
-          position: relative;
-          z-index: 10;
-          width: 100%;
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 28px 48px 0;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          height: 90px;
-          background: transparent;
-          border: 0;
-          border-radius: 0;
-          box-shadow: none;
-          transform: none;
-          transition: none;
+          position: fixed;
+          top: 20px; left: 50%;
+          transform: translate3d(-50%, 0, 0);
+          width: calc(100% - 40px);
+          max-width: 1180px;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 12px 22px;
+          background: var(--paper);
+          border-radius: 100px;
+          border: var(--border);
+          box-shadow: var(--shadow-md);
+          z-index: 999;
+          height: 62px;
+          transition: transform 0.4s cubic-bezier(.34,1.3,.4,1), opacity 0.3s ease;
+          will-change: transform;
         }
         .navbar.hidden {
-          transform: none;
-          opacity: 1;
-          pointer-events: auto;
+          transform: translate3d(-50%, -130%, 0);
+          opacity: 0;
+          pointer-events: none;
         }
-        .logo {
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          background: none;
-          border: none;
-          padding: 0;
-          transition: opacity 0.2s ease;
-        }
-        .logo:hover { opacity: 0.75; }
-        .logo img {
-          height: 62px;
-          width: auto;
-          object-fit: contain;
-          display: block;
-        }
+        .logo { display: flex; align-items: center; cursor: pointer; background: none; border: none; padding: 0; }
+        .logo img { height: 46px; width: auto; object-fit: contain; display: block; }
 
         .nav-btn {
-          height: 40px;
-          padding: 0 20px;
+          height: 38px; padding: 0 18px;
           border: var(--border);
           border-radius: 100px;
-          display: flex;
-          align-items: center;
-          gap: 7px;
+          display: flex; align-items: center; gap: 7px;
           font-family: var(--font-comfortaa), sans-serif;
-          font-size: 13px;
-          font-weight: 800;
-          color: var(--ink);
-          background: var(--paper);
+          font-size: 13px; font-weight: 800;
+          color: var(--ink); background: var(--paper);
           cursor: pointer;
           transition: transform 0.22s cubic-bezier(.34,1.3,.4,1), box-shadow 0.22s, background 0.22s;
           box-shadow: var(--shadow-sm);
@@ -344,22 +405,6 @@ export default function Privacy() {
         }
         .nav-btn:active { transform: translate3d(0,0,0); box-shadow: var(--shadow-sm); }
 
-        @media (max-width: 768px) {
-          .navbar {
-            padding: 22px 22px 0;
-            height: 84px;
-          }
-          .logo img { height: 58px; }
-        }
-        @media (max-width: 560px) {
-          .navbar {
-            padding: 18px 18px 0;
-            height: 78px;
-          }
-          .logo img { height: 54px; }
-          .nav-btn { height: 38px; padding: 0 17px; font-size: 12.5px; }
-        }
-
         .wrap {
           position: relative; z-index: 10;
           width: 100%; max-width: 1160px;
@@ -369,68 +414,31 @@ export default function Privacy() {
         @media (max-width: 768px) { .wrap { padding: 0 22px; } }
         @media (max-width: 560px) { .wrap { padding: 0 18px; } }
 
-        /* ─── HERO ─── */
         .hero-inner { text-align: center; max-width: 820px; margin: 0 auto; }
         .hero-title {
           font-size: clamp(36px, 6.5vw, 76px);
           font-weight: 800; color: var(--ink);
-          line-height: 1.08; letter-spacing: -1px;
+          line-height: 1.05; letter-spacing: -1px;
           margin-bottom: 24px;
+          transform: rotate(-1deg);
           font-family: var(--font-comfortaa), sans-serif;
-          position: relative;
+          text-shadow: 4px 4px 0 var(--coral-soft);
         }
         .hero-title .hl {
-          display: inline-block;
           position: relative;
-          padding: 0 4px;
-          color: #0EA56B;
+          display: inline-block;
           z-index: 1;
         }
-        .hero-title .hl::after {
+        .hero-title .hl::before {
           content: "";
           position: absolute;
-          left: 0; right: 0; bottom: -4px;
-          height: 6px;
-          background: var(--yellow);
-          border-radius: 999px;
-          transform: rotate(-1deg);
+          left: -6px; right: -6px; bottom: 4px;
+          height: 42%;
+          background: var(--coral-soft);
+          border-radius: 10px;
           z-index: -1;
+          transform: rotate(-0.9deg);
         }
-        .hero-title .hl-coral {
-          display: inline-block;
-          position: relative;
-          padding: 0 4px;
-          color: #E4572E;
-          z-index: 1;
-        }
-        .hero-title .hl-coral::after {
-          content: "";
-          position: absolute;
-          left: 0; right: 0; bottom: -4px;
-          height: 6px;
-          background: var(--mint);
-          border-radius: 999px;
-          transform: rotate(1deg);
-          z-index: -1;
-        }
-        .hero-title .hl-lilac {
-          display: inline-block;
-          position: relative;
-          padding: 0 4px;
-          color: #7C4DFF;
-          z-index: 1;
-        }
-        .hero-title .hl-lilac::after {
-          content: "";
-          position: absolute;
-          left: 0; right: 0; bottom: -4px;
-          height: 6px;
-          background: var(--coral);
-          border-radius: 999px;
-          transform: rotate(-0.8deg);
-          z-index: -1;
-        }
-
         .hero-sub {
           font-size: clamp(15px, 1.8vw, 18px);
           color: var(--ink-soft);
@@ -458,7 +466,7 @@ export default function Privacy() {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: var(--mint);
+          background: var(--coral);
           border: 1.5px solid var(--ink);
         }
         .hero-btn-wrap { display: flex; justify-content: center; }
@@ -547,13 +555,12 @@ export default function Privacy() {
         }
         .col-sticky { position: sticky; top: 110px; }
         .col-num {
-          font-weight: 900;
-          font-size: 72px;
+          font-weight: 800;
+          font-size: 68px;
+          color: rgba(27, 42, 65, 0.08);
           line-height: 0.9;
           margin-bottom: -6px;
           font-family: var(--font-comfortaa), sans-serif;
-          color: transparent;
-          -webkit-text-stroke: 2px rgba(27, 42, 65, 0.14);
         }
         .section-tag {
           display: inline-flex; align-items: center; gap: 7px;
@@ -570,66 +577,19 @@ export default function Privacy() {
           letter-spacing: 0.5px;
         }
         .col-title {
-          font-size: clamp(28px, 4.2vw, 44px);
+          font-size: clamp(26px, 4vw, 42px);
           font-weight: 800;
           color: var(--ink);
-          line-height: 1.12;
-          letter-spacing: -0.8px;
+          line-height: 1.1;
+          letter-spacing: -0.6px;
           margin-bottom: 14px;
-          font-family: var(--font-comfortaa), sans-serif;
-        }
-        .col-title .hl-green {
-          display: inline-block;
-          position: relative;
-          padding: 0 3px;
-          color: #0EA56B;
-          z-index: 1;
-        }
-        .col-title .hl-green::after {
-          content: "";
-          position: absolute;
-          left: 0; right: 0; bottom: -4px;
-          height: 5px;
-          background: var(--mint);
-          border-radius: 999px;
-          transform: rotate(-1deg);
-          z-index: -1;
-        }
-        .col-title .hl-lilac {
-          display: inline-block;
-          position: relative;
-          padding: 0 3px;
-          color: #7C4DFF;
-          z-index: 1;
-        }
-        .col-title .hl-lilac::after {
-          content: "";
-          position: absolute;
-          left: 0; right: 0; bottom: -4px;
-          height: 5px;
-          background: var(--lilac);
-          border-radius: 999px;
-          transform: rotate(1deg);
-          z-index: -1;
-        }
-        .col-title .hl-coral {
-          display: inline-block;
-          position: relative;
-          padding: 0 3px;
-          color: #E4572E;
-          z-index: 1;
-        }
-        .col-title .hl-coral::after {
-          content: "";
-          position: absolute;
-          left: 0; right: 0; bottom: -4px;
-          height: 5px;
-          background: var(--coral);
-          border-radius: 999px;
           transform: rotate(-0.8deg);
-          z-index: -1;
+          font-family: var(--font-comfortaa), sans-serif;
+          text-shadow: 3px 3px 0 var(--yellow);
         }
-
+        .col-title.coral { text-shadow: 3px 3px 0 var(--coral-soft); }
+        .col-title.mint { text-shadow: 3px 3px 0 var(--mint-soft); }
+        .col-title.lilac { text-shadow: 3px 3px 0 var(--lilac-soft); }
         .col-desc {
           font-size: 14.5px;
           color: var(--ink-soft);
@@ -659,12 +619,12 @@ export default function Privacy() {
         @media (max-width: 900px) {
           .two-col { grid-template-columns: 1fr; gap: 32px; }
           .col-sticky { position: static; text-align: center; }
-          .col-num { font-size: 56px; }
+          .col-num { font-size: 54px; }
           .section-tag { margin: 0 auto 16px; }
           .col-title br { display: none; }
         }
         @media (max-width: 480px) {
-          .col-num { font-size: 46px; -webkit-text-stroke-width: 1.5px; }
+          .col-num { font-size: 44px; }
           .col-title { font-size: 26px; }
           .col-desc { font-size: 13px; }
         }
@@ -790,35 +750,15 @@ export default function Privacy() {
           padding: 48px 48px 44px;
           box-shadow: var(--shadow-lg);
           text-align: center;
-          position: relative;
-          overflow: hidden;
         }
-        .contact-inner::before {
-          content: "";
-          position: absolute;
-          top: -30%; right: -20%;
-          width: 60%; height: 80%;
-          background: radial-gradient(circle, var(--mint-soft), transparent 70%);
-          opacity: 0.7;
-          pointer-events: none;
-        }
-        .contact-inner > * { position: relative; z-index: 1; }
-
         .contact-label {
-          display: inline-block;
           font-family: var(--font-comfortaa), sans-serif;
           font-size: 11px;
-          font-weight: 900;
+          font-weight: 800;
           letter-spacing: 2.5px;
           text-transform: uppercase;
-          color: var(--ink);
-          padding: 6px 14px;
-          background: var(--lilac-soft);
-          border: var(--border);
-          border-radius: 100px;
-          box-shadow: var(--shadow-sm);
-          margin-bottom: 16px;
-          transform: rotate(-1deg);
+          color: var(--ink-soft);
+          margin-bottom: 12px;
         }
         .contact-heading {
           font-family: var(--font-comfortaa), sans-serif;
@@ -852,14 +792,14 @@ export default function Privacy() {
           position: absolute;
           left: 12px; right: 12px; bottom: 2px;
           height: 3px;
-          background: var(--coral);
+          background: var(--blue);
           border-radius: 100px;
           transform: scaleX(0);
           transform-origin: left;
           transition: transform 0.32s cubic-bezier(.34,1.4,.4,1);
         }
         .contact-email:hover {
-          color: #E4572E;
+          color: var(--blue);
           transform: translate3d(0, -2px, 0);
         }
         .contact-email:hover::after { transform: scaleX(1); }
@@ -1051,17 +991,13 @@ export default function Privacy() {
             <div className="wrap">
               <div className="hero-inner">
                 <h1 className="hero-title">
-                  Your Data,<br />
-                  <span className="hl">Handled</span>{" "}
-                  <span className="hl-coral">With</span>{" "}
-                  <span className="hl-lilac">Care.</span>
+                  Terms of<br />
+                  <span className="hl">Service.</span>
                 </h1>
-
                 <p className="hero-sub">
-                  A clear, no-nonsense look at what SHARX collects, why we use it,
-                  and the choices you always have. No jargon, no hidden corners.
+                  These terms explain the rules for using SHARX — what you can
+                  expect from us, and what we expect from you.
                 </p>
-
                 <div className="hero-meta">
                   <span className="hero-meta-dot" />
                   Last updated: {LAST_UPDATED}
@@ -1069,7 +1005,7 @@ export default function Privacy() {
 
                 <div className="hero-btn-wrap">
                   <button className="hero-btn" onClick={() => goTo(1)}>
-                    <span>Read the policy</span>
+                    <span>Read the terms</span>
                     <span className="hero-btn-icon">
                       <ChevronDown size={16} strokeWidth={3} />
                     </span>
@@ -1088,30 +1024,28 @@ export default function Privacy() {
             </div>
           </div>
 
-          {/* SECTION 2 — Data */}
+          {/* SECTION 2 — Acceptance & Eligibility */}
           <div className={`section s2 ${seenSections.has(1) ? "seen" : ""}`} ref={section1}>
             <div className="wrap">
               <div className="two-col">
                 <div className="col-sticky">
                   <div className="col-num">01</div>
-                  <div className="section-tag"><Database size={12} strokeWidth={2.6} /> What we collect</div>
-                  <h2 className="col-title">
-                    Information We<br />
-                    <span className="hl-green">Gather.</span>
-                  </h2>
+                  <div className="section-tag"><FileText size={12} strokeWidth={2.6} /> Acceptance &amp; Eligibility</div>
+                  <h2 className="col-title">Getting<br />Started.</h2>
                   <p className="col-desc">
-                    Only what&apos;s needed to run SHARX, keep it secure, and give
-                    you the features you actually use. Nothing extra, nothing hidden.
+                    By using SHARX, you agree to these terms. You must be at least
+                    13 years old (or the minimum age of digital consent in your
+                    country) to use the Website.
                   </p>
                 </div>
                 <div>
-                  {DATA_ITEMS.map((item, i) => (
+                  {ACCEPTANCE_ITEMS.map((item, i) => (
                     <AccordionItem
-                      key={`data-${i}`}
-                      id={`data-${i}`}
+                      key={`acceptance-${i}`}
+                      id={`acceptance-${i}`}
                       item={item}
-                      isOpen={openData === i}
-                      onToggle={() => setOpenData(openData === i ? null : i)}
+                      isOpen={openAcceptance === i}
+                      onToggle={() => setOpenAcceptance(openAcceptance === i ? null : i)}
                     />
                   ))}
                 </div>
@@ -1119,31 +1053,28 @@ export default function Privacy() {
             </div>
           </div>
 
-          {/* SECTION 3 — Cookies */}
+          {/* SECTION 3 — Conduct & Accounts */}
           <div className={`section s3 ${seenSections.has(2) ? "seen" : ""}`} ref={section2}>
             <div className="wrap">
               <div className="two-col">
                 <div className="col-sticky">
                   <div className="col-num">02</div>
-                  <div className="section-tag"><Cookie size={12} strokeWidth={2.6} /> Cookies & storage</div>
-                  <h2 className="col-title">
-                    Cookies and<br />
-                    Local <span className="hl-lilac">Storage.</span>
-                  </h2>
+                  <div className="section-tag"><UserCheck size={12} strokeWidth={2.6} /> User Conduct</div>
+                  <h2 className="col-title coral">Using<br />SHARX.</h2>
                   <p className="col-desc">
-                    SHARX uses a small number of essential cookies and browser
-                    storage to keep things working smoothly. Here&apos;s exactly
-                    what, and why.
+                    SHARX is free to use, but there are rules. No bots, no
+                    hacking, no ad-fraud, no illegal content. Accounts are
+                    optional but come with responsibilities.
                   </p>
                 </div>
                 <div>
-                  {COOKIE_ITEMS.map((item, i) => (
+                  {CONDUCT_ITEMS.map((item, i) => (
                     <AccordionItem
-                      key={`cookie-${i}`}
-                      id={`cookie-${i}`}
+                      key={`conduct-${i}`}
+                      id={`conduct-${i}`}
                       item={item}
-                      isOpen={openCookie === i}
-                      onToggle={() => setOpenCookie(openCookie === i ? null : i)}
+                      isOpen={openConduct === i}
+                      onToggle={() => setOpenConduct(openConduct === i ? null : i)}
                     />
                   ))}
                 </div>
@@ -1151,33 +1082,59 @@ export default function Privacy() {
             </div>
           </div>
 
-          {/* SECTION 4 — Rights */}
+          {/* SECTION 4 — Third-Party Services */}
           <div className={`section s4 ${seenSections.has(3) ? "seen" : ""}`} ref={section3}>
             <div className="wrap">
               <div className="two-col">
                 <div className="col-sticky">
                   <div className="col-num">03</div>
-                  <div className="section-tag"><Shield size={12} strokeWidth={2.6} /> Your rights</div>
-                  <h2 className="col-title">
-                    Your Privacy<br />
-                    <span className="hl-coral">Rights.</span>
-                  </h2>
+                  <div className="section-tag"><Globe size={12} strokeWidth={2.6} /> Third-Party Services</div>
+                  <h2 className="col-title mint">Games &amp;<br />Ads.</h2>
                   <p className="col-desc">
-                    You&apos;re always in control of your information. Here&apos;s
-                    how to access, correct, or delete it — and how to reach us.
+                    Games on SHARX are provided by third-party providers like
+                    GameMonetize. Ads come from networks like Google AdSense. Both
+                    are outside our direct control.
+                  </p>
+                </div>
+                <div>
+                  {THIRD_PARTY_ITEMS.map((item, i) => (
+                    <AccordionItem
+                      key={`third-${i}`}
+                      id={`third-${i}`}
+                      item={item}
+                      isOpen={openThirdParty === i}
+                      onToggle={() => setOpenThirdParty(openThirdParty === i ? null : i)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 5 — Legal */}
+          <div className="section s1">
+            <div className="wrap">
+              <div className="two-col">
+                <div className="col-sticky">
+                  <div className="col-num">04</div>
+                  <div className="section-tag"><Scale size={12} strokeWidth={2.6} /> Legal</div>
+                  <h2 className="col-title lilac">The Legal<br />Stuff.</h2>
+                  <p className="col-desc">
+                    Intellectual property, liability limits, indemnification,
+                    and how we resolve disputes. We keep it clear and fair.
                   </p>
                   <button className="back-top-btn" onClick={() => goTo(0)}>
                     <ArrowUp size={13} strokeWidth={2.6} /> Back to top
                   </button>
                 </div>
                 <div>
-                  {RIGHTS_ITEMS.map((item, i) => (
+                  {LEGAL_ITEMS.map((item, i) => (
                     <AccordionItem
-                      key={`rights-${i}`}
-                      id={`rights-${i}`}
+                      key={`legal-${i}`}
+                      id={`legal-${i}`}
                       item={item}
-                      isOpen={openRights === i}
-                      onToggle={() => setOpenRights(openRights === i ? null : i)}
+                      isOpen={openLegal === i}
+                      onToggle={() => setOpenLegal(openLegal === i ? null : i)}
                     />
                   ))}
                 </div>
@@ -1185,22 +1142,20 @@ export default function Privacy() {
             </div>
           </div>
 
-          {/* Contact us about privacy */}
-          <section className="contact-section" aria-label="Contact us about privacy">
+          {/* Contact */}
+          <section className="contact-section" aria-label="Contact us about terms">
             <div className="wrap">
               <div className="contact-inner">
-                <div className="contact-label">Contact Us About Privacy</div>
-                <h2 className="contact-heading">Have a privacy question?</h2>
+                <div className="contact-label">Questions About These Terms</div>
+                <h2 className="contact-heading">Reach Us Directly</h2>
                 <p className="contact-text">
-                  We&apos;re happy to help. For any privacy-related question or
-                  request, reach us directly at:
+                  For any legal or terms-related question, contact us at:
                 </p>
-                <a href={`mailto:${PRIVACY_EMAIL}`} className="contact-email">
-                  {PRIVACY_EMAIL}
+                <a href={`mailto:${TERMS_EMAIL}`} className="contact-email">
+                  {TERMS_EMAIL}
                 </a>
-
                 <p className="contact-hint">
-                  We review every message and respond as soon as we can.
+                  We&apos;ll review your message and respond when possible.
                 </p>
               </div>
             </div>
@@ -1249,7 +1204,6 @@ export default function Privacy() {
                     <Link href="/contact" className="footer-link">Contact</Link>
                     <Link href="/privacy" className="footer-link">Privacy Policy</Link>
                     <Link href="/terms" className="footer-link">Terms of Service</Link>
-                    <Link href="/copyright" className="footer-link">Copyright</Link>
                   </div>
                 </div>
 

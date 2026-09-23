@@ -38,7 +38,12 @@ const EasterEggModal = React.memo(function EasterEggModal({ gameCount, onClose }
         />
       ))}
       <div className="easter-egg-content">
-        <div className="easter-egg-emoji">🎮</div>
+        <div className="easter-egg-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M7 8h10a4 4 0 0 1 4 4.5l-.6 3.2a2.4 2.4 0 0 1-4.2 1.1L15 15H9l-1.2 1.8a2.4 2.4 0 0 1-4.2-1.1L3 12.5A4 4 0 0 1 7 8Z" />
+            <path d="M8 11v3M6.5 12.5h3M16 11.5h.01M18.5 13h.01" />
+          </svg>
+        </div>
         <div className="easter-egg-title">Sharx UNLOCKED!</div>
         <div className="easter-egg-text">
           You've discovered the secret! True gaming enthusiast!

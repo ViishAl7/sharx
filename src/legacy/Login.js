@@ -552,7 +552,7 @@ body {
       <div className="page">
         <div className="left">
           <div className="left-logo" onClick={() => navigate("/")} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <img src="/sharx.png" alt="Sharx Logo" style={{ height: '43px', width: 'auto' }} />
+            <img src="/sharx-logo.webp" alt="Sharx Logo" style={{ height: '43px', width: 'auto' }} />
             <span style={{ fontFamily: "'Righteous', cursive", fontSize: '20px', color: '#fff' }}>Sharx</span>
           </div>
           <div className="left-title">

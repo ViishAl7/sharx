@@ -1,14 +1,9 @@
 // src/app/layout.js
-
 import "./globals.css";
 import Providers from "./providers";
-import { Nunito, Righteous, Comfortaa } from "next/font/google"; // ← Comfortaa added here
+import { Nunito, Righteous, Comfortaa } from "next/font/google";
 import Script from "next/script";
 
-// next/font/google self-hosts these at build time and injects the
-// correct <link rel="preload"> for the exact font files used, so no
-// manual preconnect to fonts.googleapis.com is needed — that's the
-// whole point of using next/font over a raw <link> or @import.
 const nunito = Nunito({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -23,7 +18,6 @@ const righteous = Righteous({
   display: "swap",
 });
 
-// ← New Comfortaa font object added here
 const comfortaa = Comfortaa({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -34,11 +28,11 @@ const comfortaa = Comfortaa({
 export const metadata = {
   metadataBase: new URL("https://sharx.in"),
   title: {
-    default: "Play Free Online Games | Sharx",
+    default: "Crayon Sharx - Free Online Games, Play Now",
     template: "%s | Sharx",
   },
   description:
-    "Play thousands of free online games instantly on Sharx. No downloads, no sign-up. Enjoy action, racing, puzzle, sports, arcade and multiplayer games for free.",
+    "Free games at Sharx — colorful fun, hand-drawn for you. Explore action, racing, puzzle, sports, arcade and multiplayer games, all free to play instantly.",
   applicationName: "Sharx",
   authors: [{ name: "Sharx", url: "https://sharx.in" }],
   creator: "Sharx",
@@ -56,7 +50,10 @@ export const metadata = {
     },
   },
   icons: {
-    icon: [{ url: "/favicon.ico" }, { url: "/favicon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
@@ -65,15 +62,22 @@ export const metadata = {
     url: "https://sharx.in",
     siteName: "Sharx",
     locale: "en_US",
-    title: "Play Free Online Games | Sharx",
-    description: "Play thousands of free online games instantly. No downloads, no sign-up.",
-    images: [{ url: "/sharx.png", width: 1200, height: 630, alt: "Sharx - Free Online Games" }],
+    title: "Crayon Sharx - Free Online Games, Play Now",
+    description: "Free games at Sharx — colorful fun, hand-drawn for you.",
+    images: [
+      {
+        url: "/sharx-logo.webp",
+        width: 1200,
+        height: 630,
+        alt: "Sharx - Free Online Games",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Play Free Online Games | Sharx",
-    description: "Play thousands of free online games instantly. No downloads, no sign-up.",
-    images: ["/sharx.png"],
+    title: "Crayon Sharx - Free Online Games, Play Now",
+    description: "Free games at Sharx — colorful fun, hand-drawn for you.",
+    images: ["/sharx-logo.webp"],
   },
 };
 
@@ -82,7 +86,7 @@ const jsonLd = {
   "@type": "WebSite",
   name: "Sharx",
   url: "https://sharx.in",
-  description: "Play thousands of free online games instantly. No downloads or sign-up required.",
+  description: "Free games at Sharx — colorful fun, hand-drawn for you.",
   potentialAction: {
     "@type": "SearchAction",
     target: "https://sharx.in/search?q={search_term_string}",
@@ -92,7 +96,7 @@ const jsonLd = {
     "@type": "Organization",
     name: "Sharx",
     url: "https://sharx.in",
-    logo: { "@type": "ImageObject", url: "https://sharx.in/sharx.png" },
+    logo: { "@type": "ImageObject", url: "https://sharx.in/sharx-logo.webp" },
   },
 };
 
@@ -103,33 +107,17 @@ export default function RootLayout({ children }) {
       className={`${nunito.variable} ${righteous.variable} ${comfortaa.variable}`}
     >
       <head>
-        {/*
-          LCP optimization: preconnect to the CDN that serves the first
-          game thumbnail so the browser opens the connection (DNS + TLS)
-          before it even discovers the <img> tag, then preload the exact
-          image. This pair is what actually shaves time off LCP — preload
-          alone still pays the connection-setup cost on first byte.
-        */}
-        <link rel="preconnect" href="https://img.gamemonetize.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://img.gamemonetize.com" />
-        <link
-          rel="preload"
-          as="image"
-          href="https://img.gamemonetize.com/6mek3ap987nyfmx3lfoylxoljcndxsz7/512x384.jpg"
-          fetchPriority="high"
-        />
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
 
-        {/* Google Analytics */}
+        {/* Google Analytics — lazyOnload so it never blocks LCP */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-Z2BF3XNZ72"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -138,18 +126,13 @@ export default function RootLayout({ children }) {
           `}
         </Script>
 
-        {/*
-          Google AdSense — only injects once NEXT_PUBLIC_ADSENSE_CLIENT_ID
-          is set in your env vars (Vercel/Railway dashboard). Until then
-          this renders nothing, so there's no broken script / console
-          error while you're waiting on AdSense approval.
-        */}
+        {/* AdSense — only injects once env var is set */}
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
           <Script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
             crossOrigin="anonymous"
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
         )}
       </head>

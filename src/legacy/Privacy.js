@@ -208,7 +208,7 @@ export default function Privacy() {
     { q: "Delete your account", a: "To delete your account, email us at hello@sharx.in and we will remove your data." },
     { q: "Children under 13", a: "Sharx is not intended for children under 13. If you believe a child has signed up, contact us at hello@sharx.in." },
     { q: "Security", a: "We protect your data with HTTPS encryption, bcrypt password hashing, and JWT authentication tokens." },
-    { q: "Changes to this policy", a: "We may update this policy from time to time. Last updated: May 2026." },
+    { q: "Changes to this policy", a: "We may update this policy from time to time. Last updated: Sept 2026." },
     { q: "Contact us", a: "Any privacy questions? Email us at hello@sharx.in." },
   ];
 
@@ -763,7 +763,7 @@ export default function Privacy() {
           <div className="nav-wrap">
             <div className="nav-left">
               <div className="nav-logo" onClick={() => router.push("/")}>
-                <img src="/sharxbg.png" alt="Sharx" />
+                <img src="/sharx-logo.webp" alt="Sharx" />
               </div>
               <span className="nav-label">Privacy</span>
             </div>
@@ -885,10 +885,10 @@ export default function Privacy() {
 
                 <div className="shark-tank" onClick={() => router.push("/")}>
                   <div className="footer-logo">
-                    <img src="/sharx.png" alt="Sharx" draggable={false} />
+                    <img src="/sharx-logo.webp" alt="Sharx" draggable={false} />
                   </div>
                   <div className="shark-reflection">
-                    <img src="/sharx.png" alt="" draggable={false} />
+                    <img src="/sharx-logo.webp" alt="" draggable={false} />
                   </div>
                   <div className="water-wrap">
                     <svg className="wave-svg" viewBox="0 0 200 24" preserveAspectRatio="none">
@@ -935,6 +935,9 @@ export default function Privacy() {
                     <Link href="/about" className="footer-link">About Us</Link>
                     <Link href="/contact" className="footer-link">Contact</Link>
                     <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+                    <Link href="/terms" className="footer-link">
+                      Terms of Service
+                    </Link>
                   </div>
                 </div>
               </div>
