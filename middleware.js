@@ -20,6 +20,6 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
-    "/((?!maintenance|_next/static|_next/image|favicon.ico).*)",
+    "/((?!maintenance|_next/static|_next/image|favicon.ico|.*\\..*).*)",
   ],
 };
