@@ -1,0 +1,779 @@
+/* ═══════════════════════════════════════════════════════════════
+   SHARX REWARD EVENT BANNER — Crayon Style
+═══════════════════════════════════════════════════════════════ */
+
+/* Base SVG icon styling — used across all inline icons */
+.sharx-reward-event svg,
+.sharx-reward-unlocked svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Subtle SHARX double-stroke hand-drawn feel */
+.sharx-icon-under {
+  opacity: 0.22;
+}
+.sharx-icon-main {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────
+   MAIN BANNER
+───────────────────────────────────────────── */
+.sharx-reward-event {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+
+  width: min(430px, calc(100vw - 32px));
+
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icon content"
+    "actions actions";
+  gap: 16px;
+
+  padding: 20px 20px 18px;
+
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 217, 102, 0.22), transparent 42%),
+    radial-gradient(circle at 8% 90%, rgba(123, 229, 181, 0.16), transparent 44%),
+    var(--paper, #fff);
+
+  border: 2.5px solid var(--ink, #1B2A41);
+  border-radius: 26px;
+
+  box-shadow:
+    5px 5px 0 var(--ink, #1B2A41),
+    10px 12px 40px rgba(27, 42, 65, 0.14);
+
+  z-index: 8500;
+
+  font-family: var(--font-comfortaa), "Comic Sans MS", sans-serif;
+  color: var(--ink, #1B2A41);
+
+  animation: sharxRewardIn 0.55s cubic-bezier(0.34, 1.4, 0.4, 1) both;
+}
+
+@keyframes sharxRewardIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0) rotate(1.2deg) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
+  }
+}
+
+/* tiny decorative dotted texture */
+.sharx-reward-event-deco {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle,
+    rgba(27, 42, 65, 0.045) 1px,
+    transparent 1.3px
+  );
+  background-size: 14px 14px;
+  opacity: 0.7;
+}
+
+/* ─────────── Gift icon tile ─────────── */
+.sharx-reward-event-icon {
+  position: relative;
+  grid-area: icon;
+
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  background: var(--yellow, #FFD966);
+  color: var(--ink, #1B2A41);
+
+  border: 2.5px solid var(--ink, #1B2A41);
+  border-radius: 18px;
+
+  box-shadow: 3px 3px 0 var(--ink, #1B2A41);
+
+  transform: rotate(-4deg);
+
+  transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.4, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sharx-reward-event:hover .sharx-reward-event-icon {
+    transform: rotate(3deg) translateY(-2px);
+  }
+}
+
+.sharx-reward-event-icon-inner {
+  width: 28px;
+  height: 28px;
+  display: block;
+  color: var(--ink, #1B2A41);
+}
+
+/* small spark badge on the gift tile */
+.sharx-reward-event-icon-spark {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+
+  width: 22px;
+  height: 22px;
+
+  display: grid;
+  place-items: center;
+
+  background: var(--coral, #FF8B7B);
+  color: #fff;
+
+  border: 2px solid var(--ink, #1B2A41);
+  border-radius: 50%;
+
+  box-shadow: 1.5px 1.5px 0 var(--ink, #1B2A41);
+
+  animation: sharxRewardSparkPulse 2.4s ease-in-out infinite;
+}
+
+.sharx-reward-event-icon-spark svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.2;
+}
+
+@keyframes sharxRewardSparkPulse {
+  0%, 100% { transform: scale(1) rotate(0); }
+  50%      { transform: scale(1.15) rotate(14deg); }
+}
+
+/* ─────────── Content ─────────── */
+.sharx-reward-event-content {
+  grid-area: content;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.sharx-reward-event-topline {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 3px 10px;
+
+  background: var(--yellow-soft, #FFF6D9);
+  border: 1.8px solid var(--ink, #1B2A41);
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: var(--ink, #1B2A41);
+
+  box-shadow: 1.5px 1.5px 0 var(--ink, #1B2A41);
+}
+
+.sharx-reward-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--coral, #FF8B7B);
+  box-shadow: 0 0 0 1.5px var(--ink, #1B2A41);
+  animation: sharxRewardLivePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes sharxRewardLivePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.35); opacity: 0.65; }
+}
+
+.sharx-reward-event-title {
+  margin: 11px 0 5px;
+
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+
+  color: var(--ink, #1B2A41);
+}
+
+.sharx-reward-event-hl {
+  position: relative;
+  display: inline-block;
+  z-index: 0;
+  padding: 0 3px;
+}
+
+.sharx-reward-event-hl::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 8px;
+  background: var(--yellow, #FFD966);
+  border-radius: 4px;
+  transform: rotate(-1deg);
+}
+
+.sharx-reward-event-sub {
+  margin: 0;
+
+  font-size: 11.5px;
+  line-height: 1.55;
+  font-weight: 600;
+
+  color: var(--ink-soft, #5A6B82);
+}
+
+/* ─────────── Progress bar ─────────── */
+.sharx-reward-event-progress {
+  margin-top: 13px;
+}
+
+.sharx-reward-event-progress-track {
+  position: relative;
+  height: 12px;
+  overflow: hidden;
+
+  background: var(--cream, #FEFCF7);
+  border: 2px solid var(--ink, #1B2A41);
+  border-radius: 999px;
+
+  box-shadow: inset 0 1.5px 0 rgba(27, 42, 65, 0.08);
+}
+
+.sharx-reward-event-progress-fill {
+  position: relative;
+  height: 100%;
+
+  background:
+    linear-gradient(90deg, var(--coral, #FF8B7B), var(--yellow, #FFD966) 55%, var(--mint, #7BE5B5));
+
+  border-radius: 999px;
+
+  transition: width 0.5s cubic-bezier(0.34, 1.4, 0.4, 1);
+}
+
+.sharx-reward-event-progress-glow {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+
+  animation: sharxRewardShimmer 2.2s linear infinite;
+}
+
+@keyframes sharxRewardShimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+.sharx-reward-event-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  margin-top: 9px;
+
+  font-size: 10.5px;
+  font-weight: 700;
+
+  color: var(--ink-soft, #5A6B82);
+}
+
+.sharx-reward-event-meta-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sharx-reward-event-meta-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--ink, #1B2A41);
+}
+
+.sharx-reward-event-meta-icon svg {
+  stroke-width: 2.1;
+}
+
+.sharx-reward-event-meta-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sharx-reward-event-meta-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.sharx-reward-event-meta-chip {
+  padding: 2px 8px;
+
+  background: var(--mint-soft, #E2F8EF);
+  color: var(--ink, #1B2A41);
+
+  border: 1.8px solid var(--ink, #1B2A41);
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sharx-reward-event-balance {
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+
+  color: var(--ink, #1B2A41);
+
+  padding: 2px 9px;
+
+  background: var(--yellow, #FFD966);
+  border: 2px solid var(--ink, #1B2A41);
+  border-radius: 999px;
+
+  box-shadow: 1.5px 1.5px 0 var(--ink, #1B2A41);
+}
+
+/* ─────────── Actions ─────────── */
+.sharx-reward-event-actions {
+  grid-area: actions;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-top: 2px;
+}
+
+.sharx-reward-event-button {
+  flex: 1;
+  min-width: 0;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 11px 14px;
+
+  background: var(--ink, #1B2A41);
+  color: #fff;
+
+  border: 2.5px solid var(--ink, #1B2A41);
+  border-radius: 999px;
+
+  box-shadow: 3px 3px 0 var(--yellow, #FFD966);
+
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.4, 0.4, 1),
+    box-shadow 0.22s ease;
+}
+
+.sharx-reward-event-button > span:nth-child(2) {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sharx-reward-event-button-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--yellow, #FFD966);
+}
+
+.sharx-reward-event-button-icon svg {
+  stroke-width: 2.1;
+}
+
+.sharx-reward-event-button-arrow {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--yellow, #FFD966);
+
+  transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.4, 1);
+}
+
+.sharx-reward-event-button-arrow svg {
+  stroke-width: 2.3;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sharx-reward-event-button:hover {
+    transform: translate3d(-2px, -2px, 0);
+    box-shadow: 5px 5px 0 var(--yellow, #FFD966);
+  }
+
+  .sharx-reward-event-button:hover .sharx-reward-event-button-arrow {
+    transform: translateX(3px);
+  }
+}
+
+.sharx-reward-event-button:active {
+  transform: translate3d(0, 0, 0);
+  box-shadow: 2px 2px 0 var(--yellow, #FFD966);
+}
+
+.sharx-reward-event-button:focus-visible {
+  outline: 3px solid var(--blue, #2E7FE8);
+  outline-offset: 3px;
+}
+
+/* Dismiss × */
+.sharx-reward-event-dismiss {
+  flex-shrink: 0;
+
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+  place-items: center;
+
+  background: var(--paper, #fff);
+  color: var(--ink, #1B2A41);
+
+  border: 2.5px solid var(--ink, #1B2A41);
+  border-radius: 50%;
+
+  box-shadow: 2px 2px 0 var(--ink, #1B2A41);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.4, 0.4, 1),
+    background 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.sharx-reward-event-dismiss svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sharx-reward-event-dismiss:hover {
+    background: var(--coral, #FF8B7B);
+    color: var(--ink, #1B2A41);
+    transform: rotate(90deg) translate3d(-1px, -1px, 0);
+    box-shadow: 3px 3px 0 var(--ink, #1B2A41);
+  }
+}
+
+.sharx-reward-event-dismiss:focus-visible {
+  outline: 3px solid var(--blue, #2E7FE8);
+  outline-offset: 3px;
+}
+
+/* ─────────────────────────────────────────────
+   REWARD UNLOCKED TOAST
+───────────────────────────────────────────── */
+.sharx-reward-unlocked {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+
+  width: min(390px, calc(100vw - 32px));
+
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 13px;
+
+  padding: 14px 42px 14px 14px;
+
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 139, 123, 0.22), transparent 45%),
+    var(--paper, #fff);
+
+  border: 2.5px solid var(--ink, #1B2A41);
+  border-radius: 22px;
+
+  box-shadow:
+    5px 5px 0 var(--coral, #FF8B7B),
+    0 18px 40px rgba(27, 42, 65, 0.16);
+
+  z-index: 8600;
+
+  font-family: var(--font-comfortaa), sans-serif;
+  color: var(--ink, #1B2A41);
+
+  animation: sharxRewardUnlockedIn 0.55s cubic-bezier(0.34, 1.5, 0.4, 1) both;
+}
+
+@keyframes sharxRewardUnlockedIn {
+  0%   { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.94); }
+  60%  { opacity: 1; transform: translate3d(0, -4px, 0) scale(1.02); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.sharx-reward-unlocked-icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  background: var(--coral, #FF8B7B);
+  color: #fff;
+
+  border: 2.5px solid var(--ink, #1B2A41);
+  border-radius: 14px;
+
+  box-shadow: 2px 2px 0 var(--ink, #1B2A41);
+
+  transform: rotate(-5deg);
+
+  animation: sharxRewardUnlockedIcon 2.4s ease-in-out infinite;
+}
+
+@keyframes sharxRewardUnlockedIcon {
+  0%, 100% { transform: rotate(-5deg) translateY(0); }
+  50%      { transform: rotate(3deg) translateY(-3px); }
+}
+
+.sharx-reward-unlocked-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+
+.sharx-reward-unlocked-content {
+  min-width: 0;
+}
+
+.sharx-reward-unlocked-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft, #5A6B82);
+}
+
+.sharx-reward-unlocked-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--coral, #FF8B7B);
+  box-shadow: 0 0 0 1.4px var(--ink, #1B2A41);
+}
+
+.sharx-reward-unlocked-amount {
+  display: block;
+  margin-top: 3px;
+
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+
+  color: var(--ink, #1B2A41);
+  letter-spacing: -0.5px;
+}
+
+.sharx-reward-unlocked-content p {
+  margin: 5px 0 0;
+
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-soft, #5A6B82);
+}
+
+.sharx-reward-unlocked-btn {
+  flex-shrink: 0;
+
+  padding: 9px 16px;
+
+  background: var(--ink, #1B2A41);
+  color: #fff;
+
+  border: 2.5px solid var(--ink, #1B2A41);
+  border-radius: 999px;
+
+  box-shadow: 2px 2px 0 var(--yellow, #FFD966);
+
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.4, 0.4, 1),
+    box-shadow 0.22s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sharx-reward-unlocked-btn:hover {
+    transform: translate3d(-2px, -2px, 0);
+    box-shadow: 4px 4px 0 var(--yellow, #FFD966);
+  }
+}
+
+.sharx-reward-unlocked-btn:focus-visible {
+  outline: 3px solid var(--blue, #2E7FE8);
+  outline-offset: 3px;
+}
+
+.sharx-reward-unlocked-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  width: 26px;
+  height: 26px;
+
+  display: grid;
+  place-items: center;
+
+  background: transparent;
+  color: var(--ink-soft, #5A6B82);
+
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sharx-reward-unlocked-close svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sharx-reward-unlocked-close:hover {
+    background: var(--coral-soft, #FFE9E4);
+    color: var(--ink, #1B2A41);
+  }
+}
+
+.sharx-reward-unlocked-close:focus-visible {
+  outline: 3px solid var(--blue, #2E7FE8);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .sharx-reward-event,
+  .sharx-reward-unlocked {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+  }
+
+  .sharx-reward-event {
+    padding: 16px;
+    border-radius: 22px;
+    box-shadow:
+      4px 4px 0 var(--ink, #1B2A41),
+      0 12px 30px rgba(27, 42, 65, 0.12);
+  }
+
+  .sharx-reward-event-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+  }
+
+  .sharx-reward-event-icon-inner {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sharx-reward-event-title {
+    font-size: 15px;
+  }
+
+  .sharx-reward-event-sub {
+    font-size: 11px;
+  }
+
+  .sharx-reward-event-balance {
+    font-size: 12.5px;
+    padding: 2px 8px;
+  }
+
+  .sharx-reward-event-button {
+    font-size: 11.5px;
+    padding: 10px 12px;
+  }
+
+  .sharx-reward-unlocked {
+    padding: 12px 38px 12px 12px;
+    gap: 10px;
+  }
+
+  .sharx-reward-unlocked-amount {
+    font-size: 19px;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   REDUCED MOTION
+───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .sharx-reward-event,
+  .sharx-reward-unlocked,
+  .sharx-reward-event-icon,
+  .sharx-reward-event-icon-spark,
+  .sharx-reward-live-dot,
+  .sharx-reward-event-progress-glow,
+  .sharx-reward-unlocked-icon {
+    animation: none !important;
+  }
+
+  .sharx-reward-event-progress-fill {
+    transition: none !important;
+  }
+}
