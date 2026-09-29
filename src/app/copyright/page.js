@@ -11,7 +11,6 @@ import {
   Scale,
   Send,
   ExternalLink,
-  AlertTriangle,
 } from "lucide-react";
 
 const COPYRIGHT_EMAIL = "copyright@sharx.in";
@@ -235,7 +234,6 @@ function PolicyCard({ item, open, onToggle }) {
 }
 
 export default function CopyrightPage() {
-  // ✅ FIX: koi bhi card shuru mein khula nahi hoga
   const [open, setOpen] = useState("");
 
   const handleBack = () => {
@@ -253,6 +251,22 @@ export default function CopyrightPage() {
       });
     });
   };
+
+  const mailtoHref = `mailto:${COPYRIGHT_EMAIL}?subject=${encodeURIComponent(
+    "Copyright Removal Request — SHARX"
+  )}&body=${encodeURIComponent(
+    `Hello SHARX team,\n\nI am submitting a copyright removal request.\n\n` +
+    `1. Identification of the copyrighted work:\n\n` +
+    `2. Identification of the reported content on SHARX:\n\n` +
+    `3. Location (SHARX URL):\n\n` +
+    `4. My contact information:\n` +
+    `   Full name:\n   Email:\n   Phone (optional):\n   Mailing address:\n\n` +
+    `5. I am the: (copyright owner / authorized representative)\n\n` +
+    `6. Good-faith statement: I have a good-faith belief that the reported use is not authorized by the copyright owner, its agent, or applicable law.\n\n` +
+    `7. Accuracy & authority statement: The information in this notification is accurate, and I am authorized to act on behalf of the copyright owner.\n\n` +
+    `8. Signature (physical or electronic):\n\n` +
+    `Thank you.`
+  )}`;
 
   return (
     <main className="sx-page">
@@ -451,7 +465,7 @@ export default function CopyrightPage() {
           font-weight: 800;
         }
 
-        /* ─── CONTACT BOX (DISABLED) ─── */
+        /* ─── CONTACT BOX (ACTIVE) ─── */
         .sx-contact {
           position: relative;
           margin-top: 24px;
@@ -506,33 +520,36 @@ export default function CopyrightPage() {
           line-height: 1.5;
         }
 
-        /* Disabled email pill */
-        .sx-mail-disabled {
+        /* Active email button */
+        .sx-mail {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 12px 16px;
-          border: 2px dashed rgba(32,33,29,.45);
-          background: rgba(255,253,245,.6);
-          color: rgba(32,33,29,.55);
-          box-shadow: 3px 3px 0 rgba(32,33,29,.25);
+          gap: 9px;
+          padding: 13px 18px;
+          border: 2px solid var(--sx-line);
+          background: var(--sx-paper);
+          color: var(--sx-ink);
+          text-decoration: none;
+          box-shadow: 3px 3px 0 var(--sx-line);
           font-size: 14px;
           font-weight: 800;
-          cursor: not-allowed;
-          position: relative;
-          user-select: none;
-        }
-        .sx-mail-disabled::after {
-          content: "Temporarily unavailable";
-          position: absolute;
-          top: calc(100% + 6px);
-          right: 0;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: .06em;
-          text-transform: uppercase;
-          color: #b0453a;
+          transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
           white-space: nowrap;
+        }
+        .sx-mail:hover {
+          transform: translate(-2px,-2px) rotate(-1deg);
+          box-shadow: 5px 5px 0 var(--sx-line);
+          background: var(--sx-green);
+        }
+        .sx-mail:active {
+          transform: translate(0,0);
+          box-shadow: 3px 3px 0 var(--sx-line);
+        }
+        .sx-mail-arrow {
+          transition: transform .2s ease;
+        }
+        .sx-mail:hover .sx-mail-arrow {
+          transform: translateX(3px);
         }
 
         /* ─── CONTENT ─── */
@@ -682,7 +699,6 @@ export default function CopyrightPage() {
 
         .sx-card.open .sx-card-arrow { transform: rotate(180deg); }
 
-        /* Accordion body — smooth grid animation */
         .sx-card-body {
           display: grid;
           grid-template-rows: 0fr;
@@ -731,7 +747,7 @@ export default function CopyrightPage() {
 
         .sx-card-text strong { color: var(--sx-ink); }
 
-        /* ─── BOTTOM ─── */
+        /* ─── BOTTOM (ACTIVE) ─── */
         .sx-bottom {
           margin-top: 55px;
           display: grid;
@@ -759,19 +775,29 @@ export default function CopyrightPage() {
           line-height: 1.5;
         }
 
-        .sx-bottom-disabled {
+        .sx-bottom-btn {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 12px 16px;
-          border: 2px dashed rgba(32,33,29,.45);
-          background: rgba(255,253,245,.7);
-          color: rgba(32,33,29,.55);
-          box-shadow: 3px 3px 0 rgba(32,33,29,.25);
-          font-size: 13px;
+          gap: 9px;
+          padding: 13px 20px;
+          border: 2px solid var(--sx-line);
+          background: var(--sx-yellow);
+          color: var(--sx-ink);
+          text-decoration: none;
+          box-shadow: 3px 3px 0 var(--sx-line);
+          font-size: 13.5px;
           font-weight: 800;
-          cursor: not-allowed;
-          user-select: none;
+          white-space: nowrap;
+          transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        .sx-bottom-btn:hover {
+          transform: translate(-2px,-2px) rotate(-1deg);
+          box-shadow: 5px 5px 0 var(--sx-line);
+          background: var(--sx-coral);
+        }
+        .sx-bottom-btn:active {
+          transform: translate(0,0);
+          box-shadow: 3px 3px 0 var(--sx-line);
         }
 
         /* ─── FOOTER ─── */
@@ -843,17 +869,10 @@ export default function CopyrightPage() {
             padding: 21px;
           }
 
-          .sx-mail-disabled {
+          .sx-mail {
             justify-content: center;
             width: 100%;
             font-size: 13px;
-          }
-          .sx-mail-disabled::after {
-            position: static;
-            display: block;
-            margin-top: 4px;
-            white-space: normal;
-            text-align: center;
           }
 
           .sx-card-button {
@@ -874,6 +893,11 @@ export default function CopyrightPage() {
 
           .sx-index {
             grid-template-columns: 1fr 1fr;
+          }
+
+          .sx-bottom-btn {
+            width: 100%;
+            justify-content: center;
           }
 
           .sx-footer {
@@ -946,10 +970,15 @@ export default function CopyrightPage() {
               </p>
             </div>
 
-            <span className="sx-mail-disabled" aria-disabled="true">
+            <a
+              className="sx-mail"
+              href={mailtoHref}
+              aria-label={`Send copyright removal request to ${COPYRIGHT_EMAIL}`}
+            >
               <Mail size={17} strokeWidth={2.6} />
               {COPYRIGHT_EMAIL}
-            </span>
+              <span className="sx-mail-arrow" aria-hidden="true">→</span>
+            </a>
           </div>
         </header>
 
@@ -979,14 +1008,14 @@ export default function CopyrightPage() {
           <div>
             <h2>Have a copyright concern?</h2>
             <p>
-              Our copyright email is temporarily unavailable. The reporting
-              process above remains the same once it's back online.
+              Email us the details of the original work and the SHARX content
+              you are reporting — we'll review it promptly.
             </p>
           </div>
-          <span className="sx-bottom-disabled" aria-disabled="true">
-            <AlertTriangle size={15} strokeWidth={2.6} />
-            Contact temporarily unavailable
-          </span>
+          <a className="sx-bottom-btn" href={mailtoHref}>
+            <Mail size={16} strokeWidth={2.6} />
+            Email {COPYRIGHT_EMAIL}
+          </a>
         </section>
 
         <footer className="sx-footer">
@@ -996,7 +1025,7 @@ export default function CopyrightPage() {
             <a href="/contact">Contact</a>
             <a href="/privacy">Privacy Policy</a>
             <a href="/terms">Terms of Service</a>
-             <a href="/terms">Copyright</a>
+            <a href="/copyright">Copyright</a>
           </div>
         </footer>
       </div>

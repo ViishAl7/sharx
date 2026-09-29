@@ -12,7 +12,7 @@ import Link from "next/link";
 
 const SocialComingSoonModal = lazy(() => import("../../legacy/SocialComingSoonModal"));
 
-const TERMS_EMAIL = "vishalxr92@gmail.com";
+const TERMS_EMAIL = "support@sharx.in";
 const LAST_UPDATED = "Sept 2026";
 
 /* ─── Quick cards (hero) ─── */
@@ -900,6 +900,8 @@ export default function Terms() {
           display: flex;
           align-items: center;
           gap: 20px;
+          flex-wrap: wrap;
+          justify-content: center;
         }
         .footer-link {
           font-size: 13.5px;
@@ -1204,6 +1206,7 @@ export default function Terms() {
                     <Link href="/contact" className="footer-link">Contact</Link>
                     <Link href="/privacy" className="footer-link">Privacy Policy</Link>
                     <Link href="/terms" className="footer-link">Terms of Service</Link>
+                    <Link href="/copyright" className="footer-link">Copyright</Link>
                   </div>
                 </div>
 

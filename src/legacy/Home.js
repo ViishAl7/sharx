@@ -13,126 +13,29 @@ import React, {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Sparkles } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useProfile } from "../context/ProfileContext";
 import Sidebar from "./Sidebar";
 import { RowCard } from "./Homerows";
+import GameOfTheDay from "./GameOfTheDay";
 import "./Home.css";
 
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
 const SidePanel = lazy(() => import("./SidePanel"));
 const GameModal = lazy(() => import("./GameModal"));
 const SocialComingSoonModal = lazy(() => import("./SocialComingSoonModal"));
+const RewardEventBanner = lazy(() => import("./RewardEventBanner"));
 
 const HISTORY_KEY = "pv_history";
 const MAX_HISTORY = 12;
-const TRENDING_LIMIT = 14;
-const ALL_PAGE_SIZE = 48;
-
+const TRENDING_LIMIT = 12;  // ← 12 = 6+6 = 2 poori rows
+const ALL_PAGE_SIZE = 24;
 const PAGE_SIZE = 50;
-const MAX_PAGES = 60;
-const BATCH_SIZE = 5;
-
 const ANIMATED_CARDS = 12;
 
-/* ═══════════════════════════════════════════════
-   WELCOME SCREEN CONFIG
-═══════════════════════════════════════════════ */
-const INTRO_MS = 3500; // fireworks run 3.5s, then content reveals
-
-const FIREWORK_COLORS = [
-  "#FF3D7F",
-  "#FFB300",
-  "#00B8D9",
-  "#7C3AED",
-  "#10B981",
-  "#FF6B35",
-  "#0EA5E9",
-  "#F472B6",
-];
-
-const CONFETTI_COLORS = [
-  "#FFD966",
-  "#FF8B7B",
-  "#7BE5B5",
-  "#C7B4FF",
-  "#FFB4D4",
-  "#7BB8F0",
-];
-
-const WELCOME_DOODLES = [
-  {
-    id: "cloud",
-    style: { top: "12%", left: "6%", width: 96, height: 58 },
-    color: "#7BB8F0",
-    delay: "0s",
-    duration: "7s",
-    path: "M20,40 Q5,40 10,25 Q15,10 30,15 Q40,0 60,10 Q80,5 85,25 Q100,30 90,40 Z",
-  },
-  {
-    id: "star1",
-    style: { top: "16%", right: "9%", width: 48, height: 48 },
-    color: "#FFD966",
-    delay: "1.2s",
-    duration: "8s",
-    path: "M50,10 L60,40 L90,50 L60,60 L50,90 L40,60 L10,50 L40,40 Z",
-  },
-  {
-    id: "star2",
-    style: { top: "46%", left: "10%", width: 28, height: 28 },
-    color: "#FF8B7B",
-    delay: "2.4s",
-    duration: "6.5s",
-    path: "M50,10 L60,40 L90,50 L60,60 L50,90 L40,60 L10,50 L40,40 Z",
-  },
-  {
-    id: "smiley",
-    style: { bottom: "20%", left: "8%", width: 66, height: 44 },
-    color: "#7BE5B5",
-    delay: "0.6s",
-    duration: "9s",
-    path: "M5,20 Q5,35 30,35 Q55,35 55,20",
-    extra: (
-      <>
-        <path d="M15,10 L15,15" pathLength="1" />
-        <path d="M45,10 L45,15" pathLength="1" />
-      </>
-    ),
-  },
-  {
-    id: "heart",
-    style: { bottom: "18%", right: "11%", width: 44, height: 44 },
-    color: "#FFB4D4",
-    delay: "1.8s",
-    duration: "7.5s",
-    path: "M25,45 Q5,25 5,15 Q5,5 15,5 Q25,5 25,15 Q25,5 35,5 Q45,5 45,15 Q45,25 25,45 Z",
-  },
-  {
-    id: "squiggle",
-    style: { top: "54%", right: "13%", width: 58, height: 26 },
-    color: "#C7B4FF",
-    delay: "3s",
-    duration: "6s",
-    path: "M0,10 Q12.5,0 25,10 T50,10",
-  },
-  {
-    id: "spiral",
-    style: { top: "72%", left: "24%", width: 40, height: 40 },
-    color: "#FFD966",
-    delay: "2s",
-    duration: "8.5s",
-    path: "M50,50 m0,-6 a6,6 0 1,1 -6,6 a14,14 0 1,1 14,-14 a24,24 0 1,1 -24,24",
-  },
-];
-
-const WELCOME_SPARKLES = [
-  { top: "-14px", left: "6%", size: 18, delay: "0s", color: "#FFD966" },
-  { top: "8px", right: "-6px", size: 14, delay: "0.7s", color: "#FF8B7B" },
-  { bottom: "-4px", left: "-10px", size: 12, delay: "1.4s", color: "#7BE5B5" },
-  { bottom: "14px", right: "8%", size: 16, delay: "0.3s", color: "#C7B4FF" },
-];
-
+/* ─────────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────────── */
 const getHistory = () => {
   if (typeof window === "undefined") return [];
   try {
@@ -143,7 +46,7 @@ const getHistory = () => {
 };
 
 const addToHistory = (game) => {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !game) return;
   try {
     const prev = getHistory().filter((g) => g.id !== game.id);
     localStorage.setItem(
@@ -164,6 +67,7 @@ const NAMED_ENTITIES = {
   "&gt;": ">",
   "&nbsp;": " ",
 };
+
 const decodeEntities = (value) => {
   if (typeof value !== "string" || value.indexOf("&") === -1) return value;
   let out = value;
@@ -183,7 +87,7 @@ const decodeEntities = (value) => {
 
 const cleanGame = (g) => {
   if (!g || typeof g.title !== "string") return g;
-  const title = decodeEntities(g.title).trim();
+  const title = String(decodeEntities(g.title) ?? "").trim();
   return title === g.title ? g : { ...g, title };
 };
 
@@ -212,6 +116,9 @@ const slugify = (title = "") =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+/* ─────────────────────────────────────────────
+   ICONS
+───────────────────────────────────────────── */
 const TRENDING_ICON = (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M12 2c.6 2.4 2 3.9 3.6 5.2C17.6 8.9 19 11 19 13.8c0 3.9-3.1 7.2-7 7.2s-7-3.3-7-7.2c0-2.2 1-4.2 2.5-5.7.3 1 1.1 1.9 2 1.9 1.4 0 1.9-1.4 2.5-3.1.3-1 .7-2 1-3.1.2-.6.4-1.2.5-1.8.1-.4.4-.4.5 0Z" />
@@ -226,6 +133,9 @@ const NEW_ICON = (
 
 const CATEGORY_ICON = NEW_ICON;
 
+/* ─────────────────────────────────────────────
+   MINI AVATAR
+───────────────────────────────────────────── */
 const MiniAvatar = memo(function MiniAvatar({ profile }) {
   if (!profile) {
     return (
@@ -288,9 +198,12 @@ const MiniAvatar = memo(function MiniAvatar({ profile }) {
   );
 });
 
-const GamesGrid = memo(function GamesGrid({ games, onOpen }) {
+/* ─────────────────────────────────────────────
+   GAMES GRID
+───────────────────────────────────────────── */
+const GamesGrid = memo(function GamesGrid({ games, onOpen, variant }) {
   return (
-    <div className="games-grid">
+    <div className={`games-grid${variant ? ` games-grid-${variant}` : ""}`}>
       {games.map((game, i) => (
         <RowCard
           key={game.id ?? game.title ?? i}
@@ -304,26 +217,57 @@ const GamesGrid = memo(function GamesGrid({ games, onOpen }) {
   );
 });
 
-const LoadMore = memo(function LoadMore({ onClick }) {
+/* ─────────────────────────────────────────────
+   INFINITE LOADER
+───────────────────────────────────────────── */
+const InfiniteLoader = memo(function InfiniteLoader({
+  loading = false,
+  error = null,
+  canLoadMore = false,
+  onLoadMore,
+  onRetry,
+}) {
+  if (!loading && !error && !canLoadMore) return null;
   return (
-    <div className="load-more-wrap">
-      <button type="button" className="load-more-btn" onClick={onClick}>
-        More Games
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M12 5v14M5 12l7 7 7-7" />
-        </svg>
-      </button>
+    <div className="infinite-loader-wrap" aria-live="polite">
+      {loading ? (
+        <div className="infinite-loader infinite-loader-active">
+          <span className="crayon-loader" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+          <span>Loading more games</span>
+        </div>
+      ) : error ? (
+        <div className="infinite-loader infinite-loader-error-state">
+          <span className="infinite-loader-error">{error}</span>
+          <button type="button" className="infinite-loader-retry" onClick={onRetry}>
+            Try again
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="load-more-btn" onClick={onLoadMore}>
+          MORE GAMES
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 });
 
+/* ─────────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────────── */
 const Footer = memo(function Footer({ onSocialClick }) {
   const year = useMemo(() => new Date().getFullYear(), []);
   const footerRef = useRef(null);
@@ -367,7 +311,6 @@ const Footer = memo(function Footer({ onSocialClick }) {
                 loading="lazy"
               />
             </Link>
-
             <div className="footer-socials">
               <a
                 className="social-icon instagram"
@@ -436,450 +379,6 @@ const Footer = memo(function Footer({ onSocialClick }) {
 });
 
 /* ═══════════════════════════════════════════════
-   FIREWORKS CANVAS — slow, smooth, mobile-tuned
-═══════════════════════════════════════════════ */
-const FireworksCanvas = memo(function FireworksCanvas({ finale }) {
-  const canvasRef = useRef(null);
-  const finaleRef = useRef(finale);
-
-  useEffect(() => {
-    finaleRef.current = finale;
-  }, [finale]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    const ctx = canvas.getContext("2d", { alpha: true });
-    if (!ctx) return undefined;
-
-    const reduced =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-
-    let w = 0;
-    let h = 0;
-    let raf = 0;
-    let last = performance.now();
-    let nextLaunch = 0;
-    let isMobile = false;
-    const timers = [];
-    const rockets = [];
-    const sparks = [];
-
-    const rand = (a, b) => Math.random() * (b - a) + a;
-    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-    const resize = () => {
-      const vw = window.innerWidth || document.documentElement.clientWidth || 360;
-      const vh = window.innerHeight || document.documentElement.clientHeight || 640;
-      isMobile = vw < 600;
-      const dprCap = isMobile ? 1.5 : 2;
-      const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
-      w = Math.max(1, vw);
-      h = Math.max(1, vh);
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    const burst = (x, y, color = pick(FIREWORK_COLORS), scale = 1) => {
-      const shape = pick(["round", "round", "ring", "heart"]);
-      const density = isMobile ? 0.55 : 1;
-      const count = Math.floor(rand(55, 90) * scale * density);
-
-      for (let i = 0; i < count; i += 1) {
-        const t = (Math.PI * 2 * i) / count;
-        let vx;
-        let vy;
-        // slower initial speeds => calmer, more graceful bursts
-        let speed = rand(1.6, 3.8) * scale;
-
-        if (shape === "ring") {
-          speed = 3 * scale;
-          vx = Math.cos(t) * speed;
-          vy = Math.sin(t) * speed;
-        } else if (shape === "heart") {
-          const hx = 16 * Math.pow(Math.sin(t), 3);
-          const hy = -(
-            13 * Math.cos(t) -
-            5 * Math.cos(2 * t) -
-            2 * Math.cos(3 * t) -
-            Math.cos(4 * t)
-          );
-          vx = hx * 0.18 * scale;
-          vy = hy * 0.18 * scale;
-        } else {
-          vx = Math.cos(t + rand(-0.05, 0.05)) * speed;
-          vy = Math.sin(t + rand(-0.05, 0.05)) * speed;
-        }
-
-        sparks.push({
-          x,
-          y,
-          px: x,
-          py: y,
-          vx,
-          vy,
-          g: rand(0.014, 0.032), // slower gravity
-          drag: rand(0.978, 0.99), // more air resistance -> smoother arc
-          life: 1,
-          decay: rand(0.003, 0.006), // longer living particles
-          size: rand(1.8, 3.4),
-          color: shape === "heart" ? "#FF3D7F" : color,
-          twinkle: Math.random() > 0.7,
-        });
-      }
-
-      const coreCount = isMobile ? 8 : 14;
-      for (let i = 0; i < coreCount; i += 1) {
-        sparks.push({
-          x,
-          y,
-          px: x,
-          py: y,
-          vx: rand(-1.2, 1.2),
-          vy: rand(-1.2, 1.2),
-          g: 0.006,
-          drag: 0.97,
-          life: 1,
-          decay: rand(0.008, 0.016),
-          size: rand(2.2, 3.8),
-          color: "#FFFFFF",
-          twinkle: true,
-        });
-      }
-    };
-
-    const launch = (sx = rand(w * 0.12, w * 0.88)) => {
-      rockets.push({
-        x: sx,
-        y: h + 20,
-        px: sx,
-        py: h + 20,
-        targetY: rand(h * 0.15, h * 0.52),
-        vx: rand(-0.3, 0.3),
-        vy: rand(-9, -11.5), // slower rockets
-        color: pick(FIREWORK_COLORS),
-      });
-    };
-
-    const glow = (x, y, s, color, a) => {
-      ctx.save();
-      ctx.globalAlpha = a;
-      ctx.shadowBlur = isMobile ? s * 3 : s * 6;
-      ctx.shadowColor = color;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(x, y, s, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    const tick = (now) => {
-      const dt = Math.min(2, Math.max(0.5, (now - last) / 16.67));
-      last = now;
-
-      ctx.save();
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = finaleRef.current ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.10)";
-      ctx.fillRect(0, 0, w, h);
-      ctx.restore();
-
-      if (!reduced && now >= nextLaunch) {
-        launch();
-        if (Math.random() > 0.65) {
-          timers.push(window.setTimeout(() => launch(), rand(180, 420)));
-        }
-        nextLaunch =
-          now + (finaleRef.current ? rand(1100, 1800) : rand(550, 950));
-      }
-
-      ctx.save();
-      ctx.globalCompositeOperation = "source-over";
-
-      for (let i = rockets.length - 1; i >= 0; i -= 1) {
-        const r = rockets[i];
-        r.px = r.x;
-        r.py = r.y;
-        r.x += r.vx * dt;
-        r.y += r.vy * dt;
-        r.vy += 0.11 * dt; // gentler gravity
-
-        ctx.beginPath();
-        ctx.moveTo(r.px, r.py);
-        ctx.lineTo(r.x, r.y);
-        ctx.strokeStyle = r.color;
-        ctx.lineWidth = 2.2;
-        ctx.globalAlpha = 0.95;
-        ctx.stroke();
-        glow(r.x, r.y, 2.2, r.color, 0.9);
-
-        if (r.y <= r.targetY || r.vy >= -1) {
-          burst(r.x, r.y, r.color, 1);
-          rockets.splice(i, 1);
-        }
-      }
-
-      for (let i = sparks.length - 1; i >= 0; i -= 1) {
-        const s = sparks[i];
-        s.px = s.x;
-        s.py = s.y;
-        s.x += s.vx * dt;
-        s.y += s.vy * dt;
-        s.vx *= Math.pow(s.drag, dt);
-        s.vy = s.vy * Math.pow(s.drag, dt) + s.g * dt;
-        s.life -= s.decay * dt;
-
-        if (s.life <= 0) {
-          sparks.splice(i, 1);
-          continue;
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(s.px, s.py);
-        ctx.lineTo(s.x, s.y);
-        ctx.strokeStyle = s.color;
-        ctx.lineWidth = s.size;
-        ctx.globalAlpha =
-          s.life * (s.twinkle ? 0.7 + Math.random() * 0.3 : 0.9);
-        ctx.stroke();
-        if (!isMobile) {
-          glow(s.x, s.y, s.size, s.color, s.life * 0.45);
-        }
-      }
-
-      ctx.restore();
-      raf = window.requestAnimationFrame(tick);
-    };
-
-    resize();
-    timers.push(
-      window.setTimeout(() => {
-        resize();
-        if (!reduced) {
-          launch(w * 0.25);
-          launch(w * 0.75);
-          timers.push(window.setTimeout(() => launch(w * 0.5), 280));
-          timers.push(window.setTimeout(() => launch(w * 0.15), 600));
-          timers.push(window.setTimeout(() => launch(w * 0.85), 900));
-          raf = window.requestAnimationFrame(tick);
-        }
-      }, 60)
-    );
-
-    let ro;
-    if ("ResizeObserver" in window) {
-      ro = new ResizeObserver(resize);
-      ro.observe(canvas);
-    }
-    window.addEventListener("resize", resize);
-    window.addEventListener("orientationchange", resize);
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", resize);
-    }
-
-    const onPointer = (e) => {
-      if (reduced) return;
-      const rect = canvas.getBoundingClientRect();
-      const point = e.touches?.[0] || e;
-      burst(
-        point.clientX - rect.left,
-        point.clientY - rect.top,
-        pick(FIREWORK_COLORS),
-        0.85
-      );
-    };
-    canvas.addEventListener("pointerdown", onPointer);
-
-    return () => {
-      window.cancelAnimationFrame(raf);
-      timers.forEach(window.clearTimeout);
-      ro?.disconnect();
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("orientationchange", resize);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener("resize", resize);
-      }
-      canvas.removeEventListener("pointerdown", onPointer);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="w-fireworks" aria-hidden="true" />;
-});
-
-/* ═══════════════════════════════════════════════
-   CONFETTI
-═══════════════════════════════════════════════ */
-const ConfettiBurst = memo(function ConfettiBurst({ active }) {
-  if (!active) return null;
-  return (
-    <div className="w-confetti" aria-hidden="true">
-      {Array.from({ length: 34 }).map((_, i) => {
-        const angle = (Math.PI * 2 * i) / 34 + (i % 3) * 0.12;
-        const dist = 140 + ((i * 37) % 170);
-        return (
-          <span
-            key={i}
-            className="w-confetti-bit"
-            style={{
-              "--dx": `${Math.cos(angle) * dist}px`,
-              "--dy": `${Math.sin(angle) * dist - 60}px`,
-              "--rot": `${(i * 47) % 360}deg`,
-              "--c": CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-              "--d": `${(i % 6) * 0.02}s`,
-              borderRadius: i % 3 === 0 ? "50%" : i % 3 === 1 ? "2px" : "0",
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-});
-
-/* ═══════════════════════════════════════════════
-   WELCOME SCREEN — no dots, content delayed
-═══════════════════════════════════════════════ */
-const WelcomeScreen = memo(function WelcomeScreen({ onEnter }) {
-  const [mounted, setMounted] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const [entering, setEntering] = useState(false);
-  const enterTimer = useRef(null);
-
-  useEffect(() => {
-    const a = window.setTimeout(() => setMounted(true), 30);
-    const b = window.setTimeout(() => setRevealed(true), INTRO_MS);
-    return () => {
-      window.clearTimeout(a);
-      window.clearTimeout(b);
-      window.clearTimeout(enterTimer.current);
-    };
-  }, []);
-
-  const handleEnter = useCallback(() => {
-    if (entering) return;
-    setEntering(true);
-    enterTimer.current = setTimeout(() => onEnter(), 700);
-  }, [entering, onEnter]);
-
-  useEffect(() => {
-    if (!revealed) return undefined;
-    const onKey = (e) => {
-      if (e.key === "Enter") handleEnter();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [revealed, handleEnter]);
-
-  const cls = [
-    "sharx-welcome",
-    mounted ? "is-in" : "",
-    revealed ? "is-revealed" : "is-fireworks",
-    entering ? "is-entering" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <main className={cls}>
-      <FireworksCanvas finale={false} />
-      <div className="w-vignette" aria-hidden="true" />
-
-      <div className="w-orb w-orb-1" aria-hidden="true" />
-      <div className="w-orb w-orb-2" aria-hidden="true" />
-      <div className="w-orb w-orb-3" aria-hidden="true" />
-      <div className="w-orb w-orb-4" aria-hidden="true" />
-
-      {WELCOME_DOODLES.map((d) => (
-        <div key={d.id} className="w-doodle" style={d.style} aria-hidden="true">
-          <div
-            className="w-doodle-inner"
-            style={{ "--dur": d.duration, "--dly": d.delay }}
-          >
-            <svg viewBox="0 0 100 100" style={{ stroke: d.color }}>
-              <path d={d.path} pathLength="1" />
-              {d.extra}
-            </svg>
-          </div>
-        </div>
-      ))}
-
-      <div className="w-stack">
-        <div className="w-logo">
-          <img
-            src="/sharx-logo.webp"
-            alt="SHARX"
-            width={132}
-            height={132}
-            draggable={false}
-          />
-        </div>
-
-        <span className="w-eyebrow">
-          <Sparkles size={13} strokeWidth={2.8} />
-          The party just got sharper
-        </span>
-
-        <h1 className="w-title">
-          <span className="w-title-line">Welcome to the</span>
-          <span className="w-title-line w-title-big">
-            <span className="w-hl">
-              New SHARX
-              {WELCOME_SPARKLES.map((s, i) => (
-                <svg
-                  key={i}
-                  className="w-sparkle"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  style={{
-                    top: s.top,
-                    left: s.left,
-                    right: s.right,
-                    bottom: s.bottom,
-                    width: s.size,
-                    height: s.size,
-                    animationDelay: s.delay,
-                    fill: s.color,
-                  }}
-                >
-                  <path d="M12 0 L14.5 9.5 L24 12 L14.5 14.5 L12 24 L9.5 14.5 L0 12 L9.5 9.5 Z" />
-                </svg>
-              ))}
-            </span>
-          </span>
-        </h1>
-
-        <p className="w-sub">
-          Same love. Sharper play.
-          <br />
-          <span className="w-sub-em">Now in crayon.</span>
-        </p>
-
-        <div className="w-cta-wrap">
-          <button
-            type="button"
-            className="w-cta"
-            onClick={handleEnter}
-            disabled={entering}
-            aria-label="Enter SHARX"
-          >
-            <span>{entering ? "Opening the magic..." : "Enter SHARX"}</span>
-            <span className="w-cta-icon" aria-hidden="true">
-              <ArrowRight size={16} strokeWidth={2.8} />
-            </span>
-          </button>
-          <ConfettiBurst active={entering} />
-        </div>
-
-        <span className="w-hint">press Enter ↵</span>
-      </div>
-
-      <div className="w-curtain" aria-hidden="true" />
-    </main>
-  );
-});
-
-/* ═══════════════════════════════════════════════
    HOME
 ═══════════════════════════════════════════════ */
 export default function Home({
@@ -891,8 +390,7 @@ export default function Home({
   const { logout: authLogout } = useAuth();
   const { profile, updateProfile } = useProfile();
 
-  const [showWelcome, setShowWelcome] = useState(true);
-
+  const [pageReady, setPageReady] = useState(false);
   const [allGames, setAllGames] = useState(() => prepareGames(initialGames));
   const [trendingGames] = useState(() => prepareGames(initialTrendingGames));
   const [loading, setLoading] = useState(initialGames.length === 0);
@@ -912,29 +410,31 @@ export default function Home({
 
   const pushedOwnHistoryRef = useRef(false);
   const fetchInFlightRef = useRef(false);
+  const allGamesRef = useRef(prepareGames(initialGames));
+  const currentPageRef = useRef(
+    Math.max(1, Math.ceil(initialGames.length / PAGE_SIZE))
+  );
+  const [apiHasMore, setApiHasMore] = useState(
+    initialGames.length === 0 || initialGames.length >= PAGE_SIZE
+  );
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(null);
   const searchInputRef = useRef(null);
   const baseTitleRef = useRef(null);
 
   useEffect(() => {
+    const id = window.requestAnimationFrame(() => setPageReady(true));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
     if (typeof document === "undefined") return;
-    if (showWelcome) {
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-    } else {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    }
+    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
     return () => {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
-  }, [showWelcome]);
-
-  const handleEnterSharx = useCallback(() => {
-    setShowWelcome(false);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "auto" });
-    }
   }, []);
 
   const syncLoginState = useCallback(() => {
@@ -1017,84 +517,95 @@ export default function Home({
     }
   }, [router, restoreTitle]);
 
-  const fetchGames = useCallback(async () => {
+  const fetchGames = useCallback(async (pageNum, isFirst = false) => {
     if (fetchInFlightRef.current) return false;
     fetchInFlightRef.current = true;
-    setLoading(true);
-    setError(null);
-
+    if (isFirst) {
+      setLoading(true);
+      setError(null);
+    } else {
+      setLoadingMore(true);
+      setLoadMoreError(null);
+    }
     try {
-      const all = [];
-      const seen = new Set();
-
-      for (let start = 1; start <= MAX_PAGES; start += BATCH_SIZE) {
-        const batchPages = [];
-        for (let p = start; p < start + BATCH_SIZE && p <= MAX_PAGES; p++) {
-          batchPages.push(p);
+      const response = await fetch(
+        `/api/games?page=${pageNum}&limit=${PAGE_SIZE}`,
+        {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
         }
-
-        const results = await Promise.allSettled(
-          batchPages.map((p) =>
-            fetch(`/api/games?page=${p}&limit=${PAGE_SIZE}`, {
-              cache: "no-store",
-              headers: { Accept: "application/json" },
-            }).then((r) => {
-              if (!r.ok) throw new Error(`HTTP ${r.status}`);
-              return r.json();
-            })
-          )
-        );
-
-        let addedThisRound = 0;
-
-        for (const r of results) {
-          if (r.status !== "fulfilled") continue;
-          const games = Array.isArray(r.value?.games) ? r.value.games : [];
-          for (const g of games) {
-            if (g?.id == null) {
-              all.push(g);
-              addedThisRound += 1;
-              continue;
-            }
-            if (!seen.has(g.id)) {
-              seen.add(g.id);
-              all.push(g);
-              addedThisRound += 1;
-            }
-          }
-        }
-
-        if (addedThisRound === 0) break;
+      );
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Invalid API response.");
       }
-
-      if (all.length === 0) throw new Error("No games returned");
-
-      setAllGames(prepareGames(all));
+      if (!response.ok) {
+        throw new Error(data?.error || `Server error: ${response.status}`);
+      }
+      const gamesArray = Array.isArray(data?.games) ? data.games : [];
+      if (gamesArray.length === 0) {
+        setApiHasMore(false);
+        return false;
+      }
+      const previousGames = isFirst ? [] : allGamesRef.current;
+      const combinedGames = prepareGames([...previousGames, ...gamesArray]);
+      if (!isFirst && combinedGames.length === previousGames.length) {
+        setApiHasMore(false);
+        return false;
+      }
+      allGamesRef.current = combinedGames;
+      setAllGames(combinedGames);
+      currentPageRef.current = pageNum;
+      const mightHaveMore =
+        gamesArray.length >= PAGE_SIZE || data?.hasMore === true;
+      setApiHasMore(mightHaveMore);
       return true;
-    } catch (e) {
-      console.error("Load games failed:", e);
-      setError("Failed to load games. Please refresh.");
+    } catch (err) {
+      console.error("Load games failed:", err);
+      if (isFirst) {
+        setError("Failed to load games. Please refresh.");
+      } else {
+        setLoadMoreError("Could not load more games. Please try again.");
+      }
       return false;
     } finally {
       fetchInFlightRef.current = false;
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
   useEffect(() => {
-    if (showWelcome) return;
-    if (initialGames.length > 0 && allGames.length > 0 && !loading) return;
-
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(() => void fetchGames(), {
-        timeout: 2000,
-      });
-      return () => window.cancelIdleCallback(id);
+    if (initialGames.length > 0) {
+      const prepared = prepareGames(initialGames);
+      allGamesRef.current = prepared;
+      setAllGames(prepared);
+      setApiHasMore(initialGames.length >= PAGE_SIZE);
+      return;
     }
+    void fetchGames(1, true);
+  }, [fetchGames, initialGames.length]);
 
-    const t = setTimeout(() => void fetchGames(), 300);
-    return () => clearTimeout(t);
-  }, [showWelcome, fetchGames, initialGames.length, allGames.length, loading]);
+  const loadNextGamesPage = useCallback(async () => {
+    if (fetchInFlightRef.current || loadingMore) return;
+    const loadedGames = allGamesRef.current.length;
+    if (visibleCount < loadedGames) {
+      setVisibleCount((count) =>
+        Math.min(count + ALL_PAGE_SIZE, loadedGames)
+      );
+      return;
+    }
+    if (!apiHasMore) return;
+    const nextPage = currentPageRef.current + 1;
+    const loaded = await fetchGames(nextPage, false);
+    if (loaded) {
+      setVisibleCount((count) =>
+        Math.min(count + ALL_PAGE_SIZE, allGamesRef.current.length)
+      );
+    }
+  }, [visibleCount, loadingMore, apiHasMore, fetchGames]);
 
   const handleSearchChange = useCallback((e) => {
     setSearch(e.target.value);
@@ -1135,7 +646,7 @@ export default function Home({
   const handleSocialClick = useCallback((p) => setSocialModal(p), []);
   const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
   const handleRetry = useCallback(() => {
-    void fetchGames();
+    void fetchGames(1, true);
   }, [fetchGames]);
   const handleOpenSidebar = useCallback(() => setSidebarOpen(true), []);
   const handleCloseSidebar = useCallback(() => setSidebarOpen(false), []);
@@ -1158,10 +669,6 @@ export default function Home({
       window.requestAnimationFrame(() => searchInputRef.current?.focus());
     }
   }, [searchOpen]);
-
-  const handleLoadMore = useCallback(() => {
-    setVisibleCount((c) => c + ALL_PAGE_SIZE);
-  }, []);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -1203,6 +710,36 @@ export default function Home({
     return () => window.removeEventListener("popstate", onPop);
   }, [allGames, initialActiveGame, restoreTitle]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const path = window.location.pathname;
+    const match = path.match(/^\/game\/([^/]+)/);
+
+    if (!match) return;
+
+    const raw = decodeURIComponent(match[1]);
+    const id = raw.match(/^gm_\d+/)?.[0] || raw;
+
+    const found =
+      allGames.find((g) => String(g.id) === id) ||
+      (initialActiveGame && String(initialActiveGame.id) === id
+        ? cleanGame(initialActiveGame)
+        : null);
+
+    if (!found) return;
+
+    setActiveGame(found);
+    pushedOwnHistoryRef.current = false;
+
+    if (baseTitleRef.current === null) {
+      baseTitleRef.current = document.title;
+    }
+
+    if (found.title) {
+      document.title = `${found.title} - Play Free Online | Sharx`;
+    }
+  }, [allGames, initialActiveGame]);
+
   const searchLower = useMemo(() => search.trim().toLowerCase(), [search]);
 
   const categories = useMemo(() => {
@@ -1212,9 +749,7 @@ export default function Home({
 
   const searchResults = useMemo(() => {
     if (!searchLower) return null;
-    return allGames.filter((g) =>
-      g.title?.toLowerCase().includes(searchLower)
-    );
+    return allGames.filter((g) => g.title?.toLowerCase().includes(searchLower));
   }, [allGames, searchLower]);
 
   const categoryResults = useMemo(() => {
@@ -1255,14 +790,10 @@ export default function Home({
     [categoryResults, visibleCount]
   );
 
-  const hasMore = visibleCount < allGamesFiltered.length;
-
-  if (showWelcome) {
-    return <WelcomeScreen onEnter={handleEnterSharx} />;
-  }
+  const canLoadMore = visibleCount < allGamesFiltered.length || apiHasMore;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${pageReady ? " page-ready" : ""}`}>
       <div className="bg-scene" aria-hidden="true" />
 
       <Sidebar
@@ -1274,6 +805,7 @@ export default function Home({
       />
 
       <div className="main-col">
+        {/* TOPBAR */}
         <div className="topbar">
           <button
             type="button"
@@ -1397,8 +929,25 @@ export default function Home({
           </div>
         </div>
 
+        {/* PAGE CONTENT */}
         <main className="page-content">
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
+
+          <Suspense fallback={null}>
+            <RewardEventBanner
+              onOpenRewards={() => {
+                if (isLoggedIn) {
+                  setShowProfile(true);
+                } else {
+                  setPanelMode("login");
+                }
+              }}
+            />
+          </Suspense>
+
+          {!searchResults && category === "All" && (
+            <GameOfTheDay games={allGames} onOpen={openGame} />
+          )}
 
           {loading ? (
             <div className="rows-skel">
@@ -1447,8 +996,14 @@ export default function Home({
                   </div>
                   <GamesGrid games={visibleSearch} onOpen={openGame} />
                 </section>
-                {visibleCount < searchResults.length && (
-                  <LoadMore onClick={handleLoadMore} />
+                {(visibleCount < searchResults.length || apiHasMore) && (
+                  <InfiniteLoader
+                    loading={loadingMore}
+                    error={loadMoreError}
+                    canLoadMore={true}
+                    onLoadMore={() => void loadNextGamesPage()}
+                    onRetry={() => void loadNextGamesPage()}
+                  />
                 )}
               </div>
             )
@@ -1469,7 +1024,9 @@ export default function Home({
                 <section className="home-row">
                   <div className="home-row-header">
                     <h2 className="home-row-heading">
-                      <span className="home-row-icon star">{CATEGORY_ICON}</span>
+                      <span className="home-row-icon star">
+                        {CATEGORY_ICON}
+                      </span>
                       {category}
                     </h2>
                     <span className="home-row-count">
@@ -1479,8 +1036,14 @@ export default function Home({
                   </div>
                   <GamesGrid games={visibleCategory} onOpen={openGame} />
                 </section>
-                {visibleCount < categoryResults.length && (
-                  <LoadMore onClick={handleLoadMore} />
+                {(visibleCount < categoryResults.length || apiHasMore) && (
+                  <InfiniteLoader
+                    loading={loadingMore}
+                    error={loadMoreError}
+                    canLoadMore={true}
+                    onLoadMore={() => void loadNextGamesPage()}
+                    onRetry={() => void loadNextGamesPage()}
+                  />
                 )}
               </div>
             )
@@ -1499,7 +1062,11 @@ export default function Home({
                     {trendingRow.length === 1 ? "game" : "games"}
                   </span>
                 </div>
-                <GamesGrid games={trendingRow} onOpen={openGame} />
+                <GamesGrid
+                  games={trendingRow}
+                  onOpen={openGame}
+                  variant="trending"
+                />
               </section>
             </div>
           ) : (
@@ -1518,7 +1085,11 @@ export default function Home({
                       {trendingRow.length === 1 ? "game" : "games"}
                     </span>
                   </div>
-                  <GamesGrid games={trendingRow} onOpen={openGame} />
+                  <GamesGrid
+                    games={trendingRow}
+                    onOpen={openGame}
+                    variant="trending"
+                  />
                 </section>
               </div>
 
@@ -1537,7 +1108,15 @@ export default function Home({
                   <GamesGrid games={visibleGames} onOpen={openGame} />
                 </section>
 
-                {hasMore && <LoadMore onClick={handleLoadMore} />}
+                {canLoadMore && (
+                  <InfiniteLoader
+                    loading={loadingMore}
+                    error={loadMoreError}
+                    canLoadMore={true}
+                    onLoadMore={() => void loadNextGamesPage()}
+                    onRetry={() => void loadNextGamesPage()}
+                  />
+                )}
               </div>
             </>
           )}

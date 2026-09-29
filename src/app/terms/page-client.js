@@ -15,7 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const TERMS_EMAIL = "hello@sharx.in";
+const TERMS_EMAIL = "support@sharx.in";
 const LAST_UPDATED = "Sept 2026";
 
 const STEPS = [
