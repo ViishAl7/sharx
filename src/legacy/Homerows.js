@@ -1,4 +1,3 @@
-// src/legacy/Homerows.js
 "use client";
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -17,9 +16,7 @@ const slugify = (title = "") =>
 function getPreviewVideoUrl(game) {
   if (!game?.id) return "";
   if (typeof game.feedRank === "number" && game.feedRank >= 100) return "";
-  return `${GAMES_BASE.replace(/\/+$/, "")}/preview/${encodeURIComponent(
-    game.id
-  )}`;
+  return `${GAMES_BASE.replace(/\/+$/, "")}/preview/${encodeURIComponent(game.id)}`;
 }
 
 const HOVER_DELAY = 300;
@@ -38,30 +35,38 @@ export const RowCard = React.memo(function RowCard({
   const hoverTimerRef = useRef(null);
   const videoRef = useRef(null);
 
-  const title = (game?.title || "Untitled").toString();
+  const title = String(game?.title || "Untitled");
   const category = game?.category || "";
 
   const previewSrc = useMemo(() => getPreviewVideoUrl(game), [game]);
 
   const fallbackSrc = useMemo(() => {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="100%" height="100%" fill="#FFF6D9"/><text x="50%" y="50%" font-family="Arial" font-size="20" fill="#1B2A41" text-anchor="middle" dy=".3em">${title.slice(0, 18)}</text></svg>`;
+    const safeTitle = title.slice(0, 18).replace(/[<>&"']/g, "");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="100%" height="100%" fill="#FFF6D9"/><text x="50%" y="50%" font-family="Arial" font-size="20" fill="#1B2A41" text-anchor="middle" dy=".3em">${safeTitle}</text></svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }, [title]);
 
   const handleImageError = useCallback(
-    (e) => {
-      e.target.srcset = "";
-      e.target.src = fallbackSrc;
+    (event) => {
+      event.currentTarget.srcset = "";
+      event.currentTarget.src = fallbackSrc;
       setLoaded(true);
     },
     [fallbackSrc]
   );
 
   const handleClick = useCallback(
-    (e) => {
-      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+    (event) => {
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
         return;
-      e.preventDefault();
+      }
+      event.preventDefault();
       onNavigate?.();
     },
     [onNavigate]
@@ -96,7 +101,6 @@ export const RowCard = React.memo(function RowCard({
 
   const imgSrc = game?.thumb || fallbackSrc;
   const showVideo = isHovering && !!previewSrc && !videoFailed;
-
   const isAboveFold = index < 2;
   const showRank = animate && index < 12;
 
@@ -155,6 +159,7 @@ export const RowCard = React.memo(function RowCard({
           </span>
         ) : null}
       </div>
+
       <div className="row-card-title" title={title}>
         {title}
       </div>
@@ -163,6 +168,7 @@ export const RowCard = React.memo(function RowCard({
 
   const wrapperClass = `row-card-link${animate ? " card-anim" : ""}`;
 
+  /* ─── no id → fallback to a clickable div (keyboard accessible) ─── */
   if (game?.id == null) {
     return (
       <div
@@ -170,9 +176,9 @@ export const RowCard = React.memo(function RowCard({
         role="button"
         tabIndex={0}
         onClick={onNavigate}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
             onNavigate?.();
           }
         }}

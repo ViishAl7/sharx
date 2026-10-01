@@ -837,7 +837,7 @@ export default function RewardEventBanner() {
               >
                 <span className="shrx-ev-cta-ic"><ClockIcon /></span>
                 <span className="shrx-ev-cta-text">
-                  <b>Coming soon</b>
+                  <b>Starting soon</b>
                 </span>
               </button>
             </div>

@@ -4,8 +4,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
 import { API_BASE } from "../config";
-
 // ── helpers ──────────────────────────────────────────────
 function base64urlToBuffer(base64url) {
   const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
@@ -23,6 +23,8 @@ function bufferToBase64url(buffer) {
 
 export default function SidePanel({ mode: initialMode, onClose }) {
   const router = useRouter();
+  const { login } = useAuth();
+
   const [mode, setMode] = useState(initialMode);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyError, setPasskeyError] = useState("");
@@ -56,126 +58,271 @@ export default function SidePanel({ mode: initialMode, onClose }) {
   }, []);
 
   // ── PASSKEY REGISTER ────────────────────────────────────
-  const handlePasskeyRegister = async () => {
-    setPasskeyError("");
-    if (!passkeyEmail || !passkeyEmail.includes("@")) {
-      setShowEmailInput(true);
-      setPasskeyError("Enter your email to register a passkey.");
-      return;
-    }
-    setPasskeyLoading(true);
-    try {
-      const optRes = await fetch(`${API_BASE}/passkey/register/options`, {
+ const handlePasskeyRegister = async () => {
+  setPasskeyError("");
+
+  if (!passkeyEmail || !passkeyEmail.includes("@")) {
+    setShowEmailInput(true);
+    setPasskeyError("Enter your email to register a passkey.");
+    return;
+  }
+
+  setPasskeyLoading(true);
+
+  try {
+    const optRes = await fetch(
+      `${API_BASE}/passkey/register/options`,
+      {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email: passkeyEmail }),
-      });
-      if (!optRes.ok) {
-        const err = await optRes.json();
-        throw new Error(err.error || "Could not start passkey registration");
-      }
-      const options = await optRes.json();
-      options.challenge = base64urlToBuffer(options.challenge);
-      options.user.id = base64urlToBuffer(options.user.id);
-      if (options.excludeCredentials) {
-        options.excludeCredentials = options.excludeCredentials.map((c) => ({
-          ...c,
-          id: base64urlToBuffer(c.id),
-        }));
-      }
-      const credential = await navigator.credentials.create({ publicKey: options });
-      const verifyRes = await fetch(`${API_BASE}/passkey/register/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify({
-          email: passkeyEmail,
+          email: passkeyEmail.trim(),
+        }),
+      }
+    );
+
+    if (!optRes.ok) {
+      const err = await optRes.json().catch(() => ({}));
+
+      throw new Error(
+        err.error || "Could not start passkey registration"
+      );
+    }
+
+    const options = await optRes.json();
+
+    options.challenge = base64urlToBuffer(
+      options.challenge
+    );
+
+    options.user.id = base64urlToBuffer(
+      options.user.id
+    );
+
+    if (options.excludeCredentials) {
+      options.excludeCredentials =
+        options.excludeCredentials.map((credential) => ({
+          ...credential,
+          id: base64urlToBuffer(credential.id),
+        }));
+    }
+
+    const credential =
+      await navigator.credentials.create({
+        publicKey: options,
+      });
+
+    if (!credential) {
+      throw new Error("Passkey registration was cancelled.");
+    }
+
+    const verifyRes = await fetch(
+      `${API_BASE}/passkey/register/verify`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: passkeyEmail.trim(),
           id: credential.id,
-          rawId: bufferToBase64url(credential.rawId),
+          rawId: bufferToBase64url(
+            credential.rawId
+          ),
           type: credential.type,
           response: {
-            clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
-            attestationObject: bufferToBase64url(credential.response.attestationObject),
+            clientDataJSON:
+              bufferToBase64url(
+                credential.response.clientDataJSON
+              ),
+            attestationObject:
+              bufferToBase64url(
+                credential.response.attestationObject
+              ),
           },
         }),
-      });
-      if (!verifyRes.ok) {
-        const err = await verifyRes.json();
-        throw new Error(err.error || "Passkey registration failed");
       }
-      const data = await verifyRes.json();
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        onClose();
-      } else {
-        throw new Error("Registration verified but login failed. Try logging in.");
-      }
-    } catch (err) {
-      setPasskeyError(err.name === "NotAllowedError" ? "Passkey cancelled. Try again." : err.message);
-    } finally {
-      setPasskeyLoading(false);
-    }
-  };
+    );
 
+    if (!verifyRes.ok) {
+      const err = await verifyRes
+        .json()
+        .catch(() => ({}));
+
+      throw new Error(
+        err.error || "Passkey registration failed"
+      );
+    }
+
+    const data = await verifyRes.json();
+
+    if (!data?.token) {
+      throw new Error(
+        "Registration verified but login failed. Try logging in."
+      );
+    }
+
+    // Keep AuthContext and localStorage synchronized.
+    login(data.token);
+
+    if (data.user) {
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user)
+      );
+    }
+
+    onClose();
+  } catch (err) {
+    console.error("Passkey registration error:", err);
+
+    setPasskeyError(
+      err?.name === "NotAllowedError"
+        ? "Passkey cancelled. Try again."
+        : err?.message ||
+            "Passkey registration failed. Please try again."
+    );
+  } finally {
+    setPasskeyLoading(false);
+  }
+};
   // ── PASSKEY LOGIN ───────────────────────────────────────
-  const handlePasskeyLogin = async () => {
-    setPasskeyError("");
-    setPasskeyLoading(true);
-    try {
-      const optRes = await fetch(`${API_BASE}/passkey/login/options`, {
+const handlePasskeyLogin = async () => {
+  setPasskeyError("");
+  setPasskeyLoading(true);
+
+  try {
+    const optRes = await fetch(
+      `${API_BASE}/passkey/login/options`,
+      {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify({}),
-      });
-      if (!optRes.ok) throw new Error("Could not start passkey login");
-      const options = await optRes.json();
-      options.challenge = base64urlToBuffer(options.challenge);
-      if (options.allowCredentials) {
-        options.allowCredentials = options.allowCredentials.map((c) => ({
-          ...c,
-          id: base64urlToBuffer(c.id),
-        }));
       }
-      const assertion = await navigator.credentials.get({ publicKey: options });
-      const verifyRes = await fetch(`${API_BASE}/passkey/login/verify`, {
+    );
+
+    if (!optRes.ok) {
+      const err = await optRes.json().catch(() => ({}));
+
+      throw new Error(
+        err.error || "Could not start passkey login"
+      );
+    }
+
+    const options = await optRes.json();
+
+    options.challenge = base64urlToBuffer(
+      options.challenge
+    );
+
+    if (options.allowCredentials) {
+      options.allowCredentials =
+        options.allowCredentials.map((credential) => ({
+          ...credential,
+          id: base64urlToBuffer(credential.id),
+        }));
+    }
+
+    const assertion =
+      await navigator.credentials.get({
+        publicKey: options,
+      });
+
+    if (!assertion) {
+      throw new Error("Passkey login was cancelled.");
+    }
+
+    const verifyRes = await fetch(
+      `${API_BASE}/passkey/login/verify`,
+      {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify({
           id: assertion.id,
-          rawId: bufferToBase64url(assertion.rawId),
+          rawId: bufferToBase64url(
+            assertion.rawId
+          ),
           type: assertion.type,
           response: {
-            clientDataJSON: bufferToBase64url(assertion.response.clientDataJSON),
-            authenticatorData: bufferToBase64url(assertion.response.authenticatorData),
-            signature: bufferToBase64url(assertion.response.signature),
-            userHandle: assertion.response.userHandle
-              ? bufferToBase64url(assertion.response.userHandle)
-              : null,
+            clientDataJSON:
+              bufferToBase64url(
+                assertion.response.clientDataJSON
+              ),
+
+            authenticatorData:
+              bufferToBase64url(
+                assertion.response.authenticatorData
+              ),
+
+            signature:
+              bufferToBase64url(
+                assertion.response.signature
+              ),
+
+            userHandle:
+              assertion.response.userHandle
+                ? bufferToBase64url(
+                    assertion.response.userHandle
+                  )
+                : null,
           },
         }),
-      });
-      if (!verifyRes.ok) {
-        const err = await verifyRes.json();
-        throw new Error(err.error || "Passkey login failed");
       }
-      const data = await verifyRes.json();
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        onClose();
-      } else {
-        throw new Error("Login failed. Please try again.");
-      }
-    } catch (err) {
-      setPasskeyError(err.name === "NotAllowedError" ? "Passkey cancelled. Try again." : err.message);
-    } finally {
-      setPasskeyLoading(false);
+    );
+
+    if (!verifyRes.ok) {
+      const err = await verifyRes
+        .json()
+        .catch(() => ({}));
+
+      throw new Error(
+        err.error || "Passkey login failed"
+      );
     }
-  };
+
+    const data = await verifyRes.json();
+
+    if (!data?.token) {
+      throw new Error(
+        "Login failed. Please try again."
+      );
+    }
+
+    // IMPORTANT:
+    // Update AuthContext immediately.
+    login(data.token);
+
+    if (data.user) {
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user)
+      );
+    }
+
+    onClose();
+  } catch (err) {
+    console.error("Passkey login error:", err);
+
+    setPasskeyError(
+      err?.name === "NotAllowedError"
+        ? "Passkey cancelled. Try again."
+        : err?.message ||
+            "Passkey login failed. Please try again."
+    );
+  } finally {
+    setPasskeyLoading(false);
+  }
+};
 
   const handlePasskey = () => {
     if (!window.PublicKeyCredential) {

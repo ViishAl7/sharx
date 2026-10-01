@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, memo, lazy, Suspense } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
   ChevronDown, ArrowLeft, Shield, Database,
-  Cookie, Fingerprint, ArrowUp, AlertCircle
+  Cookie, Fingerprint, ArrowUp, Home
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const SocialComingSoonModal = lazy(() => import("../../legacy/SocialComingSoonModal"));
 
 const PRIVACY_EMAIL = "hello@sharx.in";
 const LAST_UPDATED = "Sept 2026";
@@ -84,7 +82,6 @@ export default function Privacy() {
   const [openCookie, setOpenCookie] = useState(null);
   const [openRights, setOpenRights] = useState(null);
   const [seenSections, setSeenSections] = useState(() => new Set([0]));
-  const [socialModal, setSocialModal] = useState(null);
   const [navHidden, setNavHidden] = useState(false);
 
   const section0 = useRef(null);
@@ -95,11 +92,11 @@ export default function Privacy() {
   const lastScrollY = useRef(0);
   const sectionRefs = [section0, section1, section2, section3];
 
-  const handleSocialClick = useCallback((p) => setSocialModal(p), []);
-  const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
   const handleBack = useCallback(() => {
     if (typeof window !== "undefined") window.history.back();
   }, []);
+
+  const goHome = useCallback(() => router.push("/"), [router]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
@@ -178,6 +175,7 @@ export default function Privacy() {
           --yellow: #FFD966;
           --yellow-soft: #FFF2CC;
           --coral: #FF8B7B;
+          --coral-deep: #DC4A3A;
           --coral-soft: #FFE0DA;
           --mint: #7BE5B5;
           --mint-soft: #D4F5E7;
@@ -267,10 +265,6 @@ export default function Privacy() {
           0%   { opacity: 0; transform: translate3d(0, 40px, 0); }
           100% { opacity: 1; transform: translate3d(0, 0, 0); }
         }
-        @keyframes floaty {
-          0%, 100% { transform: translate3d(0, 0, 0) rotate(-1.5deg); }
-          50%      { transform: translate3d(0, -6px, 0) rotate(1.5deg); }
-        }
 
         .hero-inner, .hero-btn-wrap, .quick-grid, .two-col { opacity: 0; will-change: opacity, transform; position: relative; z-index: 1; }
         .seen .hero-inner { animation: drawIn 0.65s cubic-bezier(.34,1.3,.4,1) forwards 0.05s; }
@@ -345,17 +339,11 @@ export default function Privacy() {
         .nav-btn:active { transform: translate3d(0,0,0); box-shadow: var(--shadow-sm); }
 
         @media (max-width: 768px) {
-          .navbar {
-            padding: 22px 22px 0;
-            height: 84px;
-          }
+          .navbar { padding: 22px 22px 0; height: 84px; }
           .logo img { height: 58px; }
         }
         @media (max-width: 560px) {
-          .navbar {
-            padding: 18px 18px 0;
-            height: 78px;
-          }
+          .navbar { padding: 18px 18px 0; height: 78px; }
           .logo img { height: 54px; }
           .nav-btn { height: 38px; padding: 0 17px; font-size: 12.5px; }
         }
@@ -876,6 +864,9 @@ export default function Privacy() {
           .contact-inner { padding: 32px 22px 28px; border-radius: 24px; }
         }
 
+        /* ═══════════════════════════════════════════
+           FOOTER — perfectly aligned, single clean row
+        ═══════════════════════════════════════════ */
         .site-footer {
           position: relative;
           margin-top: 40px;
@@ -883,6 +874,7 @@ export default function Privacy() {
           z-index: 10;
           animation: footerRise 0.8s cubic-bezier(.34,1.3,.4,1) both;
         }
+
         .footer-body {
           background: var(--paper);
           background-image: radial-gradient(circle, rgba(27, 42, 65, 0.045) 1px, transparent 1.4px);
@@ -890,91 +882,71 @@ export default function Privacy() {
           border: var(--border);
           border-radius: 28px;
           box-shadow: var(--shadow-lg);
-          max-width: 980px;
+          max-width: 1000px;
           margin: 0 auto;
-          position: relative;
-          overflow: hidden;
-          padding: 30px 40px 26px;
+          padding: 26px 40px 22px;
         }
-        .footer-grid {
-          display: grid;
-          grid-template-columns: 1fr auto 1fr;
-          align-items: center;
-          gap: 32px;
-        }
-        .footer-left {
+
+        /* ═════ ROW 1: logo · links · copyright — one aligned line ═════ */
+        .footer-row {
           display: flex;
           align-items: center;
-          gap: 18px;
-          justify-content: flex-start;
+          justify-content: space-between;
+          gap: 24px;
+          min-height: 56px;
         }
+
+        /* Logo — locked height, centered */
         .footer-logo {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
+          background: none;
+          border: none;
+          padding: 0;
           cursor: pointer;
-          transition: opacity 0.2s ease;
           flex-shrink: 0;
+          transition: opacity 0.2s ease;
+          line-height: 0;
+          height: 46px;
         }
         .footer-logo:hover { opacity: 0.75; }
-        .footer-logo img { height: 44px; width: auto; object-fit: contain; display: block; }
-        .footer-socials { display: flex; gap: 10px; }
-        .social-icon {
+        .footer-logo img {
+          height: 46px;
+          width: auto;
+          display: block;
+          object-fit: contain;
+        }
+
+        /* Links — one flex line, centered vertically */
+        .footer-links {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 44px;
-          height: 44px;
-          border-radius: 14px 16px 12px 18px;
-          background: var(--paper);
-          border: var(--border);
-          cursor: pointer;
-          transition: transform 0.28s cubic-bezier(.34,1.4,.4,1), box-shadow 0.28s, background 0.28s;
-          box-shadow: var(--shadow-sm);
-          text-decoration: none;
-        }
-        .social-icon svg { width: 20px; height: 20px; fill: var(--ink); transition: fill 0.28s; }
-        .social-icon.instagram svg { fill: #E1306C; }
-        .social-icon.youtube svg { fill: #FF0000; }
-        .social-icon:hover {
-          transform: translate3d(-2px, -2px, 0);
-          box-shadow: var(--shadow-md);
-          background: #fff;
-        }
-        .footer-center {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-          text-align: center;
-        }
-        .footer-center-title {
-          font-size: 10px;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 2px;
-          color: var(--ink-mute);
-          font-family: var(--font-comfortaa), sans-serif;
-        }
-        .footer-center-links {
-          display: flex;
-          align-items: center;
-          gap: 20px;
+          gap: 26px;
+          flex-wrap: wrap;
+          flex: 1;
+          min-width: 0;
         }
         .footer-link {
+          font-family: var(--font-comfortaa), sans-serif;
           font-size: 13.5px;
           font-weight: 800;
           color: var(--ink);
-          text-decoration: none;
-          cursor: pointer;
-          transition: color 0.22s ease;
+          line-height: 1;
+          white-space: nowrap;
           position: relative;
-          font-family: var(--font-comfortaa), sans-serif;
+          padding: 4px 0;
+          transition: color 0.22s ease;
+          display: inline-flex;
+          align-items: center;
         }
         .footer-link::after {
           content: "";
           position: absolute;
-          left: 0; right: 0; bottom: -4px;
+          left: 0;
+          right: 0;
+          bottom: -1px;
           height: 2px;
           background: var(--blue);
           border-radius: 100px;
@@ -984,40 +956,90 @@ export default function Privacy() {
         }
         .footer-link:hover { color: var(--blue); }
         .footer-link:hover::after { transform: scaleX(1); }
-        .footer-right {
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-        }
+
+        /* Copyright — locked baseline */
         .footer-copyright {
+          font-family: var(--font-comfortaa), sans-serif;
           font-size: 12px;
           font-weight: 700;
           color: var(--ink-mute);
           letter-spacing: 0.3px;
-          font-family: var(--font-comfortaa), sans-serif;
-          text-align: right;
-          transition: color 0.22s;
+          line-height: 1;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
-        .footer-copyright:hover { color: var(--ink); }
+
+        /* ═════ ROW 2: Back to Home, centered ═════ */
+        .footer-home-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 22px;
+          padding-top: 22px;
+          border-top: 1.5px dashed rgba(27, 42, 65, 0.15);
+        }
+        .footer-home-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 20px 10px 12px;
+          background: var(--paper);
+          border: var(--border);
+          border-radius: 100px;
+          font-family: var(--font-comfortaa), sans-serif;
+          font-size: 13px;
+          font-weight: 900;
+          color: var(--ink);
+          line-height: 1;
+          text-decoration: none;
+          box-shadow: var(--shadow-sm);
+          transition: transform 0.26s cubic-bezier(.34,1.4,.4,1), box-shadow 0.26s, background 0.26s;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .footer-home-btn-ic {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: var(--mint);
+          border: 2px solid var(--ink);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: transform 0.3s cubic-bezier(.34,1.4,.4,1), background 0.25s ease;
+          color: var(--ink);
+          line-height: 0;
+        }
+        .footer-home-btn:hover {
+          background: var(--yellow);
+          transform: translate3d(-2px, -2px, 0);
+          box-shadow: var(--shadow-md);
+        }
+        .footer-home-btn:hover .footer-home-btn-ic {
+          background: var(--coral);
+          transform: rotate(-12deg);
+        }
+        .footer-home-btn:active { transform: translate3d(0, 0, 0); box-shadow: var(--shadow-sm); }
 
         @media (max-width: 768px) {
-          .footer-body { padding: 24px 22px 22px; }
-          .footer-grid {
-            grid-template-columns: 1fr;
-            gap: 22px;
-            justify-items: center;
+          .footer-body { padding: 24px 22px 20px; }
+          .footer-row {
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+            min-height: 0;
           }
-          .footer-left { justify-content: center; flex-wrap: wrap; }
-          .footer-center-links { flex-wrap: wrap; justify-content: center; }
-          .footer-right { justify-content: center; }
-          .footer-copyright { text-align: center; }
+          .footer-links { flex: none; gap: 18px 22px; }
         }
         @media (max-width: 480px) {
           .site-footer { margin-top: 32px; padding: 0 16px 22px; }
-          .footer-body { padding: 22px 18px; border-radius: 22px; }
-          .footer-logo img { height: 38px; }
-          .social-icon { width: 40px; height: 40px; }
-          .social-icon svg { width: 18px; height: 18px; }
+          .footer-body { padding: 22px 18px 18px; border-radius: 22px; }
+          .footer-logo, .footer-logo img { height: 40px; }
+          .footer-link { font-size: 12.5px; }
+          .footer-copyright { font-size: 11.5px; }
+          .footer-home-btn { font-size: 12px; padding: 9px 16px 9px 11px; }
+          .footer-home-row { margin-top: 18px; padding-top: 18px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1036,7 +1058,7 @@ export default function Privacy() {
             <button
               type="button"
               className="logo"
-              onClick={() => router.push("/")}
+              onClick={goHome}
               aria-label="Go to Sharx home"
             >
               <img src="/sharx-logo.webp" alt="SHARX Logo" />
@@ -1206,71 +1228,49 @@ export default function Privacy() {
             </div>
           </section>
 
-          {/* FOOTER */}
+          {/* ═══════ FOOTER — perfectly aligned ═══════ */}
           <footer className="site-footer">
             <div className="footer-body">
-              <div className="footer-grid">
-                <div className="footer-left">
-                  <div className="footer-logo" onClick={() => router.push("/")}>
-                    <img src="/sharx-logo.webp" alt="Sharx" draggable={false} />
-                  </div>
 
-                  <div className="footer-socials">
-                    <a
-                      className="social-icon instagram"
-                      href="https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Instagram"
-                      aria-label="Sharx on Instagram"
-                    >
-                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
-                      </svg>
-                    </a>
-                    <button
-                      type="button"
-                      className="social-icon youtube"
-                      onClick={() => handleSocialClick("youtube")}
-                      title="YouTube"
-                      aria-label="Sharx on YouTube"
-                    >
-                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+              {/* Row 1: logo · links · copyright */}
+              <div className="footer-row">
+                <button
+                  type="button"
+                  className="footer-logo"
+                  onClick={goHome}
+                  aria-label="Go to Sharx home"
+                >
+                  <img src="/sharx-logo.webp" alt="Sharx" draggable={false} />
+                </button>
 
-                <div className="footer-center">
-                  <div className="footer-center-title">Company</div>
-                  <div className="footer-center-links">
-                    <Link href="/about" className="footer-link">About Us</Link>
-                    <Link href="/contact" className="footer-link">Contact</Link>
-                    <Link href="/privacy" className="footer-link">Privacy Policy</Link>
-                    <Link href="/terms" className="footer-link">Terms of Service</Link>
-                    <Link href="/copyright" className="footer-link">Copyright</Link>
-                  </div>
-                </div>
+                <nav className="footer-links" aria-label="Footer navigation">
+                  <Link href="/about" className="footer-link">About Us</Link>
+                  <Link href="/contact" className="footer-link">Contact</Link>
+                  <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+                  <Link href="/terms" className="footer-link">Terms of Service</Link>
+                  <Link href="/copyright" className="footer-link">Copyright</Link>
+                </nav>
 
-                <div className="footer-right">
-                  <span className="footer-copyright">© {new Date().getFullYear()} Sharx. All rights reserved.</span>
-                </div>
+                <span className="footer-copyright">
+                  © {new Date().getFullYear()} Sharx. All rights reserved.
+                </span>
               </div>
+
+              {/* Row 2: Back to Home, centered */}
+              <div className="footer-home-row">
+                <Link href="/" className="footer-home-btn">
+                  <span className="footer-home-btn-ic" aria-hidden="true">
+                    <Home size={12} strokeWidth={2.8} />
+                  </span>
+                  Back to Home
+                </Link>
+              </div>
+
             </div>
           </footer>
 
         </div>
       </div>
-
-      {socialModal && (
-        <Suspense fallback={null}>
-          <SocialComingSoonModal
-            platform={socialModal}
-            onClose={handleCloseSocialModal}
-          />
-        </Suspense>
-      )}
     </>
   );
 }

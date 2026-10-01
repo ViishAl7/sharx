@@ -203,13 +203,13 @@ export default function Privacy() {
   ];
 
   const rightsItems = [
-    { q: "Access your data", a: "You can request a copy of your personal data by emailing us at hello@sharx.in." },
-    { q: "Correct your data", a: "You can update your name directly in your profile. For other corrections, email us at hello@sharx.in." },
-    { q: "Delete your account", a: "To delete your account, email us at hello@sharx.in and we will remove your data." },
-    { q: "Children under 13", a: "Sharx is not intended for children under 13. If you believe a child has signed up, contact us at hello@sharx.in." },
+    { q: "Access your data", a: "You can request a copy of your personal data by emailing us at support@sharx.in." },
+    { q: "Correct your data", a: "You can update your name directly in your profile. For other corrections, email us at support@sharx.in." },
+    { q: "Delete your account", a: "To delete your account, email us at support@sharx.in and we will remove your data." },
+    { q: "Children under 13", a: "Sharx is not intended for children under 13. If you believe a child has signed up, contact us at support@sharx.in." },
     { q: "Security", a: "We protect your data with HTTPS encryption, bcrypt password hashing, and JWT authentication tokens." },
     { q: "Changes to this policy", a: "We may update this policy from time to time. Last updated: Sept 2026." },
-    { q: "Contact us", a: "Any privacy questions? Email us at hello@sharx.in." },
+    { q: "Contact us", a: "Any privacy questions? Email us at support@sharx.in." },
   ];
 
   const quickCards = [

@@ -7,8 +7,6 @@ import React, {
   useMemo,
   useRef,
   memo,
-  lazy,
-  Suspense,
 } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -24,16 +22,13 @@ import {
   Mail,
   Clock,
   Loader2,
+  Home,
 } from "lucide-react";
 import Link from "next/link";
 
-const SocialComingSoonModal = lazy(
-  () => import("../../legacy/SocialComingSoonModal")
-);
-
 /* ─── Emails ─── */
-const ACTIVE_EMAIL = "hello@sharx.in";          // primary
-const ALT_EMAIL = "vishalxr92@gmail.com";        // alternative
+const ACTIVE_EMAIL = "hello@sharx.in";
+const ALT_EMAIL = "vishalxr92@gmail.com";
 
 const MIN_MESSAGE_LENGTH = 4;
 const MAX_MESSAGE_LENGTH = 2000;
@@ -118,42 +113,6 @@ function buildMailtoUrl({ to, subject, body }) {
   )}&body=${encodeURIComponent(body)}`;
 }
 
-const SocialIcon = memo(function SocialIcon({ type, onOpen, href, title }) {
-  const handleClick = useCallback(() => {
-    if (href) window.open(href, "_blank", "noopener,noreferrer");
-    else onOpen(type);
-  }, [href, onOpen, type]);
-
-  if (type === "instagram") {
-    return (
-      <button
-        type="button"
-        className="social-icon instagram"
-        onClick={handleClick}
-        title={title}
-        aria-label={title}
-      >
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
-        </svg>
-      </button>
-    );
-  }
-  return (
-    <button
-      type="button"
-      className="social-icon youtube"
-      onClick={handleClick}
-      title={title}
-      aria-label={title}
-    >
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-      </svg>
-    </button>
-  );
-});
-
 const FaqItem = memo(function FaqItem({ faq, isOpen, onToggle, id }) {
   const panelId = `faq-panel-${id}`;
   const btnId = `faq-btn-${id}`;
@@ -189,7 +148,6 @@ const FaqItem = memo(function FaqItem({ faq, isOpen, onToggle, id }) {
 export default function ContactPage() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
-  const [socialModal, setSocialModal] = useState(null);
   const year = new Date().getFullYear();
 
   const [formData, setFormData] = useState({
@@ -208,8 +166,6 @@ export default function ContactPage() {
   const [sentEmail, setSentEmail] = useState("");
   const statusRef = useRef(null);
 
-  const handleSocialClick = useCallback((p) => setSocialModal(p), []);
-  const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
   const handleBack = useCallback(() => {
     if (typeof window !== "undefined") router.back();
   }, [router]);
@@ -961,47 +917,18 @@ export default function ContactPage() {
           outline: none;
           animation: fadeIn 0.3s ease both;
         }
-        .submit-status.success {
-          background: var(--mint-soft);
-          color: var(--ink);
-        }
+        .submit-status.success { background: var(--mint-soft); color: var(--ink); }
         .submit-status.success .status-copy,
         .submit-status.success .status-copy span,
-        .submit-status.success .status-copy strong {
-          color: var(--ink);
-        }
-        .submit-status.success svg {
-          color: #16845F;
-        }
-        .submit-status.error {
-          background: var(--coral-soft);
-          color: var(--ink);
-        }
+        .submit-status.success .status-copy strong { color: var(--ink); }
+        .submit-status.success svg { color: #16845F; }
+        .submit-status.error { background: var(--coral-soft); color: var(--ink); }
         .submit-status.error .status-copy,
-        .submit-status.error .status-copy span {
-          color: var(--ink);
-        }
-        .submit-status.error svg {
-          color: var(--coral-deep);
-        }
-        .submit-status svg {
-          flex-shrink: 0;
-          margin-top: 2px;
-          width: 16px;
-          height: 16px;
-        }
-        .submit-status .status-copy {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          color: var(--ink);
-        }
-        .submit-status a {
-          color: var(--blue);
-          font-weight: 800;
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
+        .submit-status.error .status-copy span { color: var(--ink); }
+        .submit-status.error svg { color: var(--coral-deep); }
+        .submit-status svg { flex-shrink: 0; margin-top: 2px; width: 16px; height: 16px; }
+        .submit-status .status-copy { display: flex; flex-direction: column; gap: 6px; color: var(--ink); }
+        .submit-status a { color: var(--blue); font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }
         .submit-status a:hover { color: var(--ink); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
@@ -1017,9 +944,7 @@ export default function ContactPage() {
           color: var(--ink-soft);
           text-align: center;
         }
-        .fallback-row > span {
-          color: var(--ink-soft);
-        }
+        .fallback-row > span { color: var(--ink-soft); }
         .fallback-row a {
           color: var(--blue);
           text-decoration: underline;
@@ -1029,20 +954,9 @@ export default function ContactPage() {
           align-items: center;
           gap: 4px;
           font-weight: 800;
-          opacity: 1;
-          visibility: visible;
         }
-        .fallback-row a svg {
-          color: var(--blue);
-          opacity: 1;
-          flex-shrink: 0;
-        }
-        .fallback-row a:hover {
-          color: #0D5FBE;
-        }
-        .fallback-row a:hover svg {
-          color: #0D5FBE;
-        }
+        .fallback-row a svg { color: var(--blue); flex-shrink: 0; }
+        .fallback-row a:hover, .fallback-row a:hover svg { color: #0D5FBE; }
 
         @media (max-width: 640px) {
           .form-card { padding: 30px 22px 26px; border-radius: 24px; }
@@ -1074,16 +988,9 @@ export default function ContactPage() {
           will-change: transform;
         }
         @media (hover: hover) and (pointer: fine) {
-          .faq:hover {
-            transform: translate3d(-2px, -2px, 0);
-            box-shadow: var(--shadow-lg);
-          }
+          .faq:hover { transform: translate3d(-2px, -2px, 0); box-shadow: var(--shadow-lg); }
         }
-        .faq.faq-open {
-          background: #FFFFFF;
-          transform: translate3d(-1px, -1px, 0);
-          box-shadow: var(--shadow-md);
-        }
+        .faq.faq-open { background: #FFFFFF; transform: translate3d(-1px, -1px, 0); box-shadow: var(--shadow-md); }
 
         .faq-q {
           display: flex;
@@ -1102,17 +1009,8 @@ export default function ContactPage() {
           transition: background 0.2s ease;
         }
         .faq-q:active { background: rgba(255, 217, 102, 0.15); }
-        .faq-q:focus-visible {
-          outline: 3px solid var(--blue);
-          outline-offset: -6px;
-          border-radius: 12px;
-        }
-        .faq-q span:first-child {
-          font-size: 15px;
-          font-weight: 800;
-          color: var(--ink);
-          line-height: 1.4;
-        }
+        .faq-q:focus-visible { outline: 3px solid var(--blue); outline-offset: -6px; border-radius: 12px; }
+        .faq-q span:first-child { font-size: 15px; font-weight: 800; color: var(--ink); line-height: 1.4; }
 
         .faq-tog {
           width: 32px;
@@ -1129,10 +1027,7 @@ export default function ContactPage() {
           transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
           will-change: transform;
         }
-        .faq-tog.open {
-          transform: rotate(-180deg);
-          background: var(--yellow);
-        }
+        .faq-tog.open { transform: rotate(-180deg); background: var(--yellow); }
 
         .faq-body {
           display: grid;
@@ -1140,9 +1035,7 @@ export default function ContactPage() {
           transition: grid-template-rows 0.42s cubic-bezier(0.22, 1, 0.36, 1);
           will-change: grid-template-rows;
         }
-        .faq-body.open {
-          grid-template-rows: 1fr;
-        }
+        .faq-body.open { grid-template-rows: 1fr; }
         .faq-body-inner {
           overflow: hidden;
           min-height: 0;
@@ -1161,7 +1054,7 @@ export default function ContactPage() {
         }
 
         /* ═══════════════════════════════════════════
-           FOOTER
+           FOOTER — perfectly aligned, single clean row
         ═══════════════════════════════════════════ */
         .site-footer {
           position: relative;
@@ -1170,6 +1063,7 @@ export default function ContactPage() {
           padding: 0 0 40px;
           animation: footerRise 0.8s cubic-bezier(.34,1.3,.4,1) both;
         }
+
         .footer-body {
           background: var(--paper);
           background-image: radial-gradient(circle, rgba(27, 42, 65, 0.045) 1px, transparent 1.4px);
@@ -1177,73 +1071,71 @@ export default function ContactPage() {
           border: var(--border);
           border-radius: 28px;
           box-shadow: var(--shadow-lg);
-          max-width: 980px;
+          max-width: 1000px;
           margin: 0 auto;
-          padding: 30px 40px 26px;
+          padding: 26px 40px 22px;
         }
-        .footer-grid {
-          display: grid;
-          grid-template-columns: 1fr auto 1fr;
+
+        /* ═════ ROW 1: logo · links · copyright — one aligned line ═════ */
+        .footer-row {
+          display: flex;
           align-items: center;
-          gap: 32px;
+          justify-content: space-between;
+          gap: 24px;
+          min-height: 56px;
         }
-        .footer-left { display: flex; align-items: center; gap: 18px; justify-content: flex-start; }
+
+        /* Logo — locked to a fixed height, perfectly centered */
         .footer-logo {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
-          transition: transform 0.25s cubic-bezier(.34,1.3,.4,1);
-          flex-shrink: 0;
-        }
-        .footer-logo:hover { transform: scale(1.04); }
-        .footer-logo img { height: 44px; width: auto; object-fit: contain; display: block; }
-        .footer-socials { display: flex; gap: 10px; }
-        .social-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 44px;
-          height: 44px;
-          border-radius: 14px 16px 12px 18px;
-          background: var(--paper);
-          border: var(--border);
-          cursor: pointer;
-          transition: transform 0.28s cubic-bezier(.34,1.4,.4,1), box-shadow 0.28s, background 0.28s;
-          box-shadow: var(--shadow-sm);
+          background: none;
+          border: none;
           padding: 0;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: transform 0.25s cubic-bezier(.34,1.3,.4,1);
+          line-height: 0;
+          height: 46px;
         }
-        .social-icon svg { width: 20px; height: 20px; fill: var(--ink); transition: fill 0.28s; }
-        .social-icon.instagram svg { fill: #E1306C; }
-        .social-icon.youtube svg { fill: #FF0000; }
-        .social-icon:hover {
-          transform: translate3d(-2px, -2px, 0) rotate(-3deg);
-          box-shadow: var(--shadow-md);
-          background: #fff;
+        .footer-logo:hover { transform: scale(1.05); }
+        .footer-logo img {
+          height: 46px;
+          width: auto;
+          display: block;
+          object-fit: contain;
         }
-        .footer-center { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-        .footer-center-title {
-          font-size: 10px;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 2px;
-          color: var(--ink-mute);
-          font-family: var(--font-comfortaa), sans-serif;
+
+        /* Links — one flex line, centered vertically against the logo */
+        .footer-links {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 26px;
+          flex-wrap: wrap;
+          flex: 1;
+          min-width: 0;
         }
-        .footer-center-links { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; }
         .footer-link {
+          font-family: var(--font-comfortaa), sans-serif;
           font-size: 13.5px;
           font-weight: 800;
           color: var(--ink);
-          cursor: pointer;
-          transition: color 0.22s ease;
+          line-height: 1;
+          white-space: nowrap;
           position: relative;
-          font-family: var(--font-comfortaa), sans-serif;
+          padding: 4px 0;
+          transition: color 0.22s ease;
+          display: inline-flex;
+          align-items: center;
         }
         .footer-link::after {
           content: "";
           position: absolute;
-          left: 0; right: 0; bottom: -4px;
+          left: 0;
+          right: 0;
+          bottom: -1px;
           height: 2px;
           background: var(--coral-deep);
           border-radius: 100px;
@@ -1253,15 +1145,71 @@ export default function ContactPage() {
         }
         .footer-link:hover { color: var(--coral-deep); }
         .footer-link:hover::after { transform: scaleX(1); }
-        .footer-right { display: flex; justify-content: flex-end; align-items: center; }
+
+        /* Copyright — locked line-height so it centers against logo */
         .footer-copyright {
+          font-family: var(--font-comfortaa), sans-serif;
           font-size: 12px;
           font-weight: 700;
           color: var(--ink-mute);
           letter-spacing: 0.3px;
-          font-family: var(--font-comfortaa), sans-serif;
-          text-align: right;
+          line-height: 1;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
+
+        /* ═════ ROW 2: Back to Home button, centered ═════ */
+        .footer-home-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 22px;
+          padding-top: 22px;
+          border-top: 1.5px dashed rgba(27, 42, 65, 0.15);
+        }
+        .footer-home-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 20px 10px 12px;
+          background: var(--paper);
+          border: var(--border);
+          border-radius: 100px;
+          font-family: var(--font-comfortaa), sans-serif;
+          font-size: 13px;
+          font-weight: 900;
+          color: var(--ink);
+          line-height: 1;
+          text-decoration: none;
+          box-shadow: var(--shadow-sm);
+          transition: transform 0.26s cubic-bezier(.34,1.4,.4,1), box-shadow 0.26s, background 0.26s;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .footer-home-btn-ic {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: var(--mint);
+          border: 2px solid var(--ink);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: transform 0.3s cubic-bezier(.34,1.4,.4,1), background 0.25s ease;
+          color: var(--ink);
+          line-height: 0;
+        }
+        .footer-home-btn:hover {
+          background: var(--yellow);
+          transform: translate3d(-2px, -2px, 0);
+          box-shadow: var(--shadow-md);
+        }
+        .footer-home-btn:hover .footer-home-btn-ic {
+          background: var(--coral);
+          transform: rotate(-12deg);
+        }
+        .footer-home-btn:active { transform: translate3d(0, 0, 0); box-shadow: var(--shadow-sm); }
 
         @keyframes drawIn {
           0%   { opacity: 0; transform: translate3d(0, 20px, 0); }
@@ -1276,6 +1224,19 @@ export default function ContactPage() {
         @media (max-width: 900px) {
           .main { padding: 22px 24px 30px; }
           .nav-logo img { height: 52px; }
+          .footer-body { padding: 24px 26px 22px; }
+        }
+        @media (max-width: 768px) {
+          .footer-row {
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+            min-height: 0;
+          }
+          .footer-links {
+            flex: none;
+            gap: 18px 22px;
+          }
         }
         @media (max-width: 640px) {
           .main { padding: 18px 18px 24px; }
@@ -1283,12 +1244,12 @@ export default function ContactPage() {
           .nav-back { height: 36px; padding: 0 16px; font-size: 12.5px; }
           .hero { padding: 44px 12px 32px; }
           .hero-title { letter-spacing: -1.6px; text-shadow: 3px 3px 0 var(--yellow); }
-          .footer-body { padding: 24px 22px 22px; border-radius: 22px; }
-          .footer-grid { grid-template-columns: 1fr; gap: 22px; justify-items: center; }
-          .footer-left { justify-content: center; flex-wrap: wrap; }
-          .footer-center-links { flex-wrap: wrap; justify-content: center; }
-          .footer-right { justify-content: center; }
-          .footer-copyright { text-align: center; }
+          .footer-body { padding: 22px 18px 18px; border-radius: 22px; }
+          .footer-logo, .footer-logo img { height: 40px; }
+          .footer-link { font-size: 12.5px; }
+          .footer-copyright { font-size: 11.5px; }
+          .footer-home-btn { font-size: 12px; padding: 9px 16px 9px 11px; }
+          .footer-home-row { margin-top: 18px; padding-top: 18px; }
         }
         @media (max-width: 380px) {
           .hero-title { font-size: 38px; }
@@ -1695,66 +1656,46 @@ export default function ContactPage() {
           {/* Footer */}
           <footer className="site-footer">
             <div className="footer-body">
-              <div className="footer-grid">
-                <div className="footer-left">
-                  <div className="footer-logo" onClick={goHome}>
-                    <img src="/sharx-logo.webp" alt="Sharx" draggable={false} />
-                  </div>
-                  <div className="footer-socials">
-                    <SocialIcon
-                      type="instagram"
-                      href="https://www.instagram.com/sharx__games?igsh=NWU3Zm9udDR3NHd4"
-                      title="Sharx on Instagram"
-                    />
-                    <SocialIcon
-                      type="youtube"
-                      onOpen={handleSocialClick}
-                      title="Sharx on YouTube"
-                    />
-                  </div>
-                </div>
 
-                <div className="footer-center">
-                  <div className="footer-center-title">Company</div>
-                  <div className="footer-center-links">
-                    <Link href="/about" className="footer-link">
-                      About Us
-                    </Link>
-                    <Link href="/contact" className="footer-link">
-                      Contact
-                    </Link>
-                    <Link href="/privacy" className="footer-link">
-                      Privacy Policy
-                    </Link>
-                    <Link href="/terms" className="footer-link">
-                      Terms of Service
-                    </Link>
-                    <Link href="/copyright" className="footer-link">
-                      Copyright
-                    </Link>
-                  </div>
-                </div>
+              {/* Row 1: logo · links · copyright — all perfectly aligned on one line */}
+              <div className="footer-row">
+                <button
+                  type="button"
+                  className="footer-logo"
+                  onClick={goHome}
+                  aria-label="Go to Sharx home"
+                >
+                  <img src="/sharx-logo.webp" alt="Sharx" draggable={false} />
+                </button>
 
-                <div className="footer-right">
-                  <span className="footer-copyright">
-                    © {year} Sharx. All rights reserved.
-                  </span>
-                </div>
+                <nav className="footer-links" aria-label="Footer navigation">
+                  <Link href="/about" className="footer-link">About Us</Link>
+                  <Link href="/contact" className="footer-link">Contact</Link>
+                  <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+                  <Link href="/terms" className="footer-link">Terms of Service</Link>
+                  <Link href="/copyright" className="footer-link">Copyright</Link>
+                </nav>
+
+                <span className="footer-copyright">
+                  © {year} Sharx. All rights reserved.
+                </span>
               </div>
+
+              {/* Row 2: Back to Home, centered */}
+              <div className="footer-home-row">
+                <Link href="/" className="footer-home-btn">
+                  <span className="footer-home-btn-ic" aria-hidden="true">
+                    <Home size={12} strokeWidth={2.8} />
+                  </span>
+                  Back to Home
+                </Link>
+              </div>
+
             </div>
           </footer>
 
         </div>
       </div>
-
-      {socialModal && (
-        <Suspense fallback={null}>
-          <SocialComingSoonModal
-            platform={socialModal}
-            onClose={handleCloseSocialModal}
-          />
-        </Suspense>
-      )}
     </>
   );
 }

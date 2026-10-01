@@ -5,9 +5,11 @@ import Image from "next/image";
 
 /* ─────────────────────────────────────────────
    DATE KEY — local YYYY-MM-DD
+   The SHARX Drop changes according to local midnight.
 ───────────────────────────────────────────── */
 const getDateKey = () => {
   const now = new Date();
+
   return [
     now.getFullYear(),
     String(now.getMonth() + 1).padStart(2, "0"),
@@ -17,50 +19,95 @@ const getDateKey = () => {
 
 /* ─────────────────────────────────────────────
    DETERMINISTIC HASH — FNV-1a 32-bit
-   Same date string → same number, every time.
 ───────────────────────────────────────────── */
-const hashDate = (value) => {
+const hashString = (value) => {
   let hash = 2166136261;
+
   for (let i = 0; i < value.length; i += 1) {
     hash ^= value.charCodeAt(i);
     hash = Math.imul(hash, 16777619);
   }
+
   return hash >>> 0;
+};
+
+/* ─────────────────────────────────────────────
+   STABLE GAME KEY
+   We NEVER rely on the current array position.
+
+   If the API changes the order of games after a
+   refresh, the selected game can still be found.
+───────────────────────────────────────────── */
+const getGameKey = (game) => {
+  if (!game) return "";
+
+  if (game.id != null) {
+    return `id:${String(game.id)}`;
+  }
+
+  if (game.title) {
+    return `title:${String(game.title).trim().toLowerCase()}`;
+  }
+
+  return "";
+};
+
+/* ─────────────────────────────────────────────
+   STORAGE KEY
+   One stored selection per local calendar day.
+───────────────────────────────────────────── */
+const getStorageKey = (dateKey) => {
+  return `sharx-game-of-day:${dateKey}`;
 };
 
 /* ─────────────────────────────────────────────
    COMPONENT
 ───────────────────────────────────────────── */
-const GameOfTheDay = memo(function GameOfTheDay({ games = [], onOpen }) {
+const GameOfTheDay = memo(function GameOfTheDay({
+  games = [],
+  onOpen,
+}) {
   const [dateKey, setDateKey] = useState(() => getDateKey());
+  const [selectedGameKey, setSelectedGameKey] = useState(null);
+
   const timeoutRef = useRef(null);
 
-  /* Schedule a rollover at local midnight.
-     After firing, it re-schedules for the next midnight,
-     so the drop keeps updating every day without refresh. */
+  /* ───────────────────────────────────────────
+     KEEP DATE IN SYNC WITH LOCAL MIDNIGHT
+
+     The current game remains unchanged all day.
+     At 12:00 AM, dateKey changes automatically.
+  ─────────────────────────────────────────── */
   useEffect(() => {
     let cancelled = false;
 
-    const scheduleNextDay = () => {
+    const scheduleNextMidnight = () => {
       if (cancelled) return;
 
       const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setHours(24, 0, 2, 0); // 2 s past local midnight
 
-      const delay = Math.max(1000, tomorrow.getTime() - now.getTime());
+      const nextMidnight = new Date(now);
+      nextMidnight.setHours(24, 0, 0, 50);
+
+      const delay = Math.max(
+        1000,
+        nextMidnight.getTime() - now.getTime()
+      );
 
       timeoutRef.current = window.setTimeout(() => {
         if (cancelled) return;
+
         setDateKey(getDateKey());
-        scheduleNextDay();
+
+        scheduleNextMidnight();
       }, delay);
     };
 
-    scheduleNextDay();
+    scheduleNextMidnight();
 
     return () => {
       cancelled = true;
+
       if (timeoutRef.current) {
         window.clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -68,32 +115,161 @@ const GameOfTheDay = memo(function GameOfTheDay({ games = [], onOpen }) {
     };
   }, []);
 
-  /* Deterministic pick — same date → same game */
-  const game = useMemo(() => {
-    const usable = Array.isArray(games)
-      ? games.filter((item) => item && (item.id != null || item.title))
-      : [];
+  /* ───────────────────────────────────────────
+     LOAD TODAY'S STORED GAME
 
-    if (usable.length === 0) return null;
+     IMPORTANT:
+     Refreshing the page does NOT create a new
+     selection. We first check localStorage.
 
-    const index = hashDate(dateKey) % usable.length;
-    return usable[index];
-  }, [games, dateKey]);
+     The game selected today stays today's game.
+  ─────────────────────────────────────────── */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
+    const storageKey = getStorageKey(dateKey);
+    const stored = window.localStorage.getItem(storageKey);
+
+    setSelectedGameKey(stored || null);
+  }, [dateKey]);
+
+  /* ───────────────────────────────────────────
+     CLEAN / VALID GAME LIST
+  ─────────────────────────────────────────── */
+  const usableGames = useMemo(() => {
+    if (!Array.isArray(games)) return [];
+
+    return games.filter(
+      (game) =>
+        game &&
+        (game.id != null || game.title)
+    );
+  }, [games]);
+
+  /* ───────────────────────────────────────────
+     FIND THE STORED GAME
+
+     We search by stable ID/title instead of array
+     position.
+
+     So even if API order changes:
+     
+     Day 1:
+     A B C D
+
+     Refresh:
+     D C A B
+
+     The selected game remains the same.
+  ─────────────────────────────────────────── */
+  const storedGame = useMemo(() => {
+    if (!selectedGameKey || usableGames.length === 0) {
+      return null;
+    }
+
+    return (
+      usableGames.find(
+        (game) => getGameKey(game) === selectedGameKey
+      ) || null
+    );
+  }, [usableGames, selectedGameKey]);
+
+  /* ───────────────────────────────────────────
+     STABLE FALLBACK
+
+     Used only when today's stored game doesn't
+     exist anymore in the current games list.
+
+     Sort by stable game key first, so API order
+     doesn't affect the daily selection.
+  ─────────────────────────────────────────── */
+  const fallbackGame = useMemo(() => {
+    if (usableGames.length === 0) return null;
+
+    const stableGames = [...usableGames].sort((a, b) => {
+      const keyA = getGameKey(a);
+      const keyB = getGameKey(b);
+
+      return keyA.localeCompare(keyB);
+    });
+
+    const index =
+      hashString(`sharx-drop:${dateKey}`) %
+      stableGames.length;
+
+    return stableGames[index];
+  }, [usableGames, dateKey]);
+
+  /* ───────────────────────────────────────────
+     FINAL TODAY GAME
+
+     Stored selection always wins.
+
+     Only if there is no stored selection do we
+     create today's selection.
+  ─────────────────────────────────────────── */
+  const game = storedGame || fallbackGame;
+
+  /* ───────────────────────────────────────────
+     SAVE TODAY'S SELECTION
+
+     Once selected, it is locked to this date.
+
+     Refreshing cannot change it.
+  ─────────────────────────────────────────── */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!game) return;
+
+    const gameKey = getGameKey(game);
+
+    if (!gameKey) return;
+
+    const storageKey = getStorageKey(dateKey);
+
+    const alreadyStored =
+      window.localStorage.getItem(storageKey);
+
+    if (alreadyStored !== gameKey) {
+      window.localStorage.setItem(
+        storageKey,
+        gameKey
+      );
+
+      setSelectedGameKey(gameKey);
+    }
+  }, [game, dateKey]);
+
+  /* ───────────────────────────────────────────
+     NO GAME
+  ─────────────────────────────────────────── */
   if (!game) return null;
 
-  const title = String(game.title || "Today's Pick");
+  const title = String(
+    game.title || "Today's Pick"
+  );
+
   const image = game.thumb || "";
 
   return (
-    <section className="game-of-day" aria-label="The SHARX Drop">
+    <section
+      className="game-of-day"
+      aria-label="The SHARX Drop"
+    >
       <div className="game-of-day-copy">
         <div className="game-of-day-eyebrow">
-          <span className="game-of-day-dot" aria-hidden="true" />
+          <span
+            className="game-of-day-dot"
+            aria-hidden="true"
+          />
+
           FRESH FROM SHARX
         </div>
 
-        <h2 className="game-of-day-title">The SHARX Drop</h2>
+        <h2 className="game-of-day-title">
+          The SHARX Drop
+        </h2>
+
         <p className="game-of-day-subtitle">
           A new game lands here every day.
         </p>
@@ -104,7 +280,10 @@ const GameOfTheDay = memo(function GameOfTheDay({ games = [], onOpen }) {
           onClick={() => onOpen?.(game)}
         >
           <span>PLAY THE DROP</span>
-          <span aria-hidden="true">→</span>
+
+          <span aria-hidden="true">
+            →
+          </span>
         </button>
       </div>
 
@@ -125,10 +304,16 @@ const GameOfTheDay = memo(function GameOfTheDay({ games = [], onOpen }) {
           />
         ) : (
           <div className="game-of-day-fallback">
-            {title.slice(0, 1).toUpperCase()}
+            {title
+              .slice(0, 1)
+              .toUpperCase()}
           </div>
         )}
-        <span className="game-of-day-play" aria-hidden="true">
+
+        <span
+          className="game-of-day-play"
+          aria-hidden="true"
+        >
           ▶
         </span>
       </button>

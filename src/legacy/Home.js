@@ -18,6 +18,7 @@ import { useProfile } from "../context/ProfileContext";
 import Sidebar from "./Sidebar";
 import { RowCard } from "./Homerows";
 import GameOfTheDay from "./GameOfTheDay";
+import SharxAvatar from "./SharxAvatar";
 import "./Home.css";
 
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
@@ -28,7 +29,7 @@ const RewardEventBanner = lazy(() => import("./RewardEventBanner"));
 
 const HISTORY_KEY = "pv_history";
 const MAX_HISTORY = 12;
-const TRENDING_LIMIT = 12;  // ← 12 = 6+6 = 2 poori rows
+const TRENDING_LIMIT = 12;
 const ALL_PAGE_SIZE = 24;
 const PAGE_SIZE = 50;
 const ANIMATED_CARDS = 12;
@@ -134,7 +135,7 @@ const NEW_ICON = (
 const CATEGORY_ICON = NEW_ICON;
 
 /* ─────────────────────────────────────────────
-   MINI AVATAR
+   MINI AVATAR — uses SharxAvatar (hand-painted) when possible
 ───────────────────────────────────────────── */
 const MiniAvatar = memo(function MiniAvatar({ profile }) {
   if (!profile) {
@@ -161,40 +162,19 @@ const MiniAvatar = memo(function MiniAvatar({ profile }) {
         decoding="async"
         width="40"
         height="40"
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
       />
     );
   }
-  const shape = profile.avatarShape || "heart";
-  const color = profile.avatarColor || "#c084fc";
+  /* Use the hand-painted SharxAvatar — compact, no animation */
   return (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 28 28"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      {shape === "circle" && <circle cx="14" cy="14" r="12" fill={color} />}
-      {shape === "square" && (
-        <rect x="2" y="2" width="24" height="24" rx="5" fill={color} />
-      )}
-      {shape === "star" && (
-        <polygon
-          points="14,2 17,10 26,10 19,15 22,23 14,18 6,23 9,15 2,10 11,10"
-          fill={color}
-        />
-      )}
-      {shape === "hexagon" && (
-        <polygon points="14,2 24,8 24,20 14,26 4,20 4,8" fill={color} />
-      )}
-      {shape === "heart" && (
-        <path
-          d="M14 23 C14 23 3 16 3 9 C3 5.7 5.7 3 9 3 C11 3 12.7 4 14 5.5 C15.3 4 17 3 19 3 C22.3 3 25 5.7 25 9 C25 16 14 23 14 23Z"
-          fill={color}
-        />
-      )}
-    </svg>
+    <SharxAvatar
+      shape={profile.avatarShape || "heart"}
+      eyes={profile.avatarEyes || "round"}
+      color={profile.avatarColor || "#C7B4FF"}
+      size={38}
+      flat
+    />
   );
 });
 
@@ -896,14 +876,16 @@ export default function Home({
 
             {isLoggedIn ? (
               <button
-                className="profile-btn"
+                className="profile-btn profile-btn--premium"
                 onClick={handleShowProfile}
                 type="button"
-                aria-label="Profile"
+                aria-label="Open your profile"
+                title="Your profile"
               >
-                <div className="profile-avatar">
+                <span className="profile-btn-ring" aria-hidden="true" />
+                <span className="profile-avatar">
                   <MiniAvatar profile={profile} />
-                </div>
+                </span>
               </button>
             ) : (
               <button

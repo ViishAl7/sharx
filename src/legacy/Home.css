@@ -550,6 +550,99 @@ input, textarea {
   background: #F1F5F9;
 }
 
+/* ════════════ PREMIUM PROFILE BUTTON ════════════ */
+.profile-btn--premium {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.85), transparent 55%),
+    var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow:
+    2px 2px 0 var(--ink),
+    inset 0 -4px 0 rgba(27, 42, 65, 0.08),
+    inset 0 3px 0 rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  transition:
+    transform 0.28s cubic-bezier(.34, 1.5, .5, 1),
+    box-shadow 0.28s cubic-bezier(.34, 1.5, .5, 1);
+}
+
+.profile-btn-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 2px dashed rgba(27, 42, 65, 0.22);
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 0.32s ease,
+    transform 0.42s cubic-bezier(.34, 1.5, .5, 1);
+}
+
+.profile-btn--premium .profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: transform 0.32s cubic-bezier(.34, 1.5, .5, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile-btn--premium:hover {
+    transform: translate3d(-2px, -2px, 0);
+    box-shadow:
+      4px 4px 0 var(--ink),
+      inset 0 -4px 0 rgba(27, 42, 65, 0.08),
+      inset 0 3px 0 rgba(255, 255, 255, 0.55);
+  }
+  .profile-btn--premium:hover .profile-avatar {
+    transform: scale(1.06) rotate(-2deg);
+  }
+  .profile-btn--premium:hover .profile-btn-ring {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.profile-btn--premium:active {
+  transform: translate3d(0, 0, 0) scale(0.94);
+  box-shadow:
+    2px 2px 0 var(--ink),
+    inset 0 -3px 0 rgba(27, 42, 65, 0.10),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5);
+  transition-duration: 0.1s;
+}
+
+.profile-btn--premium:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
+.profile-btn--premium .profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-btn.profile-btn--premium {
+  border-radius: 50%;
+}
+
 /* ════════════ PAGE CONTENT ════════════ */
 .page-content {
   width: 100%;
@@ -1322,6 +1415,7 @@ html:has(body.modal-open) { overflow: hidden; }
   .topbar-icon-btn, .hamburger-btn, .profile-btn { width: 42px; height: 42px; }
   .topbar-icon-btn svg, .hamburger-btn svg { width: 18px; height: 18px; }
   .row-card-link.card-anim { animation: fadeUp .35s ease both; }
+  .profile-btn--premium { width: 46px; height: 46px; }
 }
 
 @media (max-width: 420px) {
@@ -1330,6 +1424,7 @@ html:has(body.modal-open) { overflow: hidden; }
   .topbar-search-wrap { height: 46px; padding: 0 6px 0 14px; }
   .topbar-search-input { font-size: 13.5px; }
   .row-card-title { font-size: 11px; }
+  .profile-btn--premium { width: 44px; height: 44px; }
 }
 
 @media (max-width: 768px) {
@@ -1814,6 +1909,32 @@ html:has(body.modal-open) { overflow: hidden; }
 [data-theme="dark"] .load-more-btn:hover { color: #15181F; }
 [data-theme="dark"] .modal-x:hover { color: #15181F; }
 
+/* Premium profile button — dark theme */
+[data-theme="dark"] .profile-btn--premium {
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 55%),
+    var(--paper);
+  box-shadow:
+    2px 2px 0 var(--ink),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.25),
+    inset 0 3px 0 rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .profile-btn-ring {
+  border-color: rgba(237, 240, 245, 0.28);
+}
+[data-theme="dark"] .profile-btn--premium:hover {
+  box-shadow:
+    4px 4px 0 var(--ink),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.25),
+    inset 0 3px 0 rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .profile-btn--premium:active {
+  box-shadow:
+    2px 2px 0 var(--ink),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.28),
+    inset 0 2px 0 rgba(255, 255, 255, 0.06);
+}
+
 /* ════════════ SHARX DAILY DROP (THE SHARX DROP) ════════════ */
 .game-of-day {
   position: relative;
@@ -1992,4 +2113,11 @@ html:has(body.modal-open) { overflow: hidden; }
   }
 
   .crayon-loader span { animation: none; }
+
+  .profile-btn--premium,
+  .profile-btn--premium .profile-avatar,
+  .profile-btn-ring {
+    animation: none !important;
+    transition: none !important;
+  }
 }
