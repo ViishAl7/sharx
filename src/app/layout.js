@@ -9,6 +9,8 @@ const nunito = Nunito({
   weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-nunito",
   display: "swap",
+  adjustFontFallback: true,
+  preload: true,
 });
 
 const righteous = Righteous({
@@ -16,6 +18,8 @@ const righteous = Righteous({
   weight: "400",
   variable: "--font-righteous",
   display: "swap",
+  adjustFontFallback: true,
+  preload: true,
 });
 
 const comfortaa = Comfortaa({
@@ -23,6 +27,8 @@ const comfortaa = Comfortaa({
   weight: ["400", "500", "600", "700"],
   variable: "--font-comfortaa",
   display: "swap",
+  adjustFontFallback: true,
+  preload: true,
 });
 
 export const metadata = {

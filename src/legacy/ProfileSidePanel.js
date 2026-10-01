@@ -1,6 +1,9 @@
 // ProfileSidePanel.js — SHARX · UNIQUE CRAYON EDITION
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRewards } from "../context/RewardContext";
+import {
+  useRewards,
+  REWARDS_EVENT_LIVE,
+} from "../context/RewardContext";
 import { createWithdrawal } from "../lib/rewardClient";
 import SharxAvatar from "./SharxAvatar";
 
@@ -303,21 +306,66 @@ function RewardSection() {
   const [withdrawalError, setWithdrawalError] = useState("");
   const [withdrawalSuccess, setWithdrawalSuccess] = useState("");
 
-  const qualifiedSeconds = Number(activeSession?.qualifiedSeconds || 0);
+  /* EVENT LOCK — every displayed reward value is forced to a
+     safe locked value while the event is not live. */
+  const locked = !REWARDS_EVENT_LIVE;
+
+  const qualifiedSeconds = locked
+    ? 0
+    : Number(activeSession?.qualifiedSeconds || 0);
+
   const firstHourSeconds = Math.min(qualifiedSeconds, 3600);
-  const progress = Math.max(0, Math.min(100, (firstHourSeconds / 3600) * 100));
+
+  const progress = locked
+    ? 0
+    : Math.max(0, Math.min(100, (firstHourSeconds / 3600) * 100));
+
   const remainingSeconds = Math.max(3600 - qualifiedSeconds, 0);
   const remainingMinutes = Math.ceil(remainingSeconds / 60);
 
-  const balance = Number(wallet?.balanceRupees || 0);
-  const totalEarned = Number(wallet?.totalEarnedRupees || wallet?.lifetimeEarnedRupees || 0);
-  const totalWithdrawn = Number(wallet?.totalWithdrawnRupees || wallet?.lifetimeWithdrawnRupees || 0);
-  const currentSessionHours = (qualifiedSeconds / 3600).toFixed(1);
-  const history = Array.isArray(wallet?.history) ? wallet.history : [];
-  const isValidUpi = /^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upi.trim());
+  const balance = locked
+    ? 0
+    : Number(wallet?.balanceRupees || 0);
+
+  const totalEarned = locked
+    ? 0
+    : Number(
+        wallet?.totalEarnedRupees ||
+          wallet?.lifetimeEarnedRupees ||
+          0
+      );
+
+  const totalWithdrawn = locked
+    ? 0
+    : Number(
+        wallet?.totalWithdrawnRupees ||
+          wallet?.lifetimeWithdrawnRupees ||
+          0
+      );
+
+  const currentSessionHours = locked
+    ? "0"
+    : (qualifiedSeconds / 3600).toFixed(1);
+
+  const history = locked
+    ? []
+    : Array.isArray(wallet?.history)
+      ? wallet.history
+      : [];
+
+  const isValidUpi = /^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(
+    upi.trim()
+  );
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    /* EVENT LOCK — hard guard. Never let a withdrawal
+       request be created while the event is not live. */
+    if (!REWARDS_EVENT_LIVE) {
+      return;
+    }
+
     setWithdrawalError("");
     setWithdrawalSuccess("");
 
@@ -369,6 +417,7 @@ function RewardSection() {
   }
 
   const canSubmit =
+    !locked &&
     !submitting &&
     amount &&
     Number(amount) >= 10 &&
@@ -377,6 +426,30 @@ function RewardSection() {
 
   return (
     <div className="shrx-rw">
+      {/* ═════ EVENT-LOCK NOTICE ═════ */}
+      {locked && (
+        <div className="shrx-rw-eventlock" role="status">
+          <span className="shrx-rw-eventlock-ic" aria-hidden="true">
+            <I.Lock />
+          </span>
+          <div className="shrx-rw-eventlock-body">
+            <span className="shrx-rw-eventlock-eyebrow">
+              SHARX REWARDS
+            </span>
+            <strong className="shrx-rw-eventlock-title">
+              The Rewards Event hasn’t started yet.
+            </strong>
+            <p className="shrx-rw-eventlock-text">
+              Earning, reward history and withdrawals will unlock
+              automatically when the event goes live.
+            </p>
+            <span className="shrx-rw-eventlock-badge">
+              EVENT NOT LIVE YET
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="shrx-rw-hero">
         <div className="shrx-rw-hero-left">
           <span className="shrx-rw-eyebrow">
@@ -396,7 +469,7 @@ function RewardSection() {
           <I.Coin />
         </div>
 
-        {lastReward && (
+        {!locked && lastReward && (
           <div className="shrx-rw-last">
             <span className="shrx-rw-last-ic"><I.Gift /></span>
             <span className="shrx-rw-last-txt">
@@ -413,11 +486,13 @@ function RewardSection() {
             Play progress
           </span>
           <span className="shrx-rw-progress-pill">
-            {!activeSession
+            {locked
               ? "0 min"
-              : qualifiedSeconds >= 3600
-                ? "60 min"
-                : `${Math.min(60, Math.floor(qualifiedSeconds / 60))} min`}
+              : !activeSession
+                ? "0 min"
+                : qualifiedSeconds >= 3600
+                  ? "60 min"
+                  : `${Math.min(60, Math.floor(qualifiedSeconds / 60))} min`}
           </span>
         </div>
 
@@ -426,11 +501,13 @@ function RewardSection() {
         </div>
 
         <p className="shrx-rw-progress-hint">
-          {!activeSession
-            ? "Start a game to begin qualified play tracking."
-            : qualifiedSeconds < 3600
-              ? `${remainingMinutes} min until your first play reward.`
-              : "Your first play reward milestone has been reached."}
+          {locked
+            ? "Rewards are not live yet."
+            : !activeSession
+              ? "Start a game to begin qualified play tracking."
+              : qualifiedSeconds < 3600
+                ? `${remainingMinutes} min until your first play reward.`
+                : "Your first play reward milestone has been reached."}
         </p>
       </div>
 
@@ -468,8 +545,14 @@ function RewardSection() {
         {history.length === 0 ? (
           <div className="shrx-rw-empty">
             <span className="shrx-rw-empty-ic"><I.Gift /></span>
-            <strong>No rewards yet</strong>
-            <p>Start playing to earn your first reward.</p>
+            <strong>
+              {locked ? "Reward history locked" : "No rewards yet"}
+            </strong>
+            <p>
+              {locked
+                ? "Reward history will appear when the event goes live."
+                : "Start playing to earn your first reward."}
+            </p>
           </div>
         ) : (
           <ul className="shrx-rw-history">
@@ -508,7 +591,7 @@ function RewardSection() {
           </h3>
           <span className="shrx-rw-head-badge">
             <I.Lock />
-            Min ₹10
+            {locked ? "Locked" : "Min ₹10"}
           </span>
         </div>
 
@@ -519,20 +602,22 @@ function RewardSection() {
             className="shrx-rw-input"
             type="number"
             min="10"
-            max={Math.min(10000, balance)}
+            max={Math.min(10000, balance || 10000)}
             step="1"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="10"
+            placeholder={locked ? "Locked" : "10"}
             inputMode="numeric"
-            disabled={submitting}
+            disabled={locked || submitting}
           />
         </div>
 
         <label className="shrx-rw-label">Payout method</label>
         <div className="shrx-rw-method">
           <span className="shrx-rw-method-pill">UPI</span>
-          <span className="shrx-rw-method-hint">Instant transfer</span>
+          <span className="shrx-rw-method-hint">
+            {locked ? "Available at event start" : "Instant transfer"}
+          </span>
         </div>
 
         <label className="shrx-rw-label">UPI ID</label>
@@ -541,16 +626,22 @@ function RewardSection() {
           type="text"
           value={upi}
           onChange={(e) => setUpi(e.target.value)}
-          placeholder="yourname@upi"
+          placeholder={locked ? "Locked" : "yourname@upi"}
           autoComplete="off"
           inputMode="email"
           maxLength={100}
-          disabled={submitting}
+          disabled={locked || submitting}
         />
 
         <button type="submit" className="shrx-rw-submit" disabled={!canSubmit}>
           <span className="shrx-rw-submit-ic"><I.Send /></span>
-          <span>{submitting ? "Submitting…" : "Request withdrawal"}</span>
+          <span>
+            {locked
+              ? "Locked until event start"
+              : submitting
+                ? "Submitting…"
+                : "Request withdrawal"}
+          </span>
         </button>
 
         {withdrawalError && (
@@ -633,6 +724,10 @@ const STYLES = `
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+@keyframes shrx-eventlock-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
 }
 
 /* ═══ Backdrop ═══ */
@@ -841,7 +936,6 @@ const STYLES = `
 }
 .psp-edAction.ok:active { transform: translate(0, 0); box-shadow: 2px 2px 0 var(--ink); }
 
-/* Body — centered vertically, no wasted space */
 .psp-edBody {
   flex: 1; min-height: 0;
   display: flex; flex-direction: column;
@@ -851,7 +945,6 @@ const STYLES = `
   padding: 4px 24px 12px;
 }
 
-/* ═══ AVATAR STAGE — tighter ═══ */
 .psp-stage {
   position: relative;
   width: 220px;
@@ -865,7 +958,6 @@ const STYLES = `
   z-index: 3;
 }
 
-/* Username block — pulled closer to stage */
 .psp-unameBlock {
   width: min(360px, 100%);
   margin-top: 14px;
@@ -960,7 +1052,6 @@ const STYLES = `
   flex-wrap: wrap;
 }
 
-/* Pick buttons */
 .psp-pickBtn {
   position: relative;
   background: ${PAPER};
@@ -1004,7 +1095,6 @@ const STYLES = `
   animation: psp-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Color dots */
 .psp-colorDot {
   width: 48px; height: 48px;
   border-radius: 50%;
@@ -1037,6 +1127,86 @@ const STYLES = `
 /* ═══ REWARDS SECTION ═══ */
 .psp-rewardsSection { position: relative; z-index: 5; width: 100%; padding: 0 20px 40px; }
 .shrx-rw { display: flex; flex-direction: column; gap: 16px; }
+
+/* ═══ EVENT-LOCK NOTICE ═══ */
+.shrx-rw-eventlock {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(46, 127, 232, 0.14), transparent 55%),
+    radial-gradient(circle at 0% 100%, rgba(199, 180, 255, 0.16), transparent 55%),
+    ${PAPER};
+  border: 2.5px solid ${INK};
+  border-radius: 22px 26px 20px 24px / 24px 20px 26px 22px;
+  box-shadow: 4px 4px 0 ${INK};
+  overflow: hidden;
+}
+.shrx-rw-eventlock-ic {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: ${YELLOW};
+  color: ${INK};
+  border: 2.5px solid ${INK};
+  border-radius: 50% 45% 50% 45% / 45% 50% 45% 50%;
+  box-shadow: 2px 2px 0 ${INK};
+  flex-shrink: 0;
+  animation: shrx-eventlock-pulse 3.2s ease-in-out infinite;
+}
+.shrx-rw-eventlock-ic svg {
+  width: 20px;
+  height: 20px;
+}
+.shrx-rw-eventlock-body {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.shrx-rw-eventlock-eyebrow {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #5A6B82;
+}
+.shrx-rw-eventlock-title {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: ${INK};
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+}
+.shrx-rw-eventlock-text {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: #5A6B82;
+}
+.shrx-rw-eventlock-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 11px;
+  background: ${INK};
+  color: #fff;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 2px 2px 0 ${YELLOW};
+}
 
 .shrx-rw-hero {
   position: relative;
@@ -1517,6 +1687,7 @@ const STYLES = `
   .psp-panel, .psp-nameBlock,
   .psp-modal, .psp-editor,
   .shrx-rw-progress-fill::after,
+  .shrx-rw-eventlock-ic,
   .psp-pickBtn.active::after, .psp-colorDot.active::after {
     animation: none !important;
     transition: none !important;
@@ -1844,9 +2015,9 @@ export default function ProfileSidePanel({
 
       <button
         type="button"
-className={`psp-extClose ${
-  showEditor || closing ? "hidden" : ""
-}`}
+        className={`psp-extClose ${
+          showEditor || closing ? "hidden" : ""
+        }`}
         onClick={handleClose}
         aria-label="Close panel"
         tabIndex={showEditor ? -1 : 0}

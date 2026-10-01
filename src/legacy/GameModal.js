@@ -16,7 +16,10 @@ import {
   decodeEntities,
 } from "../lib/game-content";
 
-import { useRewards } from "../context/RewardContext";
+import {
+  useRewards,
+  REWARDS_EVENT_LIVE,
+} from "../context/RewardContext";
 
 /* ============================================================
    GAME URL
@@ -101,10 +104,23 @@ const GameModal = React.memo(function GameModal({
 
   /* ============================================================
      REWARD TRACKING
+     ────────────────────────────────────────────────────────────
+     EVENT LOCK:
+     When REWARDS_EVENT_LIVE === false, this effect returns
+     immediately and no reward session is started or stopped.
+     The game itself continues to load and play normally.
      ============================================================ */
 
   useEffect(() => {
     if (!game?.id) return undefined;
+
+    /**
+     * EVENT LOCK — do not start or stop reward tracking
+     * while the event is not live.
+     */
+    if (!REWARDS_EVENT_LIVE) {
+      return undefined;
+    }
 
     let cancelled = false;
 

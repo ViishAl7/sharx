@@ -18,6 +18,20 @@ import {
   getRewardMe,
 } from "../lib/rewardClient";
 
+/* ═══════════════════════════════════════════
+   MASTER FEATURE FLAG
+   ───────────────────────────────────────────
+   false → entire Rewards system is dormant.
+           No reward APIs fire. No sessions.
+           No heartbeats. No /rewards/me.
+   true  → full Rewards functionality resumes.
+
+   This is the SINGLE source of truth.
+   Change ONLY this line to enable/disable
+   the entire event.
+═══════════════════════════════════════════ */
+export const REWARDS_EVENT_LIVE = false;
+
 const RewardContext = createContext(null);
 
 const HEARTBEAT_MS = 15_000;
@@ -46,6 +60,14 @@ export function RewardProvider({ children }) {
    */
 
   const refreshRewards = useCallback(async () => {
+    /**
+     * EVENT LOCK — do not call the reward API at all
+     * while the event is not live.
+     */
+    if (!REWARDS_EVENT_LIVE) {
+      return null;
+    }
+
     if (typeof window === "undefined") {
       return null;
     }
@@ -120,6 +142,14 @@ export function RewardProvider({ children }) {
    */
 
   const sendHeartbeat = useCallback(async () => {
+    /**
+     * EVENT LOCK — never send a heartbeat while the
+     * event is not live.
+     */
+    if (!REWARDS_EVENT_LIVE) {
+      return;
+    }
+
     if (
       heartbeatInFlightRef.current ||
       !sessionIdRef.current
@@ -219,6 +249,14 @@ export function RewardProvider({ children }) {
   const startGameRewardTracking =
     useCallback(
       async (gameId) => {
+        /**
+         * EVENT LOCK — do not start any reward session
+         * while the event is not live.
+         */
+        if (!REWARDS_EVENT_LIVE) {
+          return null;
+        }
+
         if (!gameId) {
           return null;
         }
@@ -335,6 +373,15 @@ export function RewardProvider({ children }) {
 
       setActiveSession(null);
 
+      /**
+       * EVENT LOCK — no reward session could have been started
+       * while locked, so do not fire endRewardSession or
+       * refreshRewards either.
+       */
+      if (!REWARDS_EVENT_LIVE) {
+        return;
+      }
+
       if (!id) {
         return;
       }
@@ -396,6 +443,14 @@ export function RewardProvider({ children }) {
         }
 
         /**
+         * EVENT LOCK — do not fetch reward data on login
+         * while the event is not live.
+         */
+        if (!REWARDS_EVENT_LIVE) {
+          return;
+        }
+
+        /**
          * Logged-in user.
          */
         const data =
@@ -433,6 +488,15 @@ export function RewardProvider({ children }) {
       cancelled = true;
 
       stopHeartbeat();
+
+      /**
+       * EVENT LOCK — no reward session could exist while
+       * locked, so skip the endRewardSession cleanup too.
+       */
+      if (!REWARDS_EVENT_LIVE) {
+        sessionIdRef.current = null;
+        return;
+      }
 
       const id =
         sessionIdRef.current;

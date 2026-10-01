@@ -135,7 +135,7 @@ const NEW_ICON = (
 const CATEGORY_ICON = NEW_ICON;
 
 /* ─────────────────────────────────────────────
-   MINI AVATAR — uses SharxAvatar (hand-painted) when possible
+   MINI AVATAR
 ───────────────────────────────────────────── */
 const MiniAvatar = memo(function MiniAvatar({ profile }) {
   if (!profile) {
@@ -245,7 +245,7 @@ const InfiniteLoader = memo(function InfiniteLoader({
 });
 
 /* ─────────────────────────────────────────────
-   FOOTER — perfectly aligned, single clean row
+   FOOTER — logo · links · copyright
 ───────────────────────────────────────────── */
 const Footer = memo(function Footer() {
   const year = useMemo(() => new Date().getFullYear(), []);
@@ -254,10 +254,10 @@ const Footer = memo(function Footer() {
 
   useEffect(() => {
     const el = footerRef.current;
-    if (!el) return;
+    if (!el) return undefined;
     if (typeof IntersectionObserver === "undefined") {
       setInView(true);
-      return;
+      return undefined;
     }
     const io = new IntersectionObserver(
       (entries) => {
@@ -278,8 +278,6 @@ const Footer = memo(function Footer() {
       className={`site-footer${inView ? " footer-in" : ""}`}
     >
       <div className="footer-body">
-
-        {/* Row 1: logo · links · copyright */}
         <div className="footer-row">
           <Link href="/" className="footer-logo" aria-label="Go to Sharx home">
             <Image
@@ -304,27 +302,6 @@ const Footer = memo(function Footer() {
             © {year} Sharx. All rights reserved.
           </span>
         </div>
-
-        {/* Row 2: Back to Home, centered */}
-        <div className="footer-home-row">
-          <Link href="/" className="footer-home-btn">
-            <span className="footer-home-btn-ic" aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 11 12 3l9 8" />
-                <path d="M5 10v10h14V10" />
-              </svg>
-            </span>
-            Back to Home
-          </Link>
-        </div>
-
       </div>
     </footer>
   );
@@ -374,13 +351,27 @@ export default function Home({
   const searchInputRef = useRef(null);
   const baseTitleRef = useRef(null);
 
+  /* ─── BOOT ─── */
   useEffect(() => {
-    const id = window.requestAnimationFrame(() => setPageReady(true));
-    return () => window.cancelAnimationFrame(id);
+    let raf = 0;
+    let timeout = 0;
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(() => setPageReady(true), {
+        timeout: 300,
+      });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    raf = window.requestAnimationFrame(() => {
+      timeout = window.setTimeout(() => setPageReady(true), 0);
+    });
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+    };
   }, []);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined") return undefined;
     document.documentElement.style.overflow = "";
     document.body.style.overflow = "";
     return () => {
@@ -400,7 +391,7 @@ export default function Home({
   }, [syncLoginState]);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined") return undefined;
     document.body.classList.toggle("modal-open", !!activeGame);
     return () => {
       document.body.classList.remove("modal-open");
@@ -636,6 +627,7 @@ export default function Home({
     return () => window.removeEventListener("keydown", onKey);
   }, [handleCloseModal, sidebarOpen, searchOpen, search, activeGame]);
 
+  /* ─── POPSTATE + INITIAL /game/ URL ─── */
   useEffect(() => {
     const onPop = () => {
       const path = window.location.pathname;
@@ -695,13 +687,16 @@ export default function Home({
   const searchLower = useMemo(() => search.trim().toLowerCase(), [search]);
 
   const categories = useMemo(() => {
-    const u = new Set(allGames.map((g) => g.category).filter(Boolean));
+    const u = new Set();
+    for (const g of allGames) if (g.category) u.add(g.category);
     return ["All", ...Array.from(u)];
   }, [allGames]);
 
   const searchResults = useMemo(() => {
     if (!searchLower) return null;
-    return allGames.filter((g) => g.title?.toLowerCase().includes(searchLower));
+    return allGames.filter((g) =>
+      g.title?.toLowerCase().includes(searchLower)
+    );
   }, [allGames, searchLower]);
 
   const categoryResults = useMemo(() => {
@@ -717,10 +712,11 @@ export default function Home({
     [trendingGames, allGames]
   );
 
-  const trendingIds = useMemo(
-    () => new Set(trendingRow.map((g) => g?.id).filter((id) => id != null)),
-    [trendingRow]
-  );
+  const trendingIds = useMemo(() => {
+    const s = new Set();
+    for (const g of trendingRow) if (g?.id != null) s.add(g.id);
+    return s;
+  }, [trendingRow]);
 
   const allGamesFiltered = useMemo(() => {
     if (trendingIds.size === 0) return allGames;
@@ -744,6 +740,9 @@ export default function Home({
 
   const canLoadMore = visibleCount < allGamesFiltered.length || apiHasMore;
 
+  /* ────────────────────────────────────────────
+     RENDER
+  ──────────────────────────────────────────── */
   return (
     <div className={`app-shell${pageReady ? " page-ready" : ""}`}>
       <div className="bg-scene" aria-hidden="true" />
@@ -887,7 +886,17 @@ export default function Home({
         <main className="page-content">
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
 
-          <Suspense fallback={null}>
+          {/* ─── HERO FIRST — LCP element loads at top of page ─── */}
+          {!searchResults && category === "All" && (
+            <GameOfTheDay games={allGames} onOpen={openGame} />
+          )}
+
+          {/* ─── REWARD BANNER AFTER hero — skeleton prevents CLS ─── */}
+          <Suspense
+            fallback={
+              <div className="shrx-ev-skeleton" aria-hidden="true" />
+            }
+          >
             <RewardEventBanner
               onOpenRewards={() => {
                 if (isLoggedIn) {
@@ -898,10 +907,6 @@ export default function Home({
               }}
             />
           </Suspense>
-
-          {!searchResults && category === "All" && (
-            <GameOfTheDay games={allGames} onOpen={openGame} />
-          )}
 
           {loading ? (
             <div className="rows-skel">

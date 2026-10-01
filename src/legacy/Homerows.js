@@ -27,9 +27,9 @@ export const RowCard = React.memo(function RowCard({
   animate = false,
   onNavigate,
 }) {
-  const [loaded, setLoaded] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
+  /* loaded state only for fade-in smoothness, does NOT hide the image */
   const [videoReady, setVideoReady] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
 
   const hoverTimerRef = useRef(null);
@@ -50,7 +50,6 @@ export const RowCard = React.memo(function RowCard({
     (event) => {
       event.currentTarget.srcset = "";
       event.currentTarget.src = fallbackSrc;
-      setLoaded(true);
     },
     [fallbackSrc]
   );
@@ -120,9 +119,12 @@ export const RowCard = React.memo(function RowCard({
           priority={isAboveFold}
           quality={70}
           onError={handleImageError}
-          onLoad={() => setLoaded(true)}
-          className={`row-card-img ${loaded ? "loaded" : ""}`}
-          style={{ opacity: showVideo && videoReady ? 0 : 1 }}
+          className="row-card-img"
+          style={{
+            objectFit: "cover",
+            opacity: showVideo && videoReady ? 0 : 1,
+            transition: "opacity 0.2s ease",
+          }}
         />
 
         {showVideo && (
@@ -168,7 +170,7 @@ export const RowCard = React.memo(function RowCard({
 
   const wrapperClass = `row-card-link${animate ? " card-anim" : ""}`;
 
-  /* ─── no id → fallback to a clickable div (keyboard accessible) ─── */
+  /* ─── no id → clickable div (keyboard accessible) ─── */
   if (game?.id == null) {
     return (
       <div
