@@ -672,7 +672,7 @@ const GameModal = React.memo(function GameModal({
             )}
 
             <Link
-              href="/contact"
+              href="/hello"
               className="modal-info-report"
             >
               Something not working? Tell us
@@ -752,15 +752,15 @@ const GameModal = React.memo(function GameModal({
             All games
           </Link>
 
-          <Link href="/about">
+          <Link href="/inside">
             About
           </Link>
 
-          <Link href="/contact">
+          <Link href="/hello">
             Contact
           </Link>
 
-          <Link href="/privacy">
+          <Link href="/trust">
             Privacy Policy
           </Link>
 

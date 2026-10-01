@@ -5,7 +5,7 @@
 const nextConfig = {
 
   // 📱 Phone / dusre device se dev server test karne ke liye
-  allowedDevOrigins: ["10.31.55.92"],
+allowedDevOrigins: ["10.161.228.92"],
 
   images: {
     formats: ["image/avif", "image/webp"],
@@ -45,6 +45,15 @@ const nextConfig = {
   reactStrictMode: true,
 
   outputFileTracingRoot: process.cwd(),
+
+  // 🔗 Old URLs → new branded URLs
+  async redirects() {
+    return [
+      { source: "/about",   destination: "/inside", permanent: true },
+      { source: "/contact", destination: "/hello",  permanent: true },
+      { source: "/privacy", destination: "/trust",  permanent: true },
+    ];
+  },
 };
 
 module.exports = nextConfig;

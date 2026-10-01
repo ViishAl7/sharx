@@ -932,9 +932,9 @@ export default function Privacy() {
                 <div className="footer-col">
                   <p className="footer-col-title">Company</p>
                   <div className="footer-col-links">
-                    <Link href="/about" className="footer-link">About Us</Link>
-                    <Link href="/contact" className="footer-link">Contact</Link>
-                    <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+                    <Link href="/inside" className="footer-link">About Us</Link>
+                    <Link href="/hello" className="footer-link">Contact</Link>
+                    <Link href="/trust" className="footer-link">Privacy Policy</Link>
                     <Link href="/terms" className="footer-link">
                       Terms of Service
                     </Link>

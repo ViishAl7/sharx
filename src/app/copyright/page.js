@@ -1021,9 +1021,9 @@ export default function CopyrightPage() {
         <footer className="sx-footer">
           <span>© {new Date().getFullYear()} SHARX. All rights reserved.</span>
           <div className="sx-footer-links">
-            <a href="/about">About Us</a>
-            <a href="/contact">Contact</a>
-            <a href="/privacy">Privacy Policy</a>
+            <a href="/inside">About Us</a>
+            <a href="/hello">Contact</a>
+            <a href="/trust">Privacy Policy</a>
             <a href="/terms">Terms of Service</a>
             <a href="/copyright">Copyright</a>
           </div>
