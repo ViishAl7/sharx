@@ -8,11 +8,11 @@ export const metadata = {
   title,
   description,
   alternates: {
-    canonical: "/privacy",
+    canonical: "/trust",
   },
   openGraph: {
     type: "website",
-    url: "https://sharx.in/privacy",
+    url: "https://sharx.in/trust",
     title,
     description,
   },

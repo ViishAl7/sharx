@@ -583,7 +583,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
 
             <div className="pv-footer" style={{ animationDelay: "0.44s" }}>
               By continuing you agree to our{" "}
-              <span onClick={() => { onClose(); router.push("/privacy"); }}>Privacy Policy</span>
+              <span onClick={() => { onClose(); router.push("/trust"); }}>Privacy Policy</span>
             </div>
           </div>
         </div>

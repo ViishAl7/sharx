@@ -1717,13 +1717,13 @@ export default function ContactPage() {
                 <div className="footer-center">
                   <div className="footer-center-title">Company</div>
                   <div className="footer-center-links">
-                    <Link href="/about" className="footer-link">
+                    <Link href="/inside" className="footer-link">
                       About Us
                     </Link>
-                    <Link href="/contact" className="footer-link">
+                    <Link href="/hello" className="footer-link">
                       Contact
                     </Link>
-                    <Link href="/privacy" className="footer-link">
+                    <Link href="/trust" className="footer-link">
                       Privacy Policy
                     </Link>
                     <Link href="/terms" className="footer-link">

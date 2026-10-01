@@ -329,9 +329,9 @@ function SiteFooter() {
             </div>
             <div className="footer-links">
               <h4>Company</h4>
-              <a onClick={() => navigate("/about")}>About Us</a>
-              <a onClick={() => navigate("/contact")}>Contact</a>
-              <a onClick={() => navigate("/privacy")}>Privacy Policy</a>
+              <a onClick={() => navigate("/inside")}>About Us</a>
+              <a onClick={() => navigate("/hello")}>Contact</a>
+              <a onClick={() => navigate("/trust")}>Privacy Policy</a>
               <a onClick={() => navigate("/terms")}>Terms of Service</a>
             </div>
             <div className="footer-links">

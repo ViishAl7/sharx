@@ -368,7 +368,7 @@ const GameModal = React.memo(function GameModal({
               </ul>
             )}
 
-            <Link href="/contact" className="modal-info-report">
+            <Link href="/hello" className="modal-info-report">
               Something not working? Tell us
             </Link>
           </aside>
@@ -414,9 +414,9 @@ const GameModal = React.memo(function GameModal({
 
         <nav className="modal-info-links" aria-label="Sharx">
           <Link href="/">All games</Link>
-          <Link href="/about">About</Link>
-          <Link href="/contact">Contact</Link>
-          <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/inside">About</Link>
+          <Link href="/hello">Contact</Link>
+          <Link href="/trust">Privacy Policy</Link>
           <Link href="/terms">Terms</Link>
         </nav>
       </div>

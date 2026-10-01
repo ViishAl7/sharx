@@ -3,7 +3,14 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-
+  // 🔗 Old URLs → new branded URLs
+  async redirects() {
+    return [
+      { source: "/about",   destination: "/inside", permanent: true },
+      { source: "/contact", destination: "/hello",  permanent: true },
+      { source: "/privacy", destination: "/trust",  permanent: true },
+    ];
+  },
   // 📱 Phone / dusre device se dev server test karne ke liye
   allowedDevOrigins: ["10.31.55.92"],
 

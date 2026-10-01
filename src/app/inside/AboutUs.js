@@ -69,7 +69,7 @@ export default function About() {
     if (typeof window !== "undefined") window.history.back();
   }, []);
   const goHome = useCallback(() => router.push("/"), [router]);
-  const goPrivacy = useCallback(() => router.push("/privacy"), [router]);
+  const goPrivacy = useCallback(() => router.push("/trust"), [router]);
   const scrollToTop = useCallback(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);

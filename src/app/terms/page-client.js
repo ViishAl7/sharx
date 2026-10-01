@@ -894,9 +894,9 @@ export default function Terms() {
         <footer className="tp-footer">
           <span>© {new Date().getFullYear()} SHARX. All rights reserved.</span>
           <div className="tp-footer-links">
-            <Link href="/about">About Us</Link>
-            <Link href="/contact">Contact</Link>
-            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/inside">About Us</Link>
+            <Link href="/hello">Contact</Link>
+            <Link href="/trust">Privacy Policy</Link>
             <Link href="/terms">Terms of Service</Link>
             <Link href="/copyright">Copyright</Link>
           </div>
