@@ -1,93 +1,52 @@
-import { MetadataRoute } from "next";
-import { GAMES_BASE } from "../config";
-const SITE_URL = "https://sharx.in";
-const PER_PAGE = 50;
-const MAX_PAGES = 200;
+// src/app/sitemap.js
+const BASE_URL = "https://sharx.in";
 
-function slugify(title: string = "") {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+export default async function sitemap() {
+  /* ─── Static pages ─── */
+  const staticRoutes = [
+    "",
+    "/home",
+    "/inside",
+    "/hello",
+    "/trust",
+    "/terms",
+    "/copyright",
+  ].map((route) => ({
+    url: `${BASE_URL}${route}`,
+    lastModified: new Date(),
+    changeFrequency: route === "" || route === "/home" ? "daily" : "monthly",
+    priority: route === "" || route === "/home" ? 1.0 : 0.7,
+  }));
 
-type Game = {
-  id?: string;
-  title?: string;
-};
-
-async function fetchAllGames(): Promise<Game[]> {
-  const games: Game[] = [];
-
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    try {
-      const res = await fetch(`${GAMES_BASE}/games?page=${page}`, {
-        next: { revalidate: 3600 },
-      });
-
-      if (!res.ok) break;
-
+  /* ─── Game pages (agar API available hai) ─── */
+  let gameRoutes = [];
+  try {
+    const res = await fetch(`${BASE_URL}/api/games?limit=500`, {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
       const data = await res.json();
-
-      if (!Array.isArray(data) || data.length === 0) break;
-
-      games.push(...data);
-
-      if (data.length < PER_PAGE) break;
-    } catch {
-      break;
+      const games = Array.isArray(data?.games) ? data.games : [];
+      gameRoutes = games
+        .filter((g) => g?.id != null && g?.title)
+        .map((g) => {
+          const slug = String(g.title)
+            .toLowerCase()
+            .trim()
+            .replace(/&/g, "and")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+          return {
+            url: `${BASE_URL}/game/${g.id}-${slug}`,
+            lastModified: new Date(),
+            changeFrequency: "weekly",
+            priority: 0.8,
+          };
+        });
     }
+  } catch (error) {
+    console.error("Sitemap: failed to fetch games", error);
   }
 
-  return games;
-}
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const games = await fetchAllGames();
-  const now = new Date();
-
-  return [
-    {
-      url: `${SITE_URL}/`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 1,
-    },
-    {
-      url: `${SITE_URL}/home`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/inside`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/hello`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/trust`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.3,
-    },
-
-    ...games
-      .filter((game) => game.id)
-      .map((game) => ({
-        url: `${SITE_URL}/game/${encodeURIComponent(game.id!)}-${slugify(
-          game.title ?? ""
-        )}`,
-        lastModified: now,
-        changeFrequency: "weekly" as const,
-        priority: 0.7,
-      })),
-  ];
+  return [...staticRoutes, ...gameRoutes];
 }
