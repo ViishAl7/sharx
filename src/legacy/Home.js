@@ -1,5 +1,11 @@
 "use client";
 
+// src/legacy/Home.js — SHARX · Crayon · Clean · Playful
+//
+// LAYOUT:
+//  - GameOfTheDay removed.
+//  - Page flow: Onboarding → RewardBanner → Trending → All Games.
+
 import React, {
   useState,
   useEffect,
@@ -17,8 +23,10 @@ import { useAuth } from "../context/AuthContext";
 import { useProfile } from "../context/ProfileContext";
 import Sidebar from "./Sidebar";
 import { RowCard } from "./Homerows";
-import GameOfTheDay from "./GameOfTheDay";
 import SharxAvatar from "./SharxAvatar";
+import NotificationBell from "./NotificationBell";
+import OnboardingCard from "./OnboardingCard";
+import { FounderNoteCard, FounderNoteModal } from "./FounderNote";
 import "./Home.css";
 
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
@@ -33,6 +41,8 @@ const TRENDING_LIMIT = 12;
 const ALL_PAGE_SIZE = 24;
 const PAGE_SIZE = 50;
 const ANIMATED_CARDS = 12;
+
+const SIDEBAR_COLLAPSED_KEY = "sharx:sidebar-collapsed";
 
 /* ─────────────────────────────────────────────
    UTILITIES
@@ -59,6 +69,15 @@ const addToHistory = (game) => {
   } catch {}
 };
 
+const readSidebarCollapsed = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
 const NAMED_ENTITIES = {
   "&quot;": '"',
   "&apos;": "'",
@@ -74,7 +93,10 @@ const decodeEntities = (value) => {
   let out = value;
   for (let i = 0; i < 3; i += 1) {
     const next = out
-      .replace(/&(quot|apos|lt|gt|nbsp);|&#39;|&#x27;/g, (m) => NAMED_ENTITIES[m] ?? m)
+      .replace(
+        /&(quot|apos|lt|gt|nbsp);|&#39;|&#x27;/g,
+        (m) => NAMED_ENTITIES[m] ?? m
+      )
       .replace(/&#(\d+);/g, (m, n) => {
         const code = Number(n);
         return code > 0 && code < 0x10ffff ? String.fromCodePoint(code) : m;
@@ -155,14 +177,19 @@ const MiniAvatar = memo(function MiniAvatar({ profile }) {
   }
   if (profile.avatarType === "google" && profile.avatarUrl) {
     return (
-      <img
+      <Image
         src={profile.avatarUrl}
         alt="avatar"
         loading="lazy"
-        decoding="async"
-        width="40"
-        height="40"
-        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+        width={40}
+        height={40}
+        unoptimized
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          borderRadius: "50%",
+        }}
       />
     );
   }
@@ -221,7 +248,11 @@ const InfiniteLoader = memo(function InfiniteLoader({
       ) : error ? (
         <div className="infinite-loader infinite-loader-error-state">
           <span className="infinite-loader-error">{error}</span>
-          <button type="button" className="infinite-loader-retry" onClick={onRetry}>
+          <button
+            type="button"
+            className="infinite-loader-retry"
+            onClick={onRetry}
+          >
             Try again
           </button>
         </div>
@@ -245,38 +276,13 @@ const InfiniteLoader = memo(function InfiniteLoader({
 });
 
 /* ─────────────────────────────────────────────
-   FOOTER — logo · links · copyright
+   FOOTER
 ───────────────────────────────────────────── */
 const Footer = memo(function Footer() {
   const year = useMemo(() => new Date().getFullYear(), []);
-  const footerRef = useRef(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = footerRef.current;
-    if (!el) return undefined;
-    if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return undefined;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setInView(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
   return (
-    <footer
-      ref={footerRef}
-      className={`site-footer${inView ? " footer-in" : ""}`}
-    >
+    <footer className="site-footer footer-in">
       <div className="footer-body">
         <div className="footer-row">
           <Link href="/" className="footer-logo" aria-label="Go to Sharx home">
@@ -287,15 +293,26 @@ const Footer = memo(function Footer() {
               height={46}
               draggable={false}
               loading="lazy"
+              style={{ width: "auto", height: "46px", objectFit: "contain" }}
             />
           </Link>
 
           <nav className="footer-links" aria-label="Footer navigation">
-            <Link href="/inside" className="footer-link">About Us</Link>
-            <Link href="/hello" className="footer-link">Contact</Link>
-            <Link href="/trust" className="footer-link">Privacy Policy</Link>
-            <Link href="/terms" className="footer-link">Terms of Service</Link>
-            <Link href="/copyright" className="footer-link">Copyright</Link>
+            <Link href="/inside" className="footer-link">
+              About Us
+            </Link>
+            <Link href="/hello" className="footer-link">
+              Contact
+            </Link>
+            <Link href="/trust" className="footer-link">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="footer-link">
+              Terms of Service
+            </Link>
+            <Link href="/copyright" className="footer-link">
+              Copyright
+            </Link>
           </nav>
 
           <span className="footer-copyright">
@@ -316,8 +333,45 @@ export default function Home({
   initialTrendingGames = [],
 }) {
   const router = useRouter();
-  const { logout: authLogout } = useAuth();
+  const { user, authLoading, logout: authLogout } = useAuth();
   const { profile, updateProfile } = useProfile();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    setSidebarCollapsed(readSidebarCollapsed());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const onSidebarChanged = (event) => {
+      const next = event?.detail?.collapsed;
+      if (typeof next === "boolean") {
+        setSidebarCollapsed(next);
+      } else {
+        setSidebarCollapsed(readSidebarCollapsed());
+      }
+    };
+
+    const onStorage = (event) => {
+      if (event.key !== SIDEBAR_COLLAPSED_KEY) return;
+      setSidebarCollapsed(event.newValue === "1");
+    };
+
+    window.addEventListener("sharx:sidebar-changed", onSidebarChanged);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("sharx:sidebar-changed", onSidebarChanged);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   const [pageReady, setPageReady] = useState(false);
   const [allGames, setAllGames] = useState(() => prepareGames(initialGames));
@@ -333,12 +387,42 @@ export default function Home({
   const [error, setError] = useState(null);
   const [panelMode, setPanelMode] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+    /* Founder note open state */
+  const [founderNoteOpen, setFounderNoteOpen] = useState(false);
+  const handleOpenFounderNote = useCallback(() => setFounderNoteOpen(true), []);
+  const handleCloseFounderNote = useCallback(() => setFounderNoteOpen(false), []);
+
+  /* /profile redirects here with ?profile=1 once the user is authenticated.
+     (If the session ends while the panel is open, the panel unmounts at once —
+     see the `showProfile && user` render condition below.) */
+  useEffect(() => {
+    if (authLoading || !user) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get("profile") !== "1") return;
+        setShowProfile(true);
+        url.searchParams.delete("profile");
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `${url.pathname}${url.search}${url.hash}`
+        );
+      } catch {}
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, user]);
+
   const [socialModal, setSocialModal] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const pushedOwnHistoryRef = useRef(false);
   const fetchInFlightRef = useRef(false);
+  const fetchAbortRef = useRef(null);
   const allGamesRef = useRef(prepareGames(initialGames));
   const currentPageRef = useRef(
     Math.max(1, Math.ceil(initialGames.length / PAGE_SIZE))
@@ -351,7 +435,6 @@ export default function Home({
   const searchInputRef = useRef(null);
   const baseTitleRef = useRef(null);
 
-  /* ─── BOOT ─── */
   useEffect(() => {
     let raf = 0;
     let timeout = 0;
@@ -379,16 +462,6 @@ export default function Home({
       document.body.style.overflow = "";
     };
   }, []);
-
-  const syncLoginState = useCallback(() => {
-    if (typeof window === "undefined") return;
-    setIsLoggedIn(!!localStorage.getItem("token"));
-  }, []);
-
-  useEffect(() => {
-    const t = window.setTimeout(syncLoginState, 0);
-    return () => window.clearTimeout(t);
-  }, [syncLoginState]);
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -418,7 +491,8 @@ export default function Home({
     setActiveGame(game);
     if (typeof window !== "undefined") {
       if (baseTitleRef.current === null) baseTitleRef.current = document.title;
-      if (game?.title) document.title = `${game.title} - Play Free Online | Sharx`;
+      if (game?.title)
+        document.title = `${game.title} - Play Free Online | Sharx`;
       if (game?.id != null) {
         window.history.pushState(
           { sharxGameId: game.id },
@@ -434,7 +508,8 @@ export default function Home({
     addToHistory(game);
     setActiveGame(game);
     if (typeof window !== "undefined") {
-      if (game?.title) document.title = `${game.title} - Play Free Online | Sharx`;
+      if (game?.title)
+        document.title = `${game.title} - Play Free Online | Sharx`;
       if (game?.id != null) {
         window.history.replaceState(
           { sharxGameId: game.id },
@@ -463,6 +538,9 @@ export default function Home({
   const fetchGames = useCallback(async (pageNum, isFirst = false) => {
     if (fetchInFlightRef.current) return false;
     fetchInFlightRef.current = true;
+    const controller = new AbortController();
+    fetchAbortRef.current = controller;
+
     if (isFirst) {
       setLoading(true);
       setError(null);
@@ -470,42 +548,53 @@ export default function Home({
       setLoadingMore(true);
       setLoadMoreError(null);
     }
+
     try {
       const response = await fetch(
         `/api/games?page=${pageNum}&limit=${PAGE_SIZE}`,
         {
-          cache: "no-store",
           headers: { Accept: "application/json" },
+          signal: controller.signal,
         }
       );
+
       let data = null;
       try {
         data = await response.json();
       } catch {
         throw new Error("Invalid API response.");
       }
+
       if (!response.ok) {
         throw new Error(data?.error || `Server error: ${response.status}`);
       }
+
       const gamesArray = Array.isArray(data?.games) ? data.games : [];
+
       if (gamesArray.length === 0) {
         setApiHasMore(false);
         return false;
       }
+
       const previousGames = isFirst ? [] : allGamesRef.current;
       const combinedGames = prepareGames([...previousGames, ...gamesArray]);
+
       if (!isFirst && combinedGames.length === previousGames.length) {
         setApiHasMore(false);
         return false;
       }
+
       allGamesRef.current = combinedGames;
       setAllGames(combinedGames);
       currentPageRef.current = pageNum;
+
       const mightHaveMore =
         gamesArray.length >= PAGE_SIZE || data?.hasMore === true;
+
       setApiHasMore(mightHaveMore);
       return true;
     } catch (err) {
+      if (err?.name === "AbortError") return false;
       console.error("Load games failed:", err);
       if (isFirst) {
         setError("Failed to load games. Please refresh.");
@@ -514,6 +603,9 @@ export default function Home({
       }
       return false;
     } finally {
+      if (fetchAbortRef.current === controller) {
+        fetchAbortRef.current = null;
+      }
       fetchInFlightRef.current = false;
       setLoading(false);
       setLoadingMore(false);
@@ -521,28 +613,39 @@ export default function Home({
   }, []);
 
   useEffect(() => {
-    if (initialGames.length > 0) {
-      const prepared = prepareGames(initialGames);
-      allGamesRef.current = prepared;
-      setAllGames(prepared);
-      setApiHasMore(initialGames.length >= PAGE_SIZE);
-      return;
-    }
-    void fetchGames(1, true);
+    if (initialGames.length !== 0) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void fetchGames(1, true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchGames, initialGames.length]);
+
+  useEffect(
+    () => () => {
+      fetchAbortRef.current?.abort();
+      fetchAbortRef.current = null;
+      fetchInFlightRef.current = false;
+    },
+    []
+  );
 
   const loadNextGamesPage = useCallback(async () => {
     if (fetchInFlightRef.current || loadingMore) return;
     const loadedGames = allGamesRef.current.length;
+
     if (visibleCount < loadedGames) {
-      setVisibleCount((count) =>
-        Math.min(count + ALL_PAGE_SIZE, loadedGames)
-      );
+      setVisibleCount((count) => Math.min(count + ALL_PAGE_SIZE, loadedGames));
       return;
     }
+
     if (!apiHasMore) return;
+
     const nextPage = currentPageRef.current + 1;
     const loaded = await fetchGames(nextPage, false);
+
     if (loaded) {
       setVisibleCount((count) =>
         Math.min(count + ALL_PAGE_SIZE, allGamesRef.current.length)
@@ -583,8 +686,7 @@ export default function Home({
   const handlePanelLogin = useCallback(() => setPanelMode("login"), []);
   const handleClosePanel = useCallback(() => {
     setPanelMode(null);
-    syncLoginState();
-  }, [syncLoginState]);
+  }, []);
   const handleShowProfile = useCallback(() => setShowProfile(true), []);
   const handleSocialClick = useCallback((p) => setSocialModal(p), []);
   const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
@@ -598,7 +700,6 @@ export default function Home({
     try {
       await authLogout();
     } finally {
-      setIsLoggedIn(false);
       setShowProfile(false);
     }
   }, [authLogout]);
@@ -627,7 +728,6 @@ export default function Home({
     return () => window.removeEventListener("keydown", onKey);
   }, [handleCloseModal, sidebarOpen, searchOpen, search, activeGame]);
 
-  /* ─── POPSTATE + INITIAL /game/ URL ─── */
   useEffect(() => {
     const onPop = () => {
       const path = window.location.pathname;
@@ -672,8 +772,10 @@ export default function Home({
 
     if (!found) return;
 
-    setActiveGame(found);
-    pushedOwnHistoryRef.current = false;
+    const frame = window.requestAnimationFrame(() => {
+      setActiveGame(found);
+      pushedOwnHistoryRef.current = false;
+    });
 
     if (baseTitleRef.current === null) {
       baseTitleRef.current = document.title;
@@ -682,6 +784,8 @@ export default function Home({
     if (found.title) {
       document.title = `${found.title} - Play Free Online | Sharx`;
     }
+
+    return () => window.cancelAnimationFrame(frame);
   }, [allGames, initialActiveGame]);
 
   const searchLower = useMemo(() => search.trim().toLowerCase(), [search]);
@@ -740,9 +844,17 @@ export default function Home({
 
   const canLoadMore = visibleCount < allGamesFiltered.length || apiHasMore;
 
-  /* ────────────────────────────────────────────
-     RENDER
-  ──────────────────────────────────────────── */
+  const handleOpenProfileFromOnboarding = useCallback(() => {
+    setShowProfile(true);
+  }, []);
+
+  const handlePlayFirstGame = useCallback(() => {
+    if (allGamesRef.current.length > 0) {
+      const first = allGamesRef.current[0];
+      openGame(first);
+    }
+  }, [openGame]);
+
   return (
     <div className={`app-shell${pageReady ? " page-ready" : ""}`}>
       <div className="bg-scene" aria-hidden="true" />
@@ -755,7 +867,11 @@ export default function Home({
         onClose={handleCloseSidebar}
       />
 
-      <div className="main-col">
+      <div
+        className={`main-col${
+          mounted && sidebarCollapsed ? " main-col--sidebar-collapsed" : ""
+        }`}
+      >
         {/* TOPBAR */}
         <div className="topbar">
           <button
@@ -790,6 +906,7 @@ export default function Home({
               <circle cx="11" cy="11" r="7.5" />
               <path d="m20.5 20.5-4-4" />
             </svg>
+
             <input
               ref={searchInputRef}
               className="topbar-search-input"
@@ -801,6 +918,7 @@ export default function Home({
               enterKeyHint="search"
               aria-label="Search games"
             />
+
             {search && (
               <button
                 type="button"
@@ -845,7 +963,30 @@ export default function Home({
               </svg>
             </button>
 
-            {isLoggedIn ? (
+{null}
+
+            {!mounted || authLoading ? (
+              <button
+                className="topbar-icon-btn"
+                type="button"
+                aria-label="Account"
+                tabIndex={-1}
+                style={{ visibility: "hidden" }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </button>
+            ) : user ? (
               <button
                 className="profile-btn profile-btn--premium"
                 onClick={handleShowProfile}
@@ -885,27 +1026,20 @@ export default function Home({
         {/* PAGE CONTENT */}
         <main className="page-content">
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
+          {/* Founder note intro card */}
+          <FounderNoteCard onOpen={handleOpenFounderNote} />
+          {/* ONBOARDING — rendered in the initial tree so its hero content
+              is available immediately for first paint/LCP measurement. */}
+          <OnboardingCard
+            onOpenProfile={handleOpenProfileFromOnboarding}
+            onPlayFirstGame={handlePlayFirstGame}
+          />
 
-          {/* ─── HERO FIRST — LCP element loads at top of page ─── */}
-          {!searchResults && category === "All" && (
-            <GameOfTheDay games={allGames} onOpen={openGame} />
-          )}
-
-          {/* ─── REWARD BANNER AFTER hero — skeleton prevents CLS ─── */}
+          {/* Reward banner — disabled (Coming soon) */}
           <Suspense
-            fallback={
-              <div className="shrx-ev-skeleton" aria-hidden="true" />
-            }
+            fallback={<div className="shrx-ev-skeleton" aria-hidden="true" />}
           >
-            <RewardEventBanner
-              onOpenRewards={() => {
-                if (isLoggedIn) {
-                  setShowProfile(true);
-                } else {
-                  setPanelMode("login");
-                }
-              }}
-            />
+            <RewardEventBanner />
           </Suspense>
 
           {loading ? (
@@ -1091,12 +1225,14 @@ export default function Home({
             />
           </Suspense>
         )}
+
         {panelMode && (
           <Suspense fallback={null}>
             <SidePanel mode={panelMode} onClose={handleClosePanel} />
           </Suspense>
         )}
-        {showProfile && (
+
+        {showProfile && user && (
           <Suspense fallback={null}>
             <ProfileSidePanel
               profile={profile}
@@ -1106,7 +1242,9 @@ export default function Home({
             />
           </Suspense>
         )}
+
         {socialModal && (
+          
           <Suspense fallback={null}>
             <SocialComingSoonModal
               platform={socialModal}
@@ -1114,7 +1252,14 @@ export default function Home({
             />
           </Suspense>
         )}
-
+        {founderNoteOpen && (
+          <Suspense fallback={null}>
+            <FounderNoteModal
+              open={founderNoteOpen}
+              onClose={handleCloseFounderNote}
+            />
+          </Suspense>
+        )}
         <Footer />
       </div>
     </div>
