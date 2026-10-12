@@ -21,6 +21,8 @@ import {
   REWARDS_EVENT_LIVE,
 } from "../context/RewardContext";
 
+import "./GameModal.css";
+
 /* ============================================================
    GAME URL
    ============================================================ */
@@ -38,20 +40,6 @@ function getGameEmbedUrl(game) {
 
 /* ============================================================
    GAME MODAL / GAME DETAIL VIEW
-
-   This is intentionally the original SHARX game-page layout:
-
-   Header
-      ↓
-   Game player
-      ↓
-   About + How to play
-      +
-   Game details
-      ↓
-   More games like this
-      ↓
-   Footer
    ============================================================ */
 
 const GameModal = React.memo(function GameModal({
@@ -69,18 +57,10 @@ const GameModal = React.memo(function GameModal({
   const timeoutRef = useRef(null);
   const scrollYRef = useRef(0);
 
-  /* ============================================================
-     REWARD SYSTEM
-     ============================================================ */
-
   const {
     startGameRewardTracking,
     stopGameRewardTracking,
   } = useRewards();
-
-  /* ============================================================
-     GAME DATA
-     ============================================================ */
 
   const iframeSrc = useMemo(
     () => getGameEmbedUrl(game),
@@ -102,40 +82,19 @@ const GameModal = React.memo(function GameModal({
     [game]
   );
 
-  /* ============================================================
-     REWARD TRACKING
-     ────────────────────────────────────────────────────────────
-     EVENT LOCK:
-     When REWARDS_EVENT_LIVE === false, this effect returns
-     immediately and no reward session is started or stopped.
-     The game itself continues to load and play normally.
-     ============================================================ */
-
+  /* ── REWARD TRACKING ── */
   useEffect(() => {
     if (!game?.id) return undefined;
-
-    /**
-     * EVENT LOCK — do not start or stop reward tracking
-     * while the event is not live.
-     */
-    if (!REWARDS_EVENT_LIVE) {
-      return undefined;
-    }
+    if (!REWARDS_EVENT_LIVE) return undefined;
 
     let cancelled = false;
 
     const start = async () => {
       try {
         if (cancelled) return;
-
-        await startGameRewardTracking(
-          String(game.id)
-        );
+        await startGameRewardTracking(String(game.id));
       } catch (error) {
-        console.warn(
-          "[GameModal] Reward tracking could not start:",
-          error
-        );
+        console.warn("[GameModal] Reward tracking could not start:", error);
       }
     };
 
@@ -143,23 +102,11 @@ const GameModal = React.memo(function GameModal({
 
     return () => {
       cancelled = true;
-
       void stopGameRewardTracking().catch((error) => {
-        console.warn(
-          "[GameModal] Reward tracking could not stop:",
-          error
-        );
+        console.warn("[GameModal] Reward tracking could not stop:", error);
       });
     };
-  }, [
-    game?.id,
-    startGameRewardTracking,
-    stopGameRewardTracking,
-  ]);
-
-  /* ============================================================
-     TIMEOUT
-     ============================================================ */
+  }, [game?.id, startGameRewardTracking, stopGameRewardTracking]);
 
   const clearLoadTimeout = useCallback(() => {
     if (timeoutRef.current) {
@@ -167,10 +114,6 @@ const GameModal = React.memo(function GameModal({
       timeoutRef.current = null;
     }
   }, []);
-
-  /* ============================================================
-     IFRAME STYLE
-     ============================================================ */
 
   const iframeStyle = useMemo(
     () => ({
@@ -180,13 +123,8 @@ const GameModal = React.memo(function GameModal({
     [status]
   );
 
-  /* ============================================================
-     FULLSCREEN
-     ============================================================ */
-
   const handleFullscreen = useCallback(() => {
     const element = stageRef.current;
-
     if (!element) return;
 
     if (document.fullscreenElement) {
@@ -204,52 +142,26 @@ const GameModal = React.memo(function GameModal({
     }
   }, []);
 
-  /* ============================================================
-     RETRY
-     ============================================================ */
-
   const handleRetry = useCallback(() => {
     clearLoadTimeout();
-
     setStatus("loading");
     setReloadKey((value) => value + 1);
   }, [clearLoadTimeout]);
 
-  /* ============================================================
-     OPEN NEW TAB
-     ============================================================ */
-
   const handleOpenNewTab = useCallback(() => {
     if (!iframeSrc) return;
-
-    window.open(
-      iframeSrc,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    window.open(iframeSrc, "_blank", "noopener,noreferrer");
   }, [iframeSrc]);
-
-  /* ============================================================
-     IFRAME LOAD
-     ============================================================ */
 
   const handleLoad = useCallback(() => {
     clearLoadTimeout();
     setStatus("loaded");
   }, [clearLoadTimeout]);
 
-  /* ============================================================
-     IFRAME ERROR
-     ============================================================ */
-
   const handleError = useCallback(() => {
     clearLoadTimeout();
     setStatus("error");
   }, [clearLoadTimeout]);
-
-  /* ============================================================
-     RELATED GAME CLICK
-     ============================================================ */
 
   const handleRelatedClick = useCallback(
     (event, relatedGame) => {
@@ -266,24 +178,16 @@ const GameModal = React.memo(function GameModal({
       }
 
       event.preventDefault();
-
       onSwitchGame(relatedGame);
     },
     [onSwitchGame]
   );
 
-  /* ============================================================
-     BODY SCROLL LOCK
-     ============================================================ */
-
+  /* ── BODY SCROLL LOCK ── */
   useEffect(() => {
     if (!game) return undefined;
 
-    scrollYRef.current =
-      window.scrollY ||
-      window.pageYOffset ||
-      0;
-
+    scrollYRef.current = window.scrollY || window.pageYOffset || 0;
     const { style } = document.body;
 
     const previous = {
@@ -312,21 +216,12 @@ const GameModal = React.memo(function GameModal({
       style.width = previous.width;
       style.overflow = previous.overflow;
 
-      document.body.classList.remove(
-        "modal-open"
-      );
-
-      window.scrollTo(
-        0,
-        scrollYRef.current
-      );
+      document.body.classList.remove("modal-open");
+      window.scrollTo(0, scrollYRef.current);
     };
   }, [game]);
 
-  /* ============================================================
-     LOAD TIMEOUT
-     ============================================================ */
-
+  /* ── LOAD TIMEOUT ── */
   useEffect(() => {
     clearLoadTimeout();
 
@@ -342,53 +237,23 @@ const GameModal = React.memo(function GameModal({
     }, 15000);
 
     return clearLoadTimeout;
-  }, [
-    iframeSrc,
-    reloadKey,
-    game,
-    clearLoadTimeout,
-  ]);
+  }, [iframeSrc, reloadKey, game, clearLoadTimeout]);
 
-  /* ============================================================
-     SCROLL GAME VIEW TO TOP WHEN SWITCHING GAME
-     ============================================================ */
-
+  /* ── SCROLL TO TOP WHEN SWITCHING GAME ── */
   useEffect(() => {
     if (!rootRef.current) return;
-
-    rootRef.current.scrollTo({
-      top: 0,
-      behavior: "auto",
-    });
+    rootRef.current.scrollTo({ top: 0, behavior: "auto" });
   }, [game?.id]);
 
-  /* ============================================================
-     ESCAPE
-     ============================================================ */
-
+  /* ── ESCAPE ── */
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onClose?.();
-      }
+      if (event.key === "Escape") onClose?.();
     };
 
-    window.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
-
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
-    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
-
-  /* ============================================================
-     CLEANUP TIMEOUT
-     ============================================================ */
 
   useEffect(() => {
     return () => {
@@ -396,9 +261,7 @@ const GameModal = React.memo(function GameModal({
     };
   }, [clearLoadTimeout]);
 
-  if (!game) {
-    return null;
-  }
+  if (!game) return null;
 
   return (
     <div
@@ -408,10 +271,7 @@ const GameModal = React.memo(function GameModal({
       aria-modal="true"
       aria-label={`${title} game player`}
     >
-      {/* ========================================================
-          TOP HEADER
-          ======================================================== */}
-
+      {/* TOP HEADER */}
       <div className="modal-top">
         <div className="modal-l">
           {game.thumb && (
@@ -424,31 +284,22 @@ const GameModal = React.memo(function GameModal({
               loading="eager"
               decoding="async"
               onError={(event) => {
-                event.currentTarget.style.visibility =
-                  "hidden";
+                event.currentTarget.style.visibility = "hidden";
               }}
             />
           )}
 
           <div>
-            <div
-              className="modal-gt"
-              title={title}
-            >
+            <div className="modal-gt" title={title}>
               {title}
             </div>
-
             {game.category && (
-              <div className="modal-gc">
-                {game.category}
-              </div>
+              <div className="modal-gc">{game.category}</div>
             )}
           </div>
         </div>
 
         <div className="modal-acts">
-          {/* FULLSCREEN */}
-
           <button
             className="modal-btn"
             onClick={handleFullscreen}
@@ -472,11 +323,8 @@ const GameModal = React.memo(function GameModal({
               <path d="M21 16v3a2 2 0 0 1-2 2h-3" />
               <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
             </svg>
-
             <span>Fullscreen</span>
           </button>
-
-          {/* CLOSE */}
 
           <button
             className="modal-x"
@@ -503,28 +351,15 @@ const GameModal = React.memo(function GameModal({
         </div>
       </div>
 
-      {/* ========================================================
-          GAME PLAYER
-          ======================================================== */}
-
+      {/* GAME PLAYER */}
       <div className="modal-body">
-        <div
-          className="modal-game"
-          ref={stageRef}
-        >
-          {/* LOADING */}
-
+        <div className="modal-game" ref={stageRef}>
           {status === "loading" && (
             <div className="modal-loader">
               <div className="modal-spin" />
-
-              <div className="modal-lt">
-                Loading game…
-              </div>
+              <div className="modal-lt">Loading game…</div>
             </div>
           )}
-
-          {/* ERROR */}
 
           {status === "error" && (
             <div className="modal-loader">
@@ -554,8 +389,6 @@ const GameModal = React.memo(function GameModal({
             </div>
           )}
 
-          {/* IFRAME */}
-
           {iframeSrc && (
             <iframe
               key={`${iframeSrc}-${reloadKey}`}
@@ -583,8 +416,6 @@ const GameModal = React.memo(function GameModal({
             />
           )}
 
-          {/* NO URL */}
-
           {!iframeSrc && (
             <div className="modal-loader">
               <div className="modal-lt">
@@ -605,19 +436,11 @@ const GameModal = React.memo(function GameModal({
         </div>
       </div>
 
-      {/* ========================================================
-          INFORMATION BELOW GAME
-          ======================================================== */}
-
+      {/* INFO BELOW GAME */}
       <div className="modal-info">
         <div className="modal-info-grid">
-
-          {/* ABOUT + HOW TO PLAY */}
-
           <article className="modal-info-card">
-            <h2 className="modal-info-h">
-              About {title}
-            </h2>
+            <h2 className="modal-info-h">About {title}</h2>
 
             {content.about.map((paragraph, index) => (
               <p
@@ -633,27 +456,14 @@ const GameModal = React.memo(function GameModal({
             </h2>
 
             <ul className="modal-info-list">
-              {content.howTo.map(
-                (step, index) => (
-                  <li
-                    key={`${title}-how-${index}`}
-                  >
-                    {step}
-                  </li>
-                )
-              )}
+              {content.howTo.map((step, index) => (
+                <li key={`${title}-how-${index}`}>{step}</li>
+              ))}
             </ul>
           </article>
 
-          {/* GAME DETAILS */}
-
-          <aside
-            className="modal-info-card"
-            aria-label="Game details"
-          >
-            <h2 className="modal-info-h">
-              Game details
-            </h2>
+          <aside className="modal-info-card" aria-label="Game details">
+            <h2 className="modal-info-h">Game details</h2>
 
             <dl className="modal-info-dl">
               {game.category && (
@@ -675,14 +485,9 @@ const GameModal = React.memo(function GameModal({
             </dl>
 
             {content.tags.length > 0 && (
-              <ul
-                className="modal-info-tags"
-                aria-label="Tags"
-              >
+              <ul className="modal-info-tags" aria-label="Tags">
                 {content.tags.map((tag) => (
-                  <li key={tag}>
-                    {tag}
-                  </li>
+                  <li key={tag}>{tag}</li>
                 ))}
               </ul>
             )}
@@ -693,41 +498,28 @@ const GameModal = React.memo(function GameModal({
           </aside>
         </div>
 
-        {/* ======================================================
-            MORE GAMES
-            ====================================================== */}
-
         {related.length > 0 && (
           <section
             className="modal-info-card modal-related"
             aria-labelledby="modal-related-h"
           >
-            <h2
-              id="modal-related-h"
-              className="modal-info-h"
-            >
+            <h2 id="modal-related-h" className="modal-info-h">
               More games like this
             </h2>
 
             <div className="similar-grid">
               {related.map((relatedGame) => {
-                const relatedTitle =
-                  decodeEntities(
-                    relatedGame.title || ""
-                  );
+                const relatedTitle = decodeEntities(
+                  relatedGame.title || ""
+                );
 
                 return (
                   <a
                     key={relatedGame.id}
-                    href={gameHref(
-                      relatedGame
-                    )}
+                    href={gameHref(relatedGame)}
                     className="similar-card"
                     onClick={(event) =>
-                      handleRelatedClick(
-                        event,
-                        relatedGame
-                      )
+                      handleRelatedClick(event, relatedGame)
                     }
                   >
                     <span className="similar-thumb">
