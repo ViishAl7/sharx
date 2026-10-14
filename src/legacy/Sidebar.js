@@ -595,6 +595,128 @@ const ICON_DEFS = {
       K("M7.4 14.9H16.6"),
     ],
   },
+
+  /* ── extra icons used by the Home page headings ── */
+  recent: {
+    a: "#4BA3F5",
+    b: "#FFE066",
+    s: [
+      C(12, 11.5, 9.2, "a"),
+      P("M10 7.4L16.6 11.5L10 15.6Z", "b", { flat: true }),
+    ],
+  },
+
+  fresh: {
+    a: "#FFC933",
+    b: "#FF7EB6",
+    c: "#5CC8FF",
+    s: [
+      P(
+        "M11.2 1.8C12 7 13.8 9 19 10.4C13.8 11.8 12 13.8 11.2 19C10.4 13.8 8.6 11.8 3.4 10.4C8.6 9 10.4 7 11.2 1.8Z",
+        "a"
+      ),
+      P(
+        "M19 14.2C19.3 16.2 20 16.9 22 17.3C20 17.7 19.3 18.4 19 20.4C18.7 18.4 18 17.7 16 17.3C18 16.9 18.7 16.2 19 14.2Z",
+        "b",
+        { flat: true }
+      ),
+      C(5.2, 18.6, 1.6, "c", { flat: true }),
+    ],
+  },
+
+  gift: {
+    a: "#FF6B5B",
+    b: "#FFE066",
+    c: "#9B7BFF",
+    s: [
+      R(4, 11, 16, 10, 2, "a"),
+      R(2.6, 7.4, 18.8, 4.8, 1.8, "c"),
+      R(10.6, 7.4, 2.8, 13.6, 0.6, "b", { flat: true }),
+      P("M12 7.4C9.2 7.4 7.2 6.6 7.2 5C7.2 3.4 9.6 3.2 12 7.4Z", "b", { flat: true }),
+      P("M12 7.4C14.8 7.4 16.8 6.6 16.8 5C16.8 3.4 14.4 3.2 12 7.4Z", "b", { flat: true }),
+    ],
+  },
+
+  search: {
+    a: "#4BA3F5",
+    b: "#FF9A5C",
+    s: [
+      L("M16.4 16.4L21 21", "b"),
+      ring(10.4, 10.4, 8, 4.8, "a"),
+      H("M6.8 8.6Q7.6 6.8 9.6 6.2"),
+    ],
+  },
+
+  /* ── UI icons (topbar, buttons) — same crayon look ── */
+  "ui-profile": {
+    a: "#FFB84D",
+    b: "#4BA3F5",
+    s: [
+      P("M3.4 21.6C3.4 16.6 7.2 14.4 12 14.4C16.8 14.4 20.6 16.6 20.6 21.6Z", "b"),
+      C(12, 8, 5.2, "a"),
+      H("M8.8 6.2Q9.6 4.8 11.2 4.5"),
+    ],
+  },
+
+  "ui-menu": {
+    a: "#FF7A6B",
+    b: "#FFC933",
+    c: "#4BA3F5",
+    s: [
+      R(3, 3.4, 18, 4.2, 2.1, "a"),
+      R(3, 9.9, 18, 4.2, 2.1, "b"),
+      R(3, 16.4, 18, 4.2, 2.1, "c"),
+    ],
+  },
+
+  "ui-close": {
+    a: "#FF6B7F",
+    s: [L("M5.6 5.6L18.4 18.4", "a"), L("M18.4 5.6L5.6 18.4", "a")],
+  },
+
+  "ui-up": {
+    a: "#2ED9A3",
+    s: [P("M12 2.8L21.2 13H15.4V21H8.6V13H2.8Z", "a")],
+  },
+
+  "ui-down": {
+    a: "#2ED9A3",
+    s: [P("M12 21.2L2.8 11H8.6V3H15.4V11H21.2Z", "a")],
+  },
+
+  "ui-next": {
+    a: "#4BA3F5",
+    s: [L("M8.6 4.4L16.2 12L8.6 19.6", "a")],
+  },
+
+  "ui-prev": {
+    a: "#4BA3F5",
+    s: [L("M15.4 4.4L7.8 12L15.4 19.6", "a")],
+  },
+
+  "ui-bell": {
+    a: "#FFC933",
+    b: "#FF6B7F",
+    s: [
+      P(
+        "M12 2.6C8.2 2.6 6 5.4 6 9V12.4C6 14.3 5 15.5 3.8 16.7H20.2C19 15.5 18 14.3 18 12.4V9C18 5.4 15.8 2.6 12 2.6Z",
+        "a"
+      ),
+      P("M9.4 18.6H14.6C14.3 20.2 13.3 21.2 12 21.2C10.7 21.2 9.7 20.2 9.4 18.6Z", "b"),
+      H("M8.4 9Q8.6 6.6 10.6 5.2"),
+    ],
+  },
+
+  "ui-heart": {
+    a: "#FF5C8A",
+    s: [
+      P(
+        "M12 21C5 15.6 2.6 12.2 2.6 8.6C2.6 5.8 4.7 3.8 7.2 3.8C9.2 3.8 11 5 12 6.8C13 5 14.8 3.8 16.8 3.8C19.3 3.8 21.4 5.8 21.4 8.6C21.4 12.2 19 15.6 12 21Z",
+        "a"
+      ),
+      H("M6.2 8.2Q6.6 6.6 8.2 6.2"),
+    ],
+  },
 };
 
 const DEFAULT_DEF = {
@@ -617,18 +739,29 @@ const DEPTH = 1.1; // 3D thickness
 
 const resolve = (role, def) => FIXED[role] || def[role] || role;
 
-const geo = (s, props) => {
+/* `key` is passed separately: React forbids a key inside a spread */
+const geo = (s, props, key) => {
   switch (s.t) {
     case "circle":
-      return <circle cx={s.cx} cy={s.cy} r={s.r} {...props} />;
+      return <circle key={key} cx={s.cx} cy={s.cy} r={s.r} {...props} />;
     case "ellipse":
-      return <ellipse cx={s.cx} cy={s.cy} rx={s.rx} ry={s.ry} {...props} />;
+      return (
+        <ellipse key={key} cx={s.cx} cy={s.cy} rx={s.rx} ry={s.ry} {...props} />
+      );
     case "rect":
       return (
-        <rect x={s.x} y={s.y} width={s.w} height={s.h} rx={s.rx} {...props} />
+        <rect
+          key={key}
+          x={s.x}
+          y={s.y}
+          width={s.w}
+          height={s.h}
+          rx={s.rx}
+          {...props}
+        />
       );
     default:
-      return <path d={s.d} fillRule={s.fr} {...props} />;
+      return <path key={key} d={s.d} fillRule={s.fr} {...props} />;
   }
 };
 
@@ -650,7 +783,7 @@ const buildIcon = (def) => {
         fill="none"
       />
     ) : (
-      geo(s, { key: `sh${i}`, fill: glow, stroke: glow, strokeWidth: SW })
+      geo(s, { fill: glow, stroke: glow, strokeWidth: SW }, `sh${i}`)
     )
   );
 
@@ -700,7 +833,7 @@ const buildIcon = (def) => {
     }
 
     if (s.bare) {
-      return geo(s, { key: i, fill: face, stroke: "none" });
+      return geo(s, { fill: face, stroke: "none" }, i);
     }
 
     const eyeish = s.c === "k";
@@ -848,6 +981,15 @@ const ALIASES = {
   "match-3": "match3",
   match: "match3",
   gems: "match3",
+
+  recent: "recent",
+  "continue playing": "recent",
+  fresh: "fresh",
+  "fresh drops": "fresh",
+  new: "fresh",
+  gift: "gift",
+  event: "gift",
+  search: "search",
 };
 
 const FALLBACK_COLORS = [
@@ -891,16 +1033,9 @@ const getDataCat = (category) => {
    SMALL ICONS
 ═══════════════════════════════════════════ */
 const CloseIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.8"
-    strokeLinecap="round"
-    aria-hidden="true"
-  >
-    <path d="M4 4l16 16M20 4 4 20" />
-  </svg>
+  <span className="sx-close-ico" aria-hidden="true">
+    {getIconFor("ui-close").icon}
+  </span>
 );
 
 /* tiny crayon that pops in next to the active item */
@@ -1134,5 +1269,8 @@ function Sidebar({
     </>
   );
 }
+
+/* used by Home.js so page headings share the same crayon icon set */
+export const getCategoryIcon = (category) => getIconFor(category).icon;
 
 export default memo(Sidebar);
