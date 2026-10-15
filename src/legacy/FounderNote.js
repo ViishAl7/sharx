@@ -3,12 +3,6 @@
 // src/legacy/FounderNote.js — SHARX · Crayon Deluxe
 //
 // FounderNoteCard + FounderNoteModal with EN / HINGLISH support.
-// - Compact crayon homepage card with doodles, washi tape, smiley
-// - Full-screen scrollable modal with 8 sections
-// - Language switch inside modal (EN / HINGLISH) — no reload, no close
-// - IntersectionObserver reveals
-// - Scroll progress bar at the top of the modal
-// - prefers-reduced-motion → all motion disabled
 
 import React, {
   memo,
@@ -511,19 +505,15 @@ export const FounderNoteCard = memo(function FounderNoteCard({ onOpen }) {
   const card = COPY.english.card;
   return (
     <section className="shx-fnc" aria-labelledby="shx-fnc-title">
-      {/* paper texture layers */}
       <span className="shx-fnc-fibers" aria-hidden="true" />
       <span className="shx-fnc-dots" aria-hidden="true" />
 
-      {/* warm crayon blobs */}
       <span className="shx-fnc-blob shx-fnc-blob-1" aria-hidden="true" />
       <span className="shx-fnc-blob shx-fnc-blob-2" aria-hidden="true" />
 
-      {/* washi tape corners */}
       <span className="shx-fnc-tape shx-fnc-tape-1" aria-hidden="true" />
       <span className="shx-fnc-tape shx-fnc-tape-2" aria-hidden="true" />
 
-      {/* crayon doodles */}
       <svg
         className="shx-fnc-doodle shx-fnc-doodle-star-1"
         viewBox="0 0 24 24"
@@ -756,7 +746,6 @@ export const FounderNoteModal = memo(function FounderNoteModal({
         ref={scrollRef}
         onScroll={onScroll}
       >
-        {/* Top bar: progress + language + close */}
         <div className="shx-note-topbar">
           <div className="shx-note-progress" aria-hidden="true">
             <span
@@ -794,7 +783,6 @@ export const FounderNoteModal = memo(function FounderNoteModal({
         </div>
 
         <div className="shx-note-paper">
-          {/* corner ornaments */}
           <span className="shx-note-ornament shx-note-ornament-tl" aria-hidden="true" />
           <span className="shx-note-ornament shx-note-ornament-tr" aria-hidden="true" />
           <span className="shx-note-ornament shx-note-ornament-bl" aria-hidden="true" />

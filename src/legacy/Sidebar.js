@@ -1,11 +1,9 @@
 "use client";
 
-// src/legacy/Sidebar.js — SHARX · Crayon Box Edition v3
+// src/legacy/Sidebar.js — SHARX · Crayon Box Edition v4
 //
-// • NO tiles / circles / frames — every icon is its own colourful 3D
-//   wax-crayon object (extruded body, dark outline, gloss, grain, wobble)
-// • Original centered logo · no header text · no collapse toggle
-// • Mobile drawer: swipe-left, Esc, scroll lock · same props & events
+// • Smooth mobile drawer · no jank · no body-lock conflict
+// • Swipe-left to close, Esc, active-item auto-scroll
 // • All inner classes are "sx-" namespaced so old CSS can't override them
 
 import React, {
@@ -31,7 +29,6 @@ const CrayonDefs = memo(function CrayonDefs() {
       style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
     >
       <defs>
-        {/* hand-drawn wobble + waxy grain */}
         <filter
           id="sharx-crayon"
           filterUnits="userSpaceOnUse"
@@ -72,7 +69,6 @@ const CrayonDefs = memo(function CrayonDefs() {
           <feComposite in="wobbly" in2="grainAlpha" operator="in" />
         </filter>
 
-        {/* light from top-left, shade at the bottom → rounded 3D feel */}
         <linearGradient id="sx-gloss" x1="0" y1="0" x2="0.3" y2="1">
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.85" />
           <stop offset="0.4" stopColor="#ffffff" stopOpacity="0" />
@@ -87,16 +83,15 @@ const CrayonDefs = memo(function CrayonDefs() {
 /* ═══════════════════════════════════════════
    COLOUR HELPERS
 ═══════════════════════════════════════════ */
-const INK = "#1B2A41"; // only used by the UI chrome, never inside icons
-const LINE = "#8A6A86"; // soft plum for fine detail lines
-const EYE = "#5A4670"; // soft aubergine for tiny eyes
+const LINE = "#8A6A86";
+const EYE = "#5A4670";
 const CREAM = "#FFFDF2";
 
 const FIXED = {
   w: CREAM,
-  s: "#FFD9B8", // skin
+  s: "#FFD9B8",
   k: EYE,
-  d: "#8C9CC4", // soft periwinkle (replaces navy)
+  d: "#8C9CC4",
   sky: "#BFE9FF",
   cy: "#7DF9FF",
   pk: "#FF9EC0",
@@ -117,9 +112,6 @@ const mix = (a, b, t) => {
   ).join("")}`;
 };
 
-
-/* hue-preserving shade: outlines are a deeper version of each colour,
-   so nothing ever turns black */
 const rgbToHsl = ([r, g, b]) => {
   r /= 255; g /= 255; b /= 255;
   const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
@@ -149,11 +141,9 @@ const hslToHex = (h, s2, l) => {
 const shade = (hex, lightness, satBoost = 1) => {
   const rgb = hexToRgb(hex);
   const chroma = (Math.max(...rgb) - Math.min(...rgb)) / 255;
-  // whites / creams → soft warm taupe outline (never olive or black)
   if (chroma < 0.16) return hslToHex(0.07, 0.24, Math.min(lightness + 0.26, 0.74));
   let [h, sat, l] = rgbToHsl(rgb);
   let lit = Math.min(lightness, l);
-  // yellows darken toward warm orange instead of muddy olive
   if (h > 0.09 && h < 0.2) {
     h -= 0.04;
     lit = Math.min(lit * 1.1, 0.55);
@@ -172,18 +162,12 @@ const rgba = (hex, alpha) => {
 const P = (d, c, o = {}) => ({ t: "path", d, c, ...o });
 const C = (cx, cy, r, c, o = {}) => ({ t: "circle", cx, cy, r, c, ...o });
 const E = (cx, cy, rx, ry, c, o = {}) => ({
-  t: "ellipse",
-  cx,
-  cy,
-  rx,
-  ry,
-  c,
-  ...o,
+  t: "ellipse", cx, cy, rx, ry, c, ...o,
 });
 const R = (x, y, w, h, rx, c, o = {}) => ({ t: "rect", x, y, w, h, rx, c, ...o });
-const L = (d, c) => ({ t: "line", d, c }); // thick coloured stroke
-const K = (d) => ({ t: "ink", d }); // thin dark detail line
-const H = (d) => ({ t: "hl", d }); // cream highlight stroke
+const L = (d, c) => ({ t: "line", d, c });
+const K = (d) => ({ t: "ink", d });
+const H = (d) => ({ t: "hl", d });
 
 const f = (n) => Math.round(n * 100) / 100;
 
@@ -233,15 +217,11 @@ const seams = (cx, cy, r1, r2) =>
   }).join("");
 
 /* ═══════════════════════════════════════════
-   ICON DEFINITIONS — each one a little 3D crayon toy
-   a / b / c / g = that icon's own colours
+   ICON DEFINITIONS
 ═══════════════════════════════════════════ */
 const ICON_DEFS = {
   "all games": {
-    a: "#FFC933",
-    b: "#FF6B8B",
-    c: "#4BA3F5",
-    g: "#2ED9A3",
+    a: "#FFC933", b: "#FF6B8B", c: "#4BA3F5", g: "#2ED9A3",
     s: [
       R(3, 3, 7.5, 7.5, 2.4, "a"),
       R(13.5, 3, 7.5, 7.5, 2.4, "b"),
@@ -249,56 +229,32 @@ const ICON_DEFS = {
       R(13.5, 12.5, 7.5, 7.5, 2.4, "g"),
     ],
   },
-
   trending: {
-    a: "#FF6B5B",
-    b: "#FFE066",
+    a: "#FF6B5B", b: "#FFE066",
     s: [
-      P(
-        "M12 2.5C13 6 18 8.5 18 14C18 17.9 15.3 20.5 12 20.5C8.7 20.5 6 17.9 6 14C6 11.4 7.4 9.7 8.7 8.2C9 9.8 9.7 10.8 10.6 11.2C10.3 7.8 10.9 4.8 12 2.5Z",
-        "a"
-      ),
-      P(
-        "M12 19.5C10 19.5 8.7 18.2 8.7 16.5C8.7 15 10 13.9 12 12C14 13.9 15.3 15 15.3 16.5C15.3 18.2 14 19.5 12 19.5Z",
-        "b"
-      ),
+      P("M12 2.5C13 6 18 8.5 18 14C18 17.9 15.3 20.5 12 20.5C8.7 20.5 6 17.9 6 14C6 11.4 7.4 9.7 8.7 8.2C9 9.8 9.7 10.8 10.6 11.2C10.3 7.8 10.9 4.8 12 2.5Z", "a"),
+      P("M12 19.5C10 19.5 8.7 18.2 8.7 16.5C8.7 15 10 13.9 12 12C14 13.9 15.3 15 15.3 16.5C15.3 18.2 14 19.5 12 19.5Z", "b"),
     ],
   },
-
   arcade: {
-    a: "#9B7BFF",
-    b: "#FFE066",
-    c: "#FF6B8B",
+    a: "#9B7BFF", b: "#FFE066", c: "#FF6B8B",
     s: [
-      P(
-        "M7.5 7.5H16.5C19.5 7.5 21.5 9.8 21.8 12.8L22 16C22.2 18 20.6 19.6 18.8 19.2C17.4 18.9 16.8 18 15.8 16.6H8.2C7.2 18 6.6 18.9 5.2 19.2C3.4 19.6 1.8 18 2 16L2.2 12.8C2.5 9.8 4.5 7.5 7.5 7.5Z",
-        "a"
-      ),
-      P(
-        "M7 10.5H9V12.3H10.8V14.3H9V16.1H7V14.3H5.2V12.3H7Z",
-        "w"
-      ),
+      P("M7.5 7.5H16.5C19.5 7.5 21.5 9.8 21.8 12.8L22 16C22.2 18 20.6 19.6 18.8 19.2C17.4 18.9 16.8 18 15.8 16.6H8.2C7.2 18 6.6 18.9 5.2 19.2C3.4 19.6 1.8 18 2 16L2.2 12.8C2.5 9.8 4.5 7.5 7.5 7.5Z", "a"),
+      P("M7 10.5H9V12.3H10.8V14.3H9V16.1H7V14.3H5.2V12.3H7Z", "w"),
       C(15.6, 11.8, 1.5, "b"),
       C(18.4, 14.6, 1.5, "c"),
     ],
   },
-
   hypercasual: {
-    a: "#2ED9A3",
-    b: "#FFE066",
+    a: "#2ED9A3", b: "#FFE066",
     s: [P(burst(12, 11.5, 8, 9.8, 6.6), "a"), C(12, 11.5, 3.7, "b")],
   },
-
   puzzle: {
     a: "#FF7EB6",
     s: [
-      P(
-        "M9 3.4h3.4a1.5 1.5 0 0 1 1.4 2 1.8 1.8 0 0 0 3 1.8 1.5 1.5 0 0 1 2.5 1v3.4a1.5 1.5 0 0 1-2 1.4 1.8 1.8 0 0 0-1.7 3 1.5 1.5 0 0 1-1 2.5H11a1.5 1.5 0 0 1-1.4-2 1.8 1.8 0 0 0-3-1.8 1.5 1.5 0 0 1-2.5-1v-3.4a1.5 1.5 0 0 1 2-1.4A1.8 1.8 0 0 0 8 5.7 1.5 1.5 0 0 1 9 3.4Z",
-        "a"
-      ),
+      P("M9 3.4h3.4a1.5 1.5 0 0 1 1.4 2 1.8 1.8 0 0 0 3 1.8 1.5 1.5 0 0 1 2.5 1v3.4a1.5 1.5 0 0 1-2 1.4 1.8 1.8 0 0 0-1.7 3 1.5 1.5 0 0 1-1 2.5H11a1.5 1.5 0 0 1-1.4-2 1.8 1.8 0 0 0-3-1.8 1.5 1.5 0 0 1-2.5-1v-3.4a1.5 1.5 0 0 1 2-1.4A1.8 1.8 0 0 0 8 5.7 1.5 1.5 0 0 1 9 3.4Z", "a"),
     ],
   },
-
   action: {
     a: "#FFB02E",
     s: [
@@ -306,10 +262,8 @@ const ICON_DEFS = {
       H("M12.4 5.4L8.4 10.6"),
     ],
   },
-
   shooting: {
-    a: "#FF5C5C",
-    b: "#FFE066",
+    a: "#FF5C5C", b: "#FFE066",
     s: [
       C(12, 11.5, 9.2, "w"),
       C(12, 11.5, 6, "a", { flat: true }),
@@ -318,64 +272,39 @@ const ICON_DEFS = {
       P("M17.6 6L18.6 2.6L21.8 5.6Z", "b", { flat: true }),
     ],
   },
-
   sports: {
-    a: "#FFC933",
-    b: "#FF9E3D",
+    a: "#FFC933", b: "#FF9E3D",
     s: [
-      P(
-        "M7 5.2H4.3C3.5 5.2 3 5.8 3.1 6.6C3.4 9.3 5 10.8 7.4 11.2L7.2 9.4C5.9 9.1 5.1 8.2 4.9 6.9H7Z",
-        "b"
-      ),
-      P(
-        "M17 5.2H19.7C20.5 5.2 21 5.8 20.9 6.6C20.6 9.3 19 10.8 16.6 11.2L16.8 9.4C18.1 9.1 18.9 8.2 19.1 6.9H17Z",
-        "b"
-      ),
+      P("M7 5.2H4.3C3.5 5.2 3 5.8 3.1 6.6C3.4 9.3 5 10.8 7.4 11.2L7.2 9.4C5.9 9.1 5.1 8.2 4.9 6.9H7Z", "b"),
+      P("M17 5.2H19.7C20.5 5.2 21 5.8 20.9 6.6C20.6 9.3 19 10.8 16.6 11.2L16.8 9.4C18.1 9.1 18.9 8.2 19.1 6.9H17Z", "b"),
       R(10.4, 13.2, 3.2, 4.2, 0.8, "b"),
       R(7.2, 17, 9.6, 3.4, 1.4, "b"),
-      P(
-        "M7 3.5H17V8.5C17 11.6 14.8 13.8 12 13.8C9.2 13.8 7 11.6 7 8.5Z",
-        "a"
-      ),
+      P("M7 3.5H17V8.5C17 11.6 14.8 13.8 12 13.8C9.2 13.8 7 11.6 7 8.5Z", "a"),
       P(burst(12, 8.3, 5, 2.7, 1.2), "w", { bare: true }),
     ],
   },
-
   girls: {
-    a: "#FF8FC7",
-    b: "#9B6BFF",
-    c: "#FFE066",
+    a: "#FF8FC7", b: "#9B6BFF", c: "#FFE066",
     s: [
-      P(
-        "M6.2 9.6C6 5.4 8.5 3.2 12 3.2C15.5 3.2 18 5.4 17.8 9.6C17.8 12.6 18.2 14.4 19 15.8L5 15.8C5.8 14.4 6.2 12.6 6.2 9.6Z",
-        "b"
-      ),
+      P("M6.2 9.6C6 5.4 8.5 3.2 12 3.2C15.5 3.2 18 5.4 17.8 9.6C17.8 12.6 18.2 14.4 19 15.8L5 15.8C5.8 14.4 6.2 12.6 6.2 9.6Z", "b"),
       P("M4.6 21.2C5 17.6 7.8 15.8 12 15.8C16.2 15.8 19 17.6 19.4 21.2Z", "a"),
       C(12, 10, 3.9, "s", { flat: true }),
-      P(
-        "M8.1 9.4C8.4 6.6 9.9 5.6 12 5.6C14.1 5.6 15.6 6.6 15.9 9.4C14.6 8.2 13.3 7.7 12 7.7C10.7 7.7 9.4 8.2 8.1 9.4Z",
-        "b",
-        { flat: true }
-      ),
+      P("M8.1 9.4C8.4 6.6 9.9 5.6 12 5.6C14.1 5.6 15.6 6.6 15.9 9.4C14.6 8.2 13.3 7.7 12 7.7C10.7 7.7 9.4 8.2 8.1 9.4Z", "b", { flat: true }),
       C(10.4, 10.5, 0.8, "k", { bare: true }),
       C(13.6, 10.5, 0.8, "k", { bare: true }),
       C(12, 12.1, 0.55, "pk", { bare: true }),
       C(17, 5.2, 2, "c", { flat: true }),
     ],
   },
-
   clicker: {
-    a: "#FFC933",
-    b: "#FF6B5B",
+    a: "#FFC933", b: "#FF6B5B",
     s: [
       P(burst(7, 5.5, 8, 5.4, 3.1), "a"),
       P("M7 5.5V19.5L10.6 16.2L13.1 21.6L15.5 20.5L13.1 15L18 14.8Z", "w"),
     ],
   },
-
   racing: {
-    a: "#3CC4EA",
-    b: "#FF6B5B",
+    a: "#3CC4EA", b: "#FF6B5B", c2: "#FFC933",
     s: [
       R(3.6, 10.3, 6.4, 2.8, 1.3, "b", { flat: true }),
       R(14, 10.3, 6.4, 2.8, 1.3, "b", { flat: true }),
@@ -384,12 +313,9 @@ const ICON_DEFS = {
       C(12, 11.5, 3.1, "c2", { flat: true }),
       C(12, 11.5, 1.2, "w", { bare: true }),
     ],
-    c2: "#FFC933",
   },
-
   multiplayer: {
-    a: "#C77DFF",
-    b: "#4BA3F5",
+    a: "#C77DFF", b: "#4BA3F5",
     s: [
       P("M12.6 19.8C12.9 16 14.6 14 17 14C19.4 14 21.1 16 21.4 19.8Z", "b"),
       C(17, 8.6, 2.9, "s"),
@@ -397,11 +323,8 @@ const ICON_DEFS = {
       C(9, 8.2, 3.5, "s"),
     ],
   },
-
   adventure: {
-    a: "#8FD14F",
-    b: "#FF5C5C",
-    c: "#6B7C93",
+    a: "#8FD14F", b: "#FF5C5C", c: "#6B7C93",
     s: [
       C(12, 11.5, 9.2, "a"),
       C(12, 11.5, 6.4, "w", { flat: true }),
@@ -410,10 +333,8 @@ const ICON_DEFS = {
       C(12, 11.5, 0.9, "w", { bare: true }),
     ],
   },
-
   stickman: {
-    a: "#FF8A47",
-    b: "#4BA3F5",
+    a: "#FF8A47", b: "#4BA3F5",
     s: [
       L("M5.8 12.6L12 9.8L18.2 12.6", "b"),
       L("M12 9.8V14.8", "b"),
@@ -422,10 +343,8 @@ const ICON_DEFS = {
       C(12, 5.4, 3.2, "a"),
     ],
   },
-
   ai: {
-    a: "#A98BFF",
-    b: "#FFC933",
+    a: "#A98BFF", b: "#FFC933",
     s: [
       L("M12 7V3.9", "b"),
       C(12, 3.2, 1.5, "b"),
@@ -438,33 +357,21 @@ const ICON_DEFS = {
       H("M10.7 14.6Q12 15.4 13.3 14.6"),
     ],
   },
-
   cooking: {
-    a: "#FF9A5C",
-    b: "#FFE066",
+    a: "#FF9A5C", b: "#FFE066",
     s: [
       K("M8.4 4.4Q9.6 3.2 8.4 2M15.6 4.4Q16.8 3.2 15.6 2"),
       R(1.6, 11.4, 3, 2.4, 1.2, "d"),
       R(19.4, 11.4, 3, 2.4, 1.2, "d"),
       C(12, 5.5, 1.5, "a"),
-      P(
-        "M4.2 9.6H19.8V17.4C19.8 19 18.6 20.2 17 20.2H7C5.4 20.2 4.2 19 4.2 17.4Z",
-        "a"
-      ),
-      P(
-        "M3.4 9.8C3.4 7.8 7 6.4 12 6.4C17 6.4 20.6 7.8 20.6 9.8Z",
-        "b"
-      ),
+      P("M4.2 9.6H19.8V17.4C19.8 19 18.6 20.2 17 20.2H7C5.4 20.2 4.2 19 4.2 17.4Z", "a"),
+      P("M3.4 9.8C3.4 7.8 7 6.4 12 6.4C17 6.4 20.6 7.8 20.6 9.8Z", "b"),
     ],
   },
-
   horror: {
     a: "#C9B8FF",
     s: [
-      P(
-        "M12 3C7.6 3 4.5 6.2 4.5 10.5V19.5L6.5 17.8L9.2 19.8L12 17.8L14.8 19.8L17.5 17.8L19.5 19.5V10.5C19.5 6.2 16.4 3 12 3Z",
-        "a"
-      ),
+      P("M12 3C7.6 3 4.5 6.2 4.5 10.5V19.5L6.5 17.8L9.2 19.8L12 17.8L14.8 19.8L17.5 17.8L19.5 19.5V10.5C19.5 6.2 16.4 3 12 3Z", "a"),
       E(9.3, 10.2, 1.2, 1.7, "k", { bare: true }),
       E(14.7, 10.2, 1.2, 1.7, "k", { bare: true }),
       E(12, 14.2, 1.5, 1.9, "k", { bare: true }),
@@ -472,7 +379,6 @@ const ICON_DEFS = {
       C(16.7, 13, 1.1, "pk", { bare: true }),
     ],
   },
-
   football: {
     a: "#32B96B",
     s: [
@@ -481,10 +387,8 @@ const ICON_DEFS = {
       K(seams(12, 11.5, 3.3, 8.2)),
     ],
   },
-
   simulator: {
-    a: "#5BB7D6",
-    b: "#FFC933",
+    a: "#5BB7D6", b: "#FFC933",
     s: [
       R(10.4, 15.6, 3.2, 3.8, 0.6, "b", { flat: true }),
       R(7, 18.8, 10, 2.4, 1.2, "b"),
@@ -493,11 +397,8 @@ const ICON_DEFS = {
       P("M10.5 7.8V12L14.3 9.9Z", "b", { flat: true }),
     ],
   },
-
   bike: {
-    a: "#FF8A47",
-    b: "#FFE066",
-    c: "#4BA3F5",
+    a: "#FF8A47", b: "#FFE066", c: "#4BA3F5",
     s: [
       ring(6, 16.6, 4.6, 2.7, "c"),
       ring(18, 16.6, 4.6, 2.7, "c"),
@@ -506,10 +407,8 @@ const ICON_DEFS = {
       R(7.2, 6.4, 4.6, 2, 1, "b", { flat: true }),
     ],
   },
-
   casual: {
-    a: "#FFD23F",
-    b: "#FF9EC0",
+    a: "#FFD23F", b: "#FF9EC0",
     s: [
       C(12, 11.5, 9, "a"),
       C(6.9, 13.2, 1.4, "pk", { bare: true }),
@@ -519,11 +418,8 @@ const ICON_DEFS = {
       K("M8 13.6C8.9 15.9 10.3 16.8 12 16.8S15.1 15.9 16 13.6"),
     ],
   },
-
   "2 player": {
-    a: "#FF7A9C",
-    b: "#4BA3F5",
-    c: "#FFC933",
+    a: "#FF7A9C", b: "#4BA3F5", c: "#FFC933",
     s: [
       P("M2.2 20.6C2.5 16.4 4.6 14.4 7.3 14.4C10 14.4 12.1 16.4 12.4 20.6Z", "a"),
       C(7.3, 9, 3.1, "s"),
@@ -532,15 +428,10 @@ const ICON_DEFS = {
       P(burst(12, 3.9, 5, 2.8, 1.3), "c"),
     ],
   },
-
   car: {
-    a: "#FF6F7D",
-    b: "#FFE066",
+    a: "#FF6F7D", b: "#FFE066",
     s: [
-      P(
-        "M2.6 16.2V12.6C2.6 11.6 3.1 10.8 4 10.4L6 6.8C6.5 5.9 7.3 5.4 8.3 5.4H15.7C16.7 5.4 17.5 5.9 18 6.8L20 10.4C20.9 10.8 21.4 11.6 21.4 12.6V16.2C21.4 17 20.8 17.6 20 17.6H4C3.2 17.6 2.6 17 2.6 16.2Z",
-        "a"
-      ),
+      P("M2.6 16.2V12.6C2.6 11.6 3.1 10.8 4 10.4L6 6.8C6.5 5.9 7.3 5.4 8.3 5.4H15.7C16.7 5.4 17.5 5.9 18 6.8L20 10.4C20.9 10.8 21.4 11.6 21.4 12.6V16.2C21.4 17 20.8 17.6 20 17.6H4C3.2 17.6 2.6 17 2.6 16.2Z", "a"),
       P("M8.3 7.2H11.3V10.2H6.2Z", "sky", { flat: true }),
       P("M12.7 7.2H15.7L17.8 10.2H12.7Z", "sky", { flat: true }),
       C(4.6, 13.4, 1.1, "b", { bare: true }),
@@ -551,15 +442,10 @@ const ICON_DEFS = {
       C(17, 17.8, 1, "w", { bare: true }),
     ],
   },
-
   dressup: {
-    a: "#FF7EB6",
-    b: "#FFE066",
+    a: "#FF7EB6", b: "#FFE066",
     s: [
-      P(
-        "M9 3C9 5 10.3 6.2 12 6.2C13.7 6.2 15 5 15 3L16.6 3.8L15.8 9.4L20.2 20C20.4 20.6 20 21 19.4 21H4.6C4 21 3.6 20.6 3.8 20L8.2 9.4L7.4 3.8Z",
-        "a"
-      ),
+      P("M9 3C9 5 10.3 6.2 12 6.2C13.7 6.2 15 5 15 3L16.6 3.8L15.8 9.4L20.2 20C20.4 20.6 20 21 19.4 21H4.6C4 21 3.6 20.6 3.8 20L8.2 9.4L7.4 3.8Z", "a"),
       P("M8.2 9.6H15.8L15.4 11.6H8.6Z", "b"),
       C(7.8, 17, 0.9, "w", { bare: true }),
       C(12, 15.4, 0.9, "w", { bare: true }),
@@ -568,11 +454,8 @@ const ICON_DEFS = {
       C(14.4, 19.2, 0.8, "w", { bare: true }),
     ],
   },
-
   bubble: {
-    a: "#5CC8FF",
-    b: "#FF8FC7",
-    c: "#2ED9A3",
+    a: "#5CC8FF", b: "#FF8FC7", c: "#2ED9A3",
     s: [
       C(9.8, 10.8, 6.8, "a"),
       C(17.6, 17, 3.6, "b"),
@@ -581,11 +464,8 @@ const ICON_DEFS = {
       H("M16.5 15.6Q17 15 17.9 14.8"),
     ],
   },
-
   match3: {
-    a: "#FF6BB5",
-    b: "#4BA3F5",
-    c: "#2ED9A3",
+    a: "#FF6BB5", b: "#4BA3F5", c: "#2ED9A3",
     s: [
       P(gem(7.2, 7.6, 4.4, 4.2), "a"),
       K("M2.8 6.55H11.6"),
@@ -595,39 +475,23 @@ const ICON_DEFS = {
       K("M7.4 14.9H16.6"),
     ],
   },
-
-  /* ── extra icons used by the Home page headings ── */
   recent: {
-    a: "#4BA3F5",
-    b: "#FFE066",
+    a: "#4BA3F5", b: "#FFE066",
     s: [
       C(12, 11.5, 9.2, "a"),
       P("M10 7.4L16.6 11.5L10 15.6Z", "b", { flat: true }),
     ],
   },
-
   fresh: {
-    a: "#FFC933",
-    b: "#FF7EB6",
-    c: "#5CC8FF",
+    a: "#FFC933", b: "#FF7EB6", c: "#5CC8FF",
     s: [
-      P(
-        "M11.2 1.8C12 7 13.8 9 19 10.4C13.8 11.8 12 13.8 11.2 19C10.4 13.8 8.6 11.8 3.4 10.4C8.6 9 10.4 7 11.2 1.8Z",
-        "a"
-      ),
-      P(
-        "M19 14.2C19.3 16.2 20 16.9 22 17.3C20 17.7 19.3 18.4 19 20.4C18.7 18.4 18 17.7 16 17.3C18 16.9 18.7 16.2 19 14.2Z",
-        "b",
-        { flat: true }
-      ),
+      P("M11.2 1.8C12 7 13.8 9 19 10.4C13.8 11.8 12 13.8 11.2 19C10.4 13.8 8.6 11.8 3.4 10.4C8.6 9 10.4 7 11.2 1.8Z", "a"),
+      P("M19 14.2C19.3 16.2 20 16.9 22 17.3C20 17.7 19.3 18.4 19 20.4C18.7 18.4 18 17.7 16 17.3C18 16.9 18.7 16.2 19 14.2Z", "b", { flat: true }),
       C(5.2, 18.6, 1.6, "c", { flat: true }),
     ],
   },
-
   gift: {
-    a: "#FF6B5B",
-    b: "#FFE066",
-    c: "#9B7BFF",
+    a: "#FF6B5B", b: "#FFE066", c: "#9B7BFF",
     s: [
       R(4, 11, 16, 10, 2, "a"),
       R(2.6, 7.4, 18.8, 4.8, 1.8, "c"),
@@ -636,84 +500,62 @@ const ICON_DEFS = {
       P("M12 7.4C14.8 7.4 16.8 6.6 16.8 5C16.8 3.4 14.4 3.2 12 7.4Z", "b", { flat: true }),
     ],
   },
-
   search: {
-    a: "#4BA3F5",
-    b: "#FF9A5C",
+    a: "#4BA3F5", b: "#FF9A5C",
     s: [
       L("M16.4 16.4L21 21", "b"),
       ring(10.4, 10.4, 8, 4.8, "a"),
       H("M6.8 8.6Q7.6 6.8 9.6 6.2"),
     ],
   },
-
-  /* ── UI icons (topbar, buttons) — same crayon look ── */
   "ui-profile": {
-    a: "#FFB84D",
-    b: "#4BA3F5",
+    a: "#FFB84D", b: "#4BA3F5",
     s: [
       P("M3.4 21.6C3.4 16.6 7.2 14.4 12 14.4C16.8 14.4 20.6 16.6 20.6 21.6Z", "b"),
       C(12, 8, 5.2, "a"),
       H("M8.8 6.2Q9.6 4.8 11.2 4.5"),
     ],
   },
-
   "ui-menu": {
-    a: "#FF7A6B",
-    b: "#FFC933",
-    c: "#4BA3F5",
+    a: "#FF7A6B", b: "#FFC933", c: "#4BA3F5",
     s: [
       R(3, 3.4, 18, 4.2, 2.1, "a"),
       R(3, 9.9, 18, 4.2, 2.1, "b"),
       R(3, 16.4, 18, 4.2, 2.1, "c"),
     ],
   },
-
   "ui-close": {
     a: "#FF6B7F",
     s: [L("M5.6 5.6L18.4 18.4", "a"), L("M18.4 5.6L5.6 18.4", "a")],
   },
-
   "ui-up": {
     a: "#2ED9A3",
     s: [P("M12 2.8L21.2 13H15.4V21H8.6V13H2.8Z", "a")],
   },
-
   "ui-down": {
     a: "#2ED9A3",
     s: [P("M12 21.2L2.8 11H8.6V3H15.4V11H21.2Z", "a")],
   },
-
   "ui-next": {
     a: "#4BA3F5",
     s: [L("M8.6 4.4L16.2 12L8.6 19.6", "a")],
   },
-
   "ui-prev": {
     a: "#4BA3F5",
     s: [L("M15.4 4.4L7.8 12L15.4 19.6", "a")],
   },
-
   "ui-bell": {
-    a: "#FFC933",
-    b: "#FF6B7F",
+    a: "#FFC933", b: "#FF6B7F",
     s: [
-      P(
-        "M12 2.6C8.2 2.6 6 5.4 6 9V12.4C6 14.3 5 15.5 3.8 16.7H20.2C19 15.5 18 14.3 18 12.4V9C18 5.4 15.8 2.6 12 2.6Z",
-        "a"
-      ),
+      P("M12 2.6C8.2 2.6 6 5.4 6 9V12.4C6 14.3 5 15.5 3.8 16.7H20.2C19 15.5 18 14.3 18 12.4V9C18 5.4 15.8 2.6 12 2.6Z", "a"),
       P("M9.4 18.6H14.6C14.3 20.2 13.3 21.2 12 21.2C10.7 21.2 9.7 20.2 9.4 18.6Z", "b"),
       H("M8.4 9Q8.6 6.6 10.6 5.2"),
     ],
   },
-
   "ui-heart": {
     a: "#FF5C8A",
     s: [
-      P(
-        "M12 21C5 15.6 2.6 12.2 2.6 8.6C2.6 5.8 4.7 3.8 7.2 3.8C9.2 3.8 11 5 12 6.8C13 5 14.8 3.8 16.8 3.8C19.3 3.8 21.4 5.8 21.4 8.6C21.4 12.2 19 15.6 12 21Z",
-        "a"
-      ),
+      P("M12 21C5 15.6 2.6 12.2 2.6 8.6C2.6 5.8 4.7 3.8 7.2 3.8C9.2 3.8 11 5 12 6.8C13 5 14.8 3.8 16.8 3.8C19.3 3.8 21.4 5.8 21.4 8.6C21.4 12.2 19 15.6 12 21Z", "a"),
       H("M6.2 8.2Q6.6 6.6 8.2 6.2"),
     ],
   },
@@ -729,17 +571,16 @@ const DEFAULT_DEF = {
 };
 
 /* ═══════════════════════════════════════════
-   ICON RENDERER — extrusion + outline + gloss
+   ICON RENDERER
 ═══════════════════════════════════════════ */
-const SW = 1.25; // outline width
-const SWF = 1.05; // flat (inner detail) outline width
-const LW = 2.5; // coloured line width
-const LO = 4; // line outline width
-const DEPTH = 1.1; // 3D thickness
+const SW = 1.25;
+const SWF = 1.05;
+const LW = 2.5;
+const LO = 4;
+const DEPTH = 1.1;
 
 const resolve = (role, def) => FIXED[role] || def[role] || role;
 
-/* `key` is passed separately: React forbids a key inside a spread */
 const geo = (s, props, key) => {
   switch (s.t) {
     case "circle":
@@ -767,12 +608,11 @@ const geo = (s, props, key) => {
 
 const buildIcon = (def) => {
   const base = def.a;
-  const glow = shade(base, 0.62); // tinted soft shadow colour
+  const glow = shade(base, 0.62);
   const solid = def.s.filter(
     (s) => s.t !== "ink" && s.t !== "hl" && !s.bare && !s.flat
   );
 
-  /* soft coloured ground shadow (no black) */
   const shadow = solid.map((s, i) =>
     s.t === "line" ? (
       <path
@@ -815,8 +655,8 @@ const buildIcon = (def) => {
 
     const raw = resolve(s.c, def);
     const face = mix(raw, "#ffffff", 0.1);
-    const edge = shade(raw, 0.4, 1.05); // hue-matched outline
-    const deep = shade(raw, 0.52, 1.02); // extrusion side
+    const edge = shade(raw, 0.4, 1.05);
+    const deep = shade(raw, 0.52, 1.02);
 
     if (s.t === "line") {
       return (
@@ -1005,7 +845,6 @@ const FALLBACK_COLORS = [
 
 const ICON_CACHE = new Map();
 
-/* returns { icon (svg element), base (main colour) } */
 const getIconFor = (category) => {
   const key = normalizeKey(category);
   const mapped = ALIASES[key] || key;
@@ -1038,7 +877,6 @@ const CloseIcon = () => (
   </span>
 );
 
-/* tiny crayon that pops in next to the active item */
 const MiniCrayon = () => (
   <svg
     className="sx-pencil"
@@ -1099,6 +937,7 @@ function Sidebar({
 
   const navRef = useRef(null);
   const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
 
   /* enable transitions only after first paint */
   useEffect(() => {
@@ -1112,7 +951,7 @@ function Sidebar({
     };
   }, []);
 
-  /* sidebar is always expanded now — tell Home */
+  /* sidebar is always expanded — tell Home */
   useEffect(() => {
     try {
       window.dispatchEvent(
@@ -1129,8 +968,12 @@ function Sidebar({
     const mq = window.matchMedia("(max-width: 900px)");
     const apply = () => setIsMobile(mq.matches);
     apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    if (mq.addEventListener) {
+      mq.addEventListener("change", apply);
+      return () => mq.removeEventListener("change", apply);
+    }
+    mq.addListener(apply);
+    return () => mq.removeListener(apply);
   }, []);
 
   const handlePick = useCallback(
@@ -1151,17 +994,7 @@ function Sidebar({
     return () => window.removeEventListener("keydown", onKey);
   }, [isMobile, open, onClose]);
 
-  /* Lock page scroll while the mobile drawer is open */
-  useEffect(() => {
-    if (!isMobile || !open) return undefined;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [isMobile, open]);
-
-  /* Keep the active item visible inside the scrolling nav */
+  /* Auto-scroll active item into view */
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
@@ -1179,17 +1012,27 @@ function Sidebar({
     }
   }, [activeCategory, categories.length]);
 
-  /* Swipe left to close (mobile) */
+  /* Swipe left to close (mobile) — horizontal-only detection */
   const onTouchStart = useCallback((e) => {
-    touchStartX.current = e.touches?.[0]?.clientX ?? null;
+    const t = e.touches?.[0];
+    if (!t) return;
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
   }, []);
+
   const onTouchEnd = useCallback(
     (e) => {
-      if (touchStartX.current == null) return;
-      const endX = e.changedTouches?.[0]?.clientX ?? touchStartX.current;
-      const dx = endX - touchStartX.current;
+      if (touchStartX.current == null || touchStartY.current == null) return;
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const dx = t.clientX - touchStartX.current;
+      const dy = t.clientY - touchStartY.current;
       touchStartX.current = null;
-      if (isMobile && open && dx < -60) onClose?.();
+      touchStartY.current = null;
+      /* only treat as swipe if mostly horizontal and long enough */
+      if (isMobile && open && Math.abs(dx) > Math.abs(dy) && dx < -70) {
+        onClose?.();
+      }
     },
     [isMobile, open, onClose]
   );
@@ -1198,11 +1041,13 @@ function Sidebar({
   if (ready) classes.push("sx-ready");
   if (isMobile && open) classes.push("sidebar-open", "sx-open");
 
+  const showScrim = isMobile && open;
+
   return (
     <>
       <CrayonDefs />
 
-      {open && (
+      {showScrim && (
         <div
           className="sx-scrim"
           role="button"
@@ -1218,7 +1063,10 @@ function Sidebar({
       <aside
         className={classes.join(" ")}
         aria-label="Game categories"
+        aria-hidden={isMobile && !open ? "true" : undefined}
         data-collapsed="false"
+        data-mobile={isMobile ? "true" : "false"}
+        data-open={open ? "true" : "false"}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -1270,7 +1118,6 @@ function Sidebar({
   );
 }
 
-/* used by Home.js so page headings share the same crayon icon set */
 export const getCategoryIcon = (category) => getIconFor(category).icon;
 
 export default memo(Sidebar);

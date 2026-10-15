@@ -1,916 +1,485 @@
 /* =========================================================
-
-   SHARX SIDEBAR â€” COMPLETE STANDALONE CSS
-
-   Works with the sx-* class names used by Sidebar.js.
-
+   SHARX SIDEBAR — COMPLETE STANDALONE CSS
+   Smooth drawer · fast · no jank · enhanced crayon vibe
 ========================================================= */
 
-
-
 :root {
-
   --sx-paper: var(--paper, #fffdf2);
-
   --sx-ink: var(--ink, #1b2a41);
-
   --sx-muted: #6b6875;
-
   --sx-line: rgba(27, 42, 65, 0.13);
-
   --sx-shadow: 0 12px 34px rgba(20, 25, 38, 0.12);
-
   --sx-sidebar-width: 248px;
-
 }
 
-
-
-/* Sidebar shell â€” desktop */
-
+/* ═════════════════════════════════════════════════════════
+   SIDEBAR SHELL — desktop
+═════════════════════════════════════════════════════════ */
 .sx-aside {
-
   box-sizing: border-box;
-
   position: sticky;
-
   top: 0;
-
   align-self: flex-start;
-
   display: flex;
-
   flex: 0 0 var(--sx-sidebar-width);
-
   flex-direction: column;
-
   width: var(--sx-sidebar-width);
-
   min-width: var(--sx-sidebar-width);
-
   height: 100vh;
-
   height: 100dvh;
-
   max-height: 100dvh;
-
   padding: 14px 10px 18px;
-
   overflow: hidden;
-
   color: var(--sx-ink);
-
   background: var(--sx-paper);
-
   border-right: 1px solid var(--sx-line);
-
   isolation: isolate;
-
   z-index: 30;
-
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: layout style;
 }
-
-
 
 .sx-aside,
-
 .sx-aside * {
-
   box-sizing: border-box;
-
 }
 
-
-
-/* Brand / logo area */
-
+/* ═════════════════════════════════════════════════════════
+   BRAND / LOGO AREA
+═════════════════════════════════════════════════════════ */
 .sx-brand {
-
   position: relative;
-
   display: flex;
-
   flex: 0 0 auto;
-
   align-items: center;
-
   justify-content: center;
-
   min-height: 82px;
-
   margin: 0 0 12px;
-
   padding: 4px 38px;
-
 }
-
-
 
 .sx-logo {
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   width: 76px;
-
   height: 76px;
-
   max-width: 100%;
-
   overflow: hidden;
-
+  transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.4, 1);
 }
-
-
+.sx-logo:hover {
+  transform: scale(1.06) rotate(-2deg);
+}
 
 .sx-logo img {
-
   display: block;
-
   width: 100%;
-
   height: 100%;
-
   object-fit: contain;
-
 }
 
-
-
-/* Close button: hidden on desktop, visible in mobile drawer */
-
+/* ═════════════════════════════════════════════════════════
+   CLOSE BUTTON (mobile only)
+═════════════════════════════════════════════════════════ */
 .sx-close {
-
   display: none;
-
   appearance: none;
-
   border: 2px solid var(--sx-ink);
-
   border-radius: 50%;
-
   width: 38px;
-
   height: 38px;
-
   padding: 7px;
-
   color: var(--sx-ink);
-
   background: var(--sx-paper);
-
   box-shadow: 2px 3px 0 rgba(27, 42, 65, 0.15);
-
   cursor: pointer;
-
   -webkit-tap-highlight-color: transparent;
-
+  transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.4, 1),
+              box-shadow 0.2s ease;
 }
-
-
 
 .sx-close:hover {
-
-  transform: translateY(-1px);
-
-  box-shadow: 2px 4px 0 rgba(27, 42, 65, 0.18);
-
+  transform: translate3d(-1px, -1px, 0);
+  box-shadow: 3px 4px 0 rgba(27, 42, 65, 0.2);
 }
-
-
 
 .sx-close:active {
-
-  transform: translateY(1px);
-
+  transform: translate3d(1px, 1px, 0);
   box-shadow: 1px 1px 0 rgba(27, 42, 65, 0.14);
-
 }
-
-
 
 .sx-close-ico {
-
   display: flex;
-
   width: 100%;
-
   height: 100%;
-
   align-items: center;
-
   justify-content: center;
-
 }
-
-
 
 .sx-close-ico svg {
-
   display: block;
-
   width: 100%;
-
   height: 100%;
-
   overflow: visible;
-
 }
 
-
-
-/* Scrollable categories list */
-
+/* ═════════════════════════════════════════════════════════
+   SCROLLABLE CATEGORIES LIST
+═════════════════════════════════════════════════════════ */
 .sx-nav {
-
   display: flex;
-
   flex: 1 1 auto;
-
   flex-direction: column;
-
   gap: 5px;
-
   min-height: 0;
-
   width: 100%;
-
   padding: 4px 2px 12px;
-
   overflow-x: hidden;
-
   overflow-y: auto;
-
   overscroll-behavior: contain;
-
   -webkit-overflow-scrolling: touch;
-
+  touch-action: pan-y;
   scrollbar-width: thin;
-
   scrollbar-color: rgba(27, 42, 65, 0.25) transparent;
-
 }
 
-
-
-.sx-nav::-webkit-scrollbar {
-
-  width: 5px;
-
-}
-
-
-
-.sx-nav::-webkit-scrollbar-track {
-
-  background: transparent;
-
-}
-
-
-
+.sx-nav::-webkit-scrollbar { width: 5px; }
+.sx-nav::-webkit-scrollbar-track { background: transparent; }
 .sx-nav::-webkit-scrollbar-thumb {
-
   background: rgba(27, 42, 65, 0.22);
-
   border-radius: 99px;
-
 }
 
-
-
-/* Category row */
-
+/* ═════════════════════════════════════════════════════════
+   CATEGORY ROW
+═════════════════════════════════════════════════════════ */
 .sx-item {
-
   --tile: #ffc933;
-
   --tile-soft: #fff0bb;
-
   --tile-wash: rgba(255, 201, 51, 0.24);
-
   appearance: none;
-
   position: relative;
-
   display: flex;
-
   flex: 0 0 auto;
-
   align-items: center;
-
   gap: 12px;
-
   width: 100%;
-
   min-height: 48px;
-
   margin: 0;
-
   padding: 7px 12px;
-
   overflow: hidden;
-
   border: 2px solid transparent;
-
   border-radius: 15px;
-
   color: var(--sx-ink);
-
   background: transparent;
-
   font: inherit;
-
   font-size: 14px;
-
   font-weight: 650;
-
   line-height: 1.2;
-
   text-align: left;
-
   cursor: pointer;
-
   user-select: none;
-
   -webkit-tap-highlight-color: transparent;
-
-  transition: background 160ms ease, border-color 160ms ease,
-
-    transform 160ms ease, box-shadow 160ms ease;
-
+  transition: background 0.16s ease, border-color 0.16s ease,
+              transform 0.16s ease, box-shadow 0.16s ease;
+  will-change: transform;
 }
-
-
 
 .sx-item:hover {
-
   background: var(--tile-wash);
-
   border-color: color-mix(in srgb, var(--tile) 42%, transparent);
-
   transform: translateX(2px);
-
 }
-
-
 
 .sx-item:focus-visible {
-
   outline: 3px solid color-mix(in srgb, var(--tile) 70%, #ffffff);
-
   outline-offset: 2px;
-
 }
-
-
 
 .sx-item:active {
-
   transform: scale(0.985);
-
+  transition-duration: 0.06s;
 }
-
-
 
 .sx-item-on {
-
   border-color: color-mix(in srgb, var(--tile) 72%, var(--sx-ink));
-
   background: var(--tile-wash);
-
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.48),
-
-    0 3px 0 rgba(27, 42, 65, 0.08);
-
+              0 3px 0 rgba(27, 42, 65, 0.08);
 }
-
-
 
 .sx-item-on:hover {
-
   background: var(--tile-wash);
-
 }
 
-
-
-/* Crayon icon container */
-
+/* ═════════════════════════════════════════════════════════
+   CRAYON ICON CONTAINER
+═════════════════════════════════════════════════════════ */
 .sx-ico {
-
   position: relative;
-
   display: flex;
-
   flex: 0 0 38px;
-
   flex-shrink: 0;
-
   align-items: center;
-
   justify-content: center;
-
   width: 38px;
-
   height: 38px;
-
   aspect-ratio: 1 / 1;
-
   overflow: visible;
-
   border-radius: 50%;
-
   background: color-mix(in srgb, var(--tile-soft) 62%, #ffffff);
-
   border: 1px solid color-mix(in srgb, var(--tile) 24%, transparent);
-
-  transition: transform 160ms ease;
-
+  transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.4, 1);
+  will-change: transform;
 }
-
-
 
 .sx-ico svg {
-
   display: block;
-
   flex: 0 0 auto;
-
   width: 30px;
-
   height: 30px;
-
   max-width: 100%;
-
   max-height: 100%;
-
   overflow: visible;
-
   pointer-events: none;
-
   filter: drop-shadow(0 1px 0 rgba(27, 42, 65, 0.13));
-
 }
-
-
 
 .sx-item:hover .sx-ico {
-
-  transform: rotate(-3deg) scale(1.06);
-
+  transform: rotate(-5deg) scale(1.08);
 }
-
-
 
 .sx-item-on .sx-ico {
-
-  transform: rotate(-2deg) scale(1.04);
-
+  transform: rotate(-3deg) scale(1.06);
 }
 
-
-
+/* ═════════════════════════════════════════════════════════
+   LABEL
+═════════════════════════════════════════════════════════ */
 .sx-label {
-
   display: block;
-
   flex: 1 1 auto;
-
   min-width: 0;
-
   overflow: hidden;
-
   color: inherit;
-
   font-size: 14px;
-
   font-weight: 650;
-
   text-overflow: ellipsis;
-
   white-space: nowrap;
-
 }
 
-
-
-/* Tiny crayon marker for the selected category */
-
+/* ═════════════════════════════════════════════════════════
+   MINI CRAYON (selected marker)
+═════════════════════════════════════════════════════════ */
 .sx-pencil {
-
   display: block;
-
   flex: 0 0 30px;
-
   width: 30px;
-
   height: 12px;
-
   margin-left: auto;
-
   overflow: visible;
-
-  animation: sx-pencil-pop 220ms cubic-bezier(.2, .8, .2, 1) both;
-
+  animation: sx-pencil-pop 240ms cubic-bezier(0.34, 1.4, 0.4, 1) both;
 }
-
-
 
 .sx-pencil-body {
-
   fill: var(--tile, #ffc933);
-
   stroke: var(--sx-ink);
-
   stroke-width: 1.15;
-
   stroke-linejoin: round;
-
 }
-
-
-
 .sx-pencil-band {
-
   fill: #fffdf2;
-
   stroke: var(--sx-ink);
-
   stroke-width: 0.8;
-
 }
-
-
-
 .sx-pencil-tip {
-
   fill: #f4d7a4;
-
   stroke: var(--sx-ink);
-
   stroke-width: 0.9;
-
   stroke-linejoin: round;
-
 }
-
-
 
 @keyframes sx-pencil-pop {
-
-  from { opacity: 0; transform: translateX(4px) scale(0.8); }
-
-  to { opacity: 1; transform: translateX(0) scale(1); }
-
+  from { opacity: 0; transform: translateX(6px) scale(0.6) rotate(-25deg); }
+  to   { opacity: 1; transform: translateX(0) scale(1) rotate(0); }
 }
 
-
-
-/* Mobile backdrop */
-
+/* ═════════════════════════════════════════════════════════
+   SCRIM (mobile backdrop)
+═════════════════════════════════════════════════════════ */
 .sx-scrim {
-
   display: none;
-
 }
 
-
-
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
-   TABLET / MOBILE DRAWER
-
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-
+/* ═════════════════════════════════════════════════════════
+   MOBILE DRAWER — smooth, no jank
+═════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
-
   .sx-aside {
-
     position: fixed;
-
     top: 0;
-
     bottom: 0;
-
     left: 0;
-
     right: auto;
-
     display: flex;
-
     flex: none;
-
     width: min(84vw, 326px);
-
     min-width: 0;
-
     max-width: calc(100vw - 42px);
-
     height: 100vh;
-
     height: 100dvh;
-
     max-height: 100dvh;
-
     margin: 0;
-
     padding: 12px 10px max(12px, env(safe-area-inset-bottom));
-
     overflow: hidden;
-
     background: var(--sx-paper);
-
     border: 0;
-
     border-right: 2px solid var(--sx-ink);
-
     border-radius: 0 22px 22px 0;
-
     box-shadow: 7px 0 0 rgba(0, 0, 0, 0.14),
-
-      14px 0 36px rgba(0, 0, 0, 0.22);
-
-    z-index: 9999;
-
+                14px 0 36px rgba(0, 0, 0, 0.22);
+    z-index: 1002;
     transform: translate3d(calc(-100% - 18px), 0, 0);
-
     visibility: hidden;
-
     opacity: 0;
-
     pointer-events: none;
-
-    transition: transform 240ms cubic-bezier(.2, .8, .2, 1),
-
-      opacity 180ms ease, visibility 180ms ease;
-
+    will-change: transform, opacity;
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 220ms ease,
+      visibility 260ms ease;
+    contain: layout style paint;
   }
-
-
 
   .sx-aside.sx-open,
-
   .sx-aside.sidebar-open {
-
     transform: translate3d(0, 0, 0);
-
     visibility: visible;
-
     opacity: 1;
-
     pointer-events: auto;
-
   }
-
-
 
   .sx-aside:not(.sx-open):not(.sidebar-open) {
-
     pointer-events: none !important;
-
   }
 
-
-
+  /* Scrim — no blur (kills mobile GPU jank) */
   .sx-scrim {
-
     display: block;
-
     position: fixed;
-
     inset: 0;
-
     width: 100vw;
-
     height: 100vh;
-
     height: 100dvh;
-
     margin: 0;
-
     padding: 0;
-
     border: 0;
-
     border-radius: 0;
-
-    background: rgba(12, 14, 20, 0.42);
-
+    background: rgba(20, 22, 31, 0.42);
     opacity: 1;
-
     visibility: visible;
-
     pointer-events: auto;
-
-    z-index: 9998;
-
+    z-index: 1001;
     cursor: default;
-
     contain: paint;
-
+    touch-action: pan-y;
     -webkit-backdrop-filter: none !important;
-
     backdrop-filter: none !important;
-
+    animation: sx-scrim-in 200ms ease both;
   }
 
-
+  @keyframes sx-scrim-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
 
   .sx-brand {
-
     min-height: 72px;
-
     margin-bottom: 8px;
-
     padding-right: 38px;
-
   }
-
-
 
   .sx-logo {
-
     width: 68px;
-
     height: 68px;
-
   }
-
-
 
   .sx-close {
-
     position: absolute;
-
     top: 8px;
-
     right: 2px;
-
     z-index: 3;
-
     display: inline-flex;
-
     align-items: center;
-
     justify-content: center;
-
   }
-
-
 
   .sx-nav {
-
     flex: 1 1 auto;
-
     min-height: 0;
-
     height: auto;
-
     padding: 8px 4px 14px;
-
     overflow-x: hidden;
-
     overflow-y: auto;
-
     overscroll-behavior: contain;
-
     -webkit-overflow-scrolling: touch;
-
     touch-action: pan-y;
-
   }
-
-
 
   .sx-item {
-
     width: 100%;
-
     min-height: 46px;
-
     opacity: 1;
-
     visibility: visible;
-
   }
-
 }
 
-
-
-/* Compact phones */
-
+/* ═════════════════════════════════════════════════════════
+   COMPACT PHONES
+═════════════════════════════════════════════════════════ */
 @media (max-width: 380px) {
-
   .sx-aside {
-
     width: min(88vw, 310px);
-
   }
-
-
 
   .sx-item {
-
     gap: 9px;
-
     padding-right: 9px;
-
     padding-left: 9px;
-
   }
-
-
 
   .sx-ico {
-
     flex-basis: 35px;
-
     width: 35px;
-
     height: 35px;
-
     border-radius: 50%;
-
   }
-
-
 
   .sx-ico svg {
-
     width: 28px;
-
     height: 28px;
-
   }
-
-
 
   .sx-label {
-
     font-size: 13px;
-
   }
-
 }
 
-
-
-/* Respect reduced-motion settings */
-
+/* ═════════════════════════════════════════════════════════
+   REDUCED MOTION
+═════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-
   .sx-aside,
-
   .sx-item,
-
   .sx-ico,
-
   .sx-close,
-
-  .sx-scrim {
-
+  .sx-scrim,
+  .sx-logo,
+  .sx-pencil {
     transition: none !important;
-
     animation: none !important;
-
     scroll-behavior: auto !important;
-
   }
-
-}
-
-/* SHARX drawer reliability overrides */
-.sx-aside {
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-.sx-aside .sx-nav, .sx-aside .sx-sidebar-nav, .sx-aside .sidebar-nav {
-  min-height: 0;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-@media (max-width: 900px) {
-  .sx-aside {
-    z-index: 1002;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    transition: transform 240ms cubic-bezier(.22,1,.36,1), visibility 240ms ease;
-  }
-  .sx-scrim {
-    z-index: 1001;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(20, 22, 31, .42);
-    touch-action: pan-y;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .sx-aside, .sx-scrim { transition: none !important; animation: none !important; }
 }

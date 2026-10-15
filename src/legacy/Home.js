@@ -1,11 +1,6 @@
 "use client";
 
 // src/legacy/Home.js — SHARX · Crayon · Clean · Playful
-//
-// Homepage shows ONLY: Trending (horizontal) + All Games (grid)
-// • Event strip + big banner are ONE merged card (tap strip → stretches down)
-// • Mobile drawer: hard scroll-lock (iOS safe) + no blur bleed
-// • Topbar / back-to-top / more-games use bare crayon icons (sidebar style)
 
 import React, {
   useState,
@@ -26,8 +21,10 @@ import Sidebar, { getCategoryIcon } from "./Sidebar";
 import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
+import { FounderNoteCard, FounderNoteModal } from "./FounderNote";
 import "./Home.css";
 import "./Homeextras.css";
+import "./FounderNote.css";
 
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
 const SidePanel = lazy(() => import("./SidePanel"));
@@ -42,7 +39,7 @@ const ALL_PAGE_SIZE = 24;
 const PAGE_SIZE = 50;
 const ANIMATED_CARDS = 12;
 
-const TO_TOP_AT = 700;
+const TO_TOP_AT = 600;
 
 /* event strip */
 const EVENT_START_ISO = null;
@@ -153,19 +150,7 @@ const slugify = (title = "") =>
     .replace(/^-+|-+$/g, "");
 
 /* ─────────────────────────────────────────────
-   SHARED CRAYON ICON HELPER
-───────────────────────────────────────────── */
-const CI = memo(function CI({ name, className = "" }) {
-  return (
-    <span className={`crayon-ico ${className}`} aria-hidden="true">
-      {getCategoryIcon(name)}
-    </span>
-  );
-});
-
-/* ─────────────────────────────────────────────
-   INK ICONS — plain black, hand-drawn crayon strokes
-   (slightly wobbly paths, round caps, no filters = fast)
+   INK ICONS
 ───────────────────────────────────────────── */
 const INK_ICONS = {
   menu: "M100,36H56A20,20,0,0,0,36,56v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V56A20,20,0,0,0,100,36ZM96,96H60V60H96ZM200,36H156a20,20,0,0,0-20,20v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V56A20,20,0,0,0,200,36Zm-4,60H160V60h36Zm-96,40H56a20,20,0,0,0-20,20v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V156A20,20,0,0,0,100,136Zm-4,60H60V160H96Zm104-60H156a20,20,0,0,0-20,20v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V156A20,20,0,0,0,200,136Zm-4,60H160V160h36Z",
@@ -176,7 +161,6 @@ const INK_ICONS = {
   down: "M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z",
 };
 
-/* Phosphor Icons (MIT) — simple black bold glyphs */
 const InkIcon = memo(function InkIcon({ name, className = "" }) {
   const d = INK_ICONS[name];
   if (!d) return null;
@@ -193,25 +177,19 @@ const InkIcon = memo(function InkIcon({ name, className = "" }) {
 });
 
 /* ─────────────────────────────────────────────
-   SHARX GAME ICONS — custom drawn
-   Search  = magnifier whose lens shows a gamepad, handle = arcade joystick
-   Profile = gamer with a headset + mic
-   Badge   = circle face (lifts on hover) over a fixed hard crayon shadow
+   GAME ICONS
 ───────────────────────────────────────────── */
 const INK = "#1B2A41";
 
 const SearchArt = memo(function SearchArt() {
   return (
     <svg className="sx-art" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
-      {/* joystick handle */}
       <path d="M19.6 19.6 24.2 24.2" stroke={INK} strokeWidth="3.6" strokeLinecap="round" />
       <path d="M19.6 19.6 24.2 24.2" stroke="#C7B4FF" strokeWidth="1.4" strokeLinecap="round" />
       <circle cx="26.1" cy="26.1" r="3.3" fill="#FF5B4D" stroke={INK} strokeWidth="2" />
       <circle cx="25.2" cy="25.2" r="0.9" fill="#fff" />
-      {/* lens */}
       <circle cx="13" cy="13" r="9.6" fill="#fff" stroke={INK} strokeWidth="2.2" />
       <path d="M6.9 9.6a7.3 7.3 0 0 1 3.3-3" stroke="#7FC4FF" strokeWidth="1.5" strokeLinecap="round" />
-      {/* gamepad in the lens */}
       <rect x="7.4" y="10" width="11.2" height="6.6" rx="3.3" fill="#FF8B7B" stroke={INK} strokeWidth="1.5" />
       <path d="M10.5 11.9v2.8M9.1 13.3h2.8" stroke={INK} strokeWidth="1.3" strokeLinecap="round" />
       <circle cx="15.5" cy="12.7" r="0.95" fill={INK} />
@@ -223,20 +201,15 @@ const SearchArt = memo(function SearchArt() {
 const ProfileArt = memo(function ProfileArt() {
   return (
     <svg className="sx-art" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
-      {/* shoulders */}
       <path d="M5.2 32c.5-5.2 4.7-7.6 10.8-7.6S26.3 26.8 26.8 32Z" fill="#7BE5B5" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
-      {/* head */}
       <circle cx="16" cy="14.2" r="7.4" fill="#FFE3C2" stroke={INK} strokeWidth="2" />
       <circle cx="13.1" cy="14.8" r="1" fill={INK} />
       <circle cx="18.9" cy="14.8" r="1" fill={INK} />
       <path d="M13.6 17.6q2.4 1.9 4.8 0" stroke={INK} strokeWidth="1.5" strokeLinecap="round" />
-      {/* headset band */}
       <path d="M7.9 14.2a8.1 8.1 0 0 1 16.2 0" stroke={INK} strokeWidth="4" strokeLinecap="round" />
       <path d="M7.9 14.2a8.1 8.1 0 0 1 16.2 0" stroke="#FF8B7B" strokeWidth="1.5" strokeLinecap="round" />
-      {/* ear cups */}
       <rect x="4.9" y="11.6" width="3.8" height="6.4" rx="1.6" fill="#FF8B7B" stroke={INK} strokeWidth="1.6" />
       <rect x="23.3" y="11.6" width="3.8" height="6.4" rx="1.6" fill="#FF8B7B" stroke={INK} strokeWidth="1.6" />
-      {/* mic */}
       <path d="M25.2 18c0 3.3-2.9 4.7-6.1 3.7" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
       <circle cx="18.8" cy="21.7" r="1.3" fill={INK} />
     </svg>
@@ -322,7 +295,7 @@ const GamesGrid = memo(function GamesGrid({ games, onOpen, variant }) {
 });
 
 /* ─────────────────────────────────────────────
-   HORIZONTAL ROW — clean, no See-all, no arrows
+   HORIZONTAL ROW
 ───────────────────────────────────────────── */
 const HRow = memo(function HRow({
   title,
@@ -386,10 +359,7 @@ const useCountdown = (iso) => {
 };
 
 /* ─────────────────────────────────────────────
-   EVENT CARD — ONE merged card
-   strip (always visible) + body (stretches down)
-   Same red/purple crayon gift lives in the strip AND,
-   big and animated, in RewardEventBanner (the body).
+   EVENT CARD
 ───────────────────────────────────────────── */
 const EventStrip = memo(function EventStrip({
   expanded,
@@ -408,7 +378,6 @@ const EventStrip = memo(function EventStrip({
 
   return (
     <div className={`event-card${expanded ? " is-open" : ""}`}>
-      {/* STRIP — tap anywhere on it to open / close */}
       <div className="event-strip" onClick={onToggle}>
         <span className="event-strip-ico crayon-ico" aria-hidden="true">
           {getCategoryIcon("gift")}
@@ -479,7 +448,6 @@ const EventStrip = memo(function EventStrip({
         </button>
       </div>
 
-      {/* BODY — pure CSS grid-rows open/close, no JS measuring */}
       <div className="event-body" aria-hidden={!expanded}>
         <div className="event-body-inner">{children}</div>
       </div>
@@ -555,21 +523,11 @@ const Footer = memo(function Footer() {
           </Link>
 
           <nav className="footer-links" aria-label="Footer navigation">
-            <Link href="/inside" className="footer-link">
-              About Us
-            </Link>
-            <Link href="/hello" className="footer-link">
-              Contact
-            </Link>
-            <Link href="/trust" className="footer-link">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="footer-link">
-              Terms of Service
-            </Link>
-            <Link href="/copyright" className="footer-link">
-              Copyright
-            </Link>
+            <Link href="/inside" className="footer-link">About Us</Link>
+            <Link href="/hello" className="footer-link">Contact</Link>
+            <Link href="/trust" className="footer-link">Privacy Policy</Link>
+            <Link href="/terms" className="footer-link">Terms of Service</Link>
+            <Link href="/copyright" className="footer-link">Copyright</Link>
           </nav>
 
           <span className="footer-copyright">
@@ -660,7 +618,6 @@ export default function Home({
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(null);
   const searchInputRef = useRef(null);
-  const chipsRef = useRef(null);
   const baseTitleRef = useRef(null);
   const scrollLockRef = useRef(null);
 
@@ -704,12 +661,7 @@ export default function Home({
     };
   }, [activeGame]);
 
-  /* ── DRAWER SCROLL LOCK ──────────────────────────
-     overflow:hidden alone doesn't stop iOS / Android
-     background scroll. Pinning the body with
-     position:fixed does. Scroll position is restored
-     on close. Also adds body.drawer-open so CSS can
-     kill any backdrop-filter blur bleed. */
+  /* Drawer scroll lock */
   useEffect(() => {
     if (!sidebarOpen || typeof document === "undefined") return undefined;
 
@@ -744,7 +696,6 @@ export default function Home({
       body.style.width = prev.width;
       html.style.overscrollBehavior = prev.overscroll;
       body.classList.remove("drawer-open");
-      // Restore the exact previous position without starting another animation.
       window.scrollTo(0, restoreY);
     };
   }, [sidebarOpen]);
@@ -758,7 +709,6 @@ export default function Home({
       mq.addEventListener("change", h);
       return () => mq.removeEventListener("change", h);
     }
-    // Safari versions that only support the legacy MediaQueryList API.
     mq.addListener(h);
     return () => mq.removeListener(h);
   }, []);
@@ -776,7 +726,6 @@ export default function Home({
         raf = 0;
         if (document.body.classList.contains("drawer-open")) return;
         const shouldShow = window.scrollY > TO_TOP_AT;
-        // Avoid React renders on every scroll frame when visibility is unchanged.
         setShowTop((current) => (current === shouldShow ? current : shouldShow));
       });
     };
@@ -974,7 +923,6 @@ export default function Home({
     setVisibleCount(ALL_PAGE_SIZE);
     if (typeof window !== "undefined") {
       if (scrollLockRef.current) {
-        /* drawer is open → unlock will jump straight to top */
         scrollLockRef.current.y = 0;
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1048,6 +996,10 @@ export default function Home({
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") {
+        if (founderNoteOpen) {
+          setFounderNoteOpen(false);
+          return;
+        }
         if (sidebarOpen) setSidebarOpen(false);
         else if (searchOpen || search) {
           setSearchOpen(false);
@@ -1068,7 +1020,7 @@ export default function Home({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleCloseModal, sidebarOpen, searchOpen, search, activeGame]);
+  }, [handleCloseModal, sidebarOpen, searchOpen, search, activeGame, founderNoteOpen]);
 
   useEffect(() => {
     const onPop = () => {
@@ -1137,17 +1089,6 @@ export default function Home({
     for (const g of allGames) if (g.category) u.add(g.category);
     return ["All", ...Array.from(u)];
   }, [allGames]);
-
-  useEffect(() => {
-    const bar = chipsRef.current;
-    if (!bar) return;
-    const el = bar.querySelector(".chip-on");
-    if (!el) return;
-    bar.scrollTo({
-      left: Math.max(0, el.offsetLeft - (bar.clientWidth - el.clientWidth) / 2),
-      behavior: "smooth",
-    });
-  }, [category, categories.length]);
 
   const searchResults = useMemo(() => {
     if (!searchLower) return null;
@@ -1308,29 +1249,12 @@ export default function Home({
           )}
         </div>
 
-        {/* MOBILE CATEGORY CHIPS */}
-        <nav className="chips-bar" ref={chipsRef} aria-label="Categories">
-          {categories.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={`chip${c === category ? " chip-on" : ""}`}
-              onClick={() => handleCategorySelect(c)}
-              aria-current={c === category ? "true" : undefined}
-            >
-              <span className="chip-ico crayon-ico" aria-hidden="true">
-                {getCategoryIcon(c)}
-              </span>
-              <span className="chip-label">
-                {c === "All" ? "All Games" : c}
-              </span>
-            </button>
-          ))}
-        </nav>
-
         {/* PAGE CONTENT */}
         <main className="page-content">
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
+
+          {/* FOUNDER NOTE — TOP OF PAGE */}
+          <FounderNoteCard onOpen={handleOpenFounderNote} />
 
           <OnboardingCard
             onOpenProfile={handleOpenProfileFromOnboarding}
@@ -1468,7 +1392,6 @@ export default function Home({
             </div>
           ) : (
             <>
-              {/* Trending — clean, no buttons */}
               <div className="section-panel">
                 <HRow
                   title="Trending"
@@ -1479,7 +1402,6 @@ export default function Home({
                 />
               </div>
 
-              {/* All Games — grid */}
               <div className="section-panel">
                 <section className="home-row">
                   <div className="home-row-header">
@@ -1547,18 +1469,16 @@ export default function Home({
         )}
 
         {founderNoteOpen && (
-          <Suspense fallback={null}>
-            <FounderNoteModal
-              open={founderNoteOpen}
-              onClose={handleCloseFounderNote}
-            />
-          </Suspense>
+          <FounderNoteModal
+            open={founderNoteOpen}
+            onClose={handleCloseFounderNote}
+          />
         )}
 
         <Footer />
       </div>
 
-      {/* BACK TO TOP — bare crayon arrow */}
+      {/* BACK TO TOP */}
       <button
         type="button"
         className={`to-top${topVisible ? " is-visible" : ""}`}
