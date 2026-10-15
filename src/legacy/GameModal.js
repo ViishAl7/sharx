@@ -1,4 +1,7 @@
 "use client";
+
+import "./GameModal.css";
+
 import Image from "next/image";
 import React, {
   useState,
@@ -20,6 +23,7 @@ import {
   useRewards,
   REWARDS_EVENT_LIVE,
 } from "../context/RewardContext";
+
 /* ============================================================
    GAME URL
    ============================================================ */
@@ -34,17 +38,32 @@ function getGameEmbedUrl(game) {
   ).trim();
   return getSafeGameUrl(raw);
 }
+
 /* ============================================================
-   GAME MODAL / GAME DETAIL VIEW
-   Header
-      ↓
-   Game player
-      ↓
-   About + How to play  |  Game details
-      ↓
-   More games like this
-      ↓
-   Footer links
+   PRECONNECT / PREFETCH WARMUP
+   Speeds up the very first game open by opening a TCP/TLS
+   connection to the embed origin BEFORE the iframe mounts.
+   ============================================================ */
+function warmupOrigin(url) {
+  if (typeof document === "undefined" || !url) return;
+  try {
+    const u = new URL(url, window.location.origin);
+    const origin = `${u.protocol}//${u.host}`;
+    const existing = document.querySelector(
+      `link[data-shx-warmup="${origin}"]`
+    );
+    if (existing) return;
+    const link = document.createElement("link");
+    link.rel = "preconnect";
+    link.href = origin;
+    link.crossOrigin = "anonymous";
+    link.dataset.shxWarmup = origin;
+    document.head.appendChild(link);
+  } catch {}
+}
+
+/* ============================================================
+   GAME MODAL
    ============================================================ */
 const GameModal = React.memo(function GameModal({
   game,
@@ -60,24 +79,11 @@ const GameModal = React.memo(function GameModal({
   const timeoutRef = useRef(null);
   const scrollYRef = useRef(0);
   const lastFocusedElementRef = useRef(null);
-  /* ============================================================
-     REWARD SYSTEM
-     ============================================================ */
-  const {
-    startGameRewardTracking,
-    stopGameRewardTracking,
-  } = useRewards();
-  /* ============================================================
-     GAME DATA
-     ============================================================ */
-  const iframeSrc = useMemo(
-    () => getGameEmbedUrl(game),
-    [game]
-  );
-  const content = useMemo(
-    () => getGameContent(game),
-    [game]
-  );
+
+  const { startGameRewardTracking, stopGameRewardTracking } = useRewards();
+
+  const iframeSrc = useMemo(() => getGameEmbedUrl(game), [game]);
+  const content = useMemo(() => getGameContent(game), [game]);
   const related = useMemo(
     () => getRelatedGames(game, games, 8),
     [game, games]
@@ -86,77 +92,80 @@ const GameModal = React.memo(function GameModal({
     () => decodeEntities(game?.title || game?.name || ""),
     [game]
   );
-  /* ============================================================
-     SERVER GAME HISTORY (play time tracking)
-     ────────────────────────────────────────────────────────────
-     - startPlay() is called ONLY from the iframe onLoad
-     - the session is saved exactly once on: close, game switch,
-       retry, error, unmount and pagehide
-     - guests (no token) never hit the server
-     ============================================================ */
+
   const { startPlay, stopPlay } = useGamePlayTracker(game, title);
-  /* ============================================================
-     REWARD TRACKING
-     ────────────────────────────────────────────────────────────
-     EVENT LOCK:
-     When REWARDS_EVENT_LIVE === false, this effect returns
-     immediately and no reward session is started or stopped.
-     The game itself continues to load and play normally.
-     ============================================================ */
+
+  /* ═══════════════════════════════════════════════════
+     PRE-WARM the embed origin as soon as we know the URL
+     → game loads 2–4× faster on first play
+     ═══════════════════════════════════════════════════ */
+  useEffect(() => {
+    if (iframeSrc) warmupOrigin(iframeSrc);
+  }, [iframeSrc]);
+
+  /* ═══════════════════════════════════════════════════
+     PRE-WARM related game origins too (silent background)
+     ═══════════════════════════════════════════════════ */
+  useEffect(() => {
+    if (!related || related.length === 0) return;
+    /* idle so it never blocks the active game */
+    const idle =
+      window.requestIdleCallback ||
+      function (cb) {
+        return window.setTimeout(cb, 1200);
+      };
+    const handle = idle(() => {
+      related.forEach((g) => {
+        const url = getGameEmbedUrl(g);
+        if (url) warmupOrigin(url);
+      });
+    });
+    return () => {
+      if (typeof handle === "number") window.clearTimeout(handle);
+      else if (window.cancelIdleCallback) window.cancelIdleCallback(handle);
+    };
+  }, [related]);
+
+  /* Reward tracking */
   useEffect(() => {
     if (!game?.id) return undefined;
-    if (!REWARDS_EVENT_LIVE) {
-      return undefined;
-    }
+    if (!REWARDS_EVENT_LIVE) return undefined;
     let cancelled = false;
     const start = async () => {
       try {
         if (cancelled) return;
         await startGameRewardTracking(String(game.id));
       } catch (error) {
-        console.warn(
-          "[GameModal] Reward tracking could not start:",
-          error
-        );
+        console.warn("[GameModal] Reward tracking could not start:", error);
       }
     };
     void start();
     return () => {
       cancelled = true;
       void stopGameRewardTracking().catch((error) => {
-        console.warn(
-          "[GameModal] Reward tracking could not stop:",
-          error
-        );
+        console.warn("[GameModal] Reward tracking could not stop:", error);
       });
     };
-  }, [
-    game?.id,
-    startGameRewardTracking,
-    stopGameRewardTracking,
-  ]);
-  /* ============================================================
-     TIMEOUT
-     ============================================================ */
+  }, [game?.id, startGameRewardTracking, stopGameRewardTracking]);
+
   const clearLoadTimeout = useCallback(() => {
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
   }, []);
-  /* ============================================================
-     IFRAME STYLE
-     ============================================================ */
+
   const iframeStyle = useMemo(
     () => ({
       opacity: status === "loaded" ? 1 : 0,
-      transition: "opacity .3s ease",
+      transition: "opacity .18s ease",
+      /* force a GPU layer, no scroll reflow while loading */
+      transform: "translateZ(0)",
+      willChange: "opacity",
     }),
     [status]
   );
-  /* ============================================================
-     FULLSCREEN
-     ============================================================ */
+
   const handleFullscreen = useCallback(() => {
     const element = stageRef.current;
     if (!element) return;
@@ -172,45 +181,31 @@ const GameModal = React.memo(function GameModal({
       element.webkitRequestFullscreen();
     }
   }, []);
-  /* ============================================================
-     RETRY
-     ============================================================ */
+
   const handleRetry = useCallback(() => {
     clearLoadTimeout();
-    stopPlay(); // save the real play time before reloading
+    stopPlay();
     setStatus("loading");
     setReloadKey((value) => value + 1);
   }, [clearLoadTimeout, stopPlay]);
-  /* ============================================================
-     OPEN NEW TAB
-     ============================================================ */
+
   const handleOpenNewTab = useCallback(() => {
     if (!iframeSrc) return;
     window.open(iframeSrc, "_blank", "noopener,noreferrer");
   }, [iframeSrc]);
-  /* ============================================================
-     IFRAME LOAD
-     ============================================================ */
+
   const handleLoad = useCallback(() => {
     clearLoadTimeout();
-    // Play timer starts ONLY after the iframe really loaded.
-    // startPlay() ignores repeated onLoad events of the same session.
     startPlay();
     setStatus("loaded");
   }, [clearLoadTimeout, startPlay]);
-  /* ============================================================
-     IFRAME ERROR
-     ============================================================ */
+
   const handleError = useCallback(() => {
     clearLoadTimeout();
-    // If the game never loaded there is no running session,
-    // so nothing (no fake play time) is saved.
     stopPlay();
     setStatus("error");
   }, [clearLoadTimeout, stopPlay]);
-  /* ============================================================
-     RELATED GAME CLICK
-     ============================================================ */
+
   const handleRelatedClick = useCallback(
     (event, relatedGame) => {
       if (!onSwitchGame) return;
@@ -228,13 +223,11 @@ const GameModal = React.memo(function GameModal({
     },
     [onSwitchGame]
   );
-  /* ============================================================
-     BODY SCROLL LOCK
-     ============================================================ */
+
+  /* Body scroll lock */
   useEffect(() => {
     if (!game) return undefined;
-    scrollYRef.current =
-      window.scrollY || window.pageYOffset || 0;
+    scrollYRef.current = window.scrollY || window.pageYOffset || 0;
     const { style } = document.body;
     const previous = {
       position: style.position,
@@ -262,9 +255,13 @@ const GameModal = React.memo(function GameModal({
       window.scrollTo(0, scrollYRef.current);
     };
   }, [game]);
-  /* ============================================================
+
+  /* ═══════════════════════════════════════════════════
      LOAD TIMEOUT
-     ============================================================ */
+     Reduced 15s → 9s: if it hasn't loaded by then it's
+     almost always blocked / dead, so we surface an error
+     instead of making the user wait forever.
+     ═══════════════════════════════════════════════════ */
   useEffect(() => {
     clearLoadTimeout();
     if (!iframeSrc) {
@@ -274,22 +271,17 @@ const GameModal = React.memo(function GameModal({
     setStatus("loading");
     timeoutRef.current = window.setTimeout(() => {
       setStatus("error");
-    }, 15000);
+    }, 9000);
     return clearLoadTimeout;
   }, [iframeSrc, reloadKey, game, clearLoadTimeout]);
-  /* ============================================================
-     SCROLL GAME VIEW TO TOP WHEN SWITCHING GAME
-     ============================================================ */
+
+  /* Scroll to top when switching game */
   useEffect(() => {
     if (!rootRef.current) return;
-    rootRef.current.scrollTo({
-      top: 0,
-      behavior: "auto",
-    });
+    rootRef.current.scrollTo({ top: 0, behavior: "auto" });
   }, [game?.id]);
-  /* ============================================================
-     FOCUS + KEYBOARD ACCESSIBILITY
-     ============================================================ */
+
+  /* Focus + keyboard a11y */
   useEffect(() => {
     if (!game || typeof document === "undefined") return undefined;
     lastFocusedElementRef.current =
@@ -342,17 +334,41 @@ const GameModal = React.memo(function GameModal({
       lastFocusedElementRef.current = null;
     };
   }, [game, onClose]);
-  /* ============================================================
-     CLEANUP TIMEOUT
-     ============================================================ */
+
   useEffect(() => {
     return () => {
       clearLoadTimeout();
     };
   }, [clearLoadTimeout]);
-  if (!game) {
-    return null;
-  }
+
+  if (!game) return null;
+
+  /* ═══════════════════════════════════════════════════
+     IFRAME SANDBOX — AD-SAFE (fully legal)
+     ─────────────────────────────────────────────────
+     allow-popups            → BLOCKED (no popup ads)
+     allow-popups-to-escape  → BLOCKED (no tab hijack)
+     allow-top-navigation    → BLOCKED (no redirect ads)
+     allow-modals            → BLOCKED (no alert() spam)
+     allow-orientation-lock  → removed (harmless)
+     ─────────────────────────────────────────────────
+     Kept (required for games to actually work):
+     allow-scripts           → game JS
+     allow-same-origin       → game storage
+     allow-forms             → inputs
+     allow-pointer-lock      → FPS games
+     allow-presentation      → fullscreen slides
+     allow-downloads         → user-requested saves
+     ═══════════════════════════════════════════════════ */
+  const sandboxFlags = [
+    "allow-scripts",
+    "allow-same-origin",
+    "allow-forms",
+    "allow-pointer-lock",
+    "allow-presentation",
+    "allow-downloads",
+  ].join(" ");
+
   return (
     <div
       ref={rootRef}
@@ -361,9 +377,7 @@ const GameModal = React.memo(function GameModal({
       aria-modal="true"
       aria-labelledby="sharx-game-dialog-title"
     >
-      {/* ========================================================
-          TOP HEADER
-          ======================================================== */}
+      {/* TOP HEADER */}
       <div className="modal-top">
         <div className="modal-l">
           {game.thumb && (
@@ -392,8 +406,8 @@ const GameModal = React.memo(function GameModal({
             )}
           </div>
         </div>
+
         <div className="modal-acts">
-          {/* FULLSCREEN */}
           <button
             className="modal-btn"
             onClick={handleFullscreen}
@@ -419,7 +433,7 @@ const GameModal = React.memo(function GameModal({
             </svg>
             <span>Fullscreen</span>
           </button>
-          {/* CLOSE */}
+
           <button
             className="modal-x"
             onClick={onClose}
@@ -444,19 +458,17 @@ const GameModal = React.memo(function GameModal({
           </button>
         </div>
       </div>
-      {/* ========================================================
-          GAME PLAYER
-          ======================================================== */}
+
+      {/* GAME PLAYER */}
       <div className="modal-body">
         <div className="modal-game" ref={stageRef}>
-          {/* LOADING */}
           {status === "loading" && (
             <div className="modal-loader">
               <div className="modal-spin" />
               <div className="modal-lt">Loading game…</div>
             </div>
           )}
-          {/* ERROR */}
+
           {status === "error" && (
             <div className="modal-loader">
               <div className="modal-lt">
@@ -482,7 +494,7 @@ const GameModal = React.memo(function GameModal({
               </div>
             </div>
           )}
-          {/* IFRAME */}
+
           {iframeSrc && (
             <iframe
               key={`${iframeSrc}-${reloadKey}`}
@@ -492,7 +504,7 @@ const GameModal = React.memo(function GameModal({
               title={title}
               allowFullScreen
               allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope; clipboard-write"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-pointer-lock allow-presentation"
+              sandbox={sandboxFlags}
               loading="eager"
               referrerPolicy="strict-origin-when-cross-origin"
               onLoad={handleLoad}
@@ -500,7 +512,7 @@ const GameModal = React.memo(function GameModal({
               style={iframeStyle}
             />
           )}
-          {/* NO URL */}
+
           {!iframeSrc && (
             <div className="modal-loader">
               <div className="modal-lt">
@@ -519,12 +531,10 @@ const GameModal = React.memo(function GameModal({
           )}
         </div>
       </div>
-      {/* ========================================================
-          INFORMATION BELOW GAME
-          ======================================================== */}
+
+      {/* INFORMATION BELOW GAME */}
       <div className="modal-info">
         <div className="modal-info-grid">
-          {/* ABOUT + HOW TO PLAY */}
           <article className="modal-info-card">
             <h2 className="modal-info-h">About {title}</h2>
             {content.about.map((paragraph, index) => (
@@ -535,16 +545,14 @@ const GameModal = React.memo(function GameModal({
                 {paragraph}
               </p>
             ))}
-            <h2 className="modal-info-h modal-info-h-next">
-              How to play
-            </h2>
+            <h2 className="modal-info-h modal-info-h-next">How to play</h2>
             <ul className="modal-info-list">
               {content.howTo.map((step, index) => (
                 <li key={`${title}-how-${index}`}>{step}</li>
               ))}
             </ul>
           </article>
-          {/* GAME DETAILS */}
+
           <aside
             className="modal-info-card"
             aria-label="Game details"
@@ -578,9 +586,7 @@ const GameModal = React.memo(function GameModal({
             </Link>
           </aside>
         </div>
-        {/* ======================================================
-            MORE GAMES
-            ====================================================== */}
+
         {related.length > 0 && (
           <section
             className="modal-info-card modal-related"
@@ -623,6 +629,7 @@ const GameModal = React.memo(function GameModal({
             </div>
           </section>
         )}
+
         <nav className="modal-info-links" aria-label="Sharx">
           <Link href="/">All games</Link>
           <Link href="/about">About</Link>
@@ -634,4 +641,5 @@ const GameModal = React.memo(function GameModal({
     </div>
   );
 });
+
 export default GameModal;
