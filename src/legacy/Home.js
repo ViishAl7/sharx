@@ -172,7 +172,7 @@ const INK_ICONS = {
   search: "M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z",
   profile: "M234.38,210a123.36,123.36,0,0,0-60.78-53.23,76,76,0,1,0-91.2,0A123.36,123.36,0,0,0,21.62,210a12,12,0,1,0,20.77,12c18.12-31.32,50.12-50,85.61-50s67.49,18.69,85.61,50a12,12,0,0,0,20.77-12ZM76,96a52,52,0,1,1,52,52A52.06,52.06,0,0,1,76,96Z",
   close: "M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z",
-  up: "M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z",
+  up: "M128 28c3.2 0 6.2 1.3 8.5 3.5l68 68a12 12 0 0 1-17 17L140 69v147a12 12 0 0 1-24 0V69l-47.5 47.5a12 12 0 0 1-17-17l68-68A12 12 0 0 1 128 28Z",
   down: "M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z",
 };
 
@@ -671,7 +671,11 @@ export default function Home({
       const id = window.requestIdleCallback(() => setPageReady(true), {
         timeout: 300,
       });
-      return () => window.cancelIdleCallback?.(id);
+      return () => {
+        if (typeof window.cancelIdleCallback === "function") {
+          window.cancelIdleCallback(id);
+        }
+      };
     }
     raf = window.requestAnimationFrame(() => {
       timeout = window.setTimeout(() => setPageReady(true), 0);
@@ -740,7 +744,8 @@ export default function Home({
       body.style.width = prev.width;
       html.style.overscrollBehavior = prev.overscroll;
       body.classList.remove("drawer-open");
-      window.scrollTo({ top: restoreY, behavior: "instant" });
+      // Restore the exact previous position without starting another animation.
+      window.scrollTo(0, restoreY);
     };
   }, [sidebarOpen]);
 
@@ -749,8 +754,13 @@ export default function Home({
     const h = (e) => {
       if (e.matches) setSidebarOpen(false);
     };
-    mq.addEventListener("change", h);
-    return () => mq.removeEventListener("change", h);
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", h);
+      return () => mq.removeEventListener("change", h);
+    }
+    // Safari versions that only support the legacy MediaQueryList API.
+    mq.addListener(h);
+    return () => mq.removeListener(h);
   }, []);
 
   useEffect(() => {
@@ -765,7 +775,9 @@ export default function Home({
       raf = window.requestAnimationFrame(() => {
         raf = 0;
         if (document.body.classList.contains("drawer-open")) return;
-        setShowTop(window.scrollY > TO_TOP_AT);
+        const shouldShow = window.scrollY > TO_TOP_AT;
+        // Avoid React renders on every scroll frame when visibility is unchanged.
+        setShowTop((current) => (current === shouldShow ? current : shouldShow));
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -1024,7 +1036,13 @@ export default function Home({
   }, []);
 
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window === "undefined") return;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }, []);
 
   useEffect(() => {
