@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
-   SHARX SIDEBAR — Crayon Box Edition v2
+   SHARX SIDEBAR — Crayon Box Edition v3
    Vivid 3D wax tiles · outlined crayon glyphs · silky motion
-   All inner classes are "sx-" namespaced (no old CSS can touch them)
+   MOBILE FIX: no blur bleed · crisp drawer on phone
 ══════════════════════════════════════════════════════════ */
 
 /* ────────────────────────────────────────────────
@@ -38,6 +38,11 @@
   overflow: hidden;
   isolation: isolate;
   font-family: var(--font-comfortaa), "Comfortaa", sans-serif;
+  /* IMPORTANT: force own layer, no blur bleed */
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .sx-aside.sx-ready {
@@ -65,7 +70,7 @@
 }
 
 /* ────────────────────────────────────────────────
-   BRAND — plain centered logo, like the original
+   BRAND
 ──────────────────────────────────────────────── */
 .sx-brand {
   position: relative;
@@ -78,7 +83,6 @@
   margin-bottom: 6px;
 }
 
-/* dashed crayon divider (same as before, no rainbow) */
 .sx-brand::after {
   content: "";
   position: absolute;
@@ -171,7 +175,7 @@
 }
 
 /* ────────────────────────────────────────────────
-   NAV — scrolls by itself, soft fade at the edges
+   NAV
 ──────────────────────────────────────────────── */
 .sx-nav {
   position: relative;
@@ -244,7 +248,6 @@
   animation-delay: calc(min(var(--i, 0), 14) * 34ms + 120ms);
 }
 
-/* shine sweep */
 .sx-item::before {
   content: "";
   position: absolute;
@@ -273,7 +276,6 @@
   text-transform: capitalize;
 }
 
-/* ─── ICON — a free-standing 3D crayon object (no tile, no circle) ─── */
 .sx-ico {
   position: relative;
   z-index: 1;
@@ -295,7 +297,7 @@
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6));
 }
 
-/* ─── MINI CRAYON POINTER (active) ─── */
+/* mini crayon pointer */
 .sx-pencil {
   position: relative;
   z-index: 1;
@@ -325,7 +327,7 @@
   opacity: 0.88;
 }
 
-/* ─── HOVER (mouse only) ─── */
+/* hover — mouse only */
 @media (hover: hover) and (pointer: fine) {
   .sx-item:hover {
     background-color: var(--tile-wash, rgba(255, 201, 51, 0.26));
@@ -343,7 +345,6 @@
   }
 }
 
-/* ─── PRESS ─── */
 .sx-item:active {
   transform: translate3d(2px, 0, 0) scale(0.98);
 }
@@ -353,7 +354,7 @@
   transform: translateY(2px) scale(0.92);
 }
 
-/* ─── ACTIVE ─── */
+/* active */
 .sx-item-on,
 .sx-item-on:hover {
   background-color: var(--tile-soft, #ffefb8);
@@ -392,7 +393,6 @@
   }
 }
 
-/* hover: the crayon toy gives a little happy wiggle */
 @keyframes sxJiggle {
   0%   { transform: translateY(0) rotate(0) scale(1); }
   25%  { transform: translateY(-4px) rotate(-9deg) scale(1.14); }
@@ -401,7 +401,6 @@
   100% { transform: translateY(0) rotate(0) scale(1.08); }
 }
 
-/* select: squash-and-stretch pop */
 @keyframes sxPop {
   0%   { transform: scale(0.72) rotate(-14deg); }
   55%  { transform: scale(1.2) rotate(6deg); }
@@ -409,17 +408,15 @@
 }
 
 @keyframes sxScrimIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-/* ────────────────────────────────────────────────
-   TABLET & MOBILE — slide-in drawer
-──────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════
+   MOBILE / TABLET — slide-in drawer
+   ** NO BLUR on scrim — fixes the "whole screen blurry" bug **
+   ** Force GPU layer on aside — fixes iOS/Android render glitch **
+══════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .sx-aside {
     top: 0;
@@ -433,6 +430,13 @@
     transform: translate3d(-104%, 0, 0);
     visibility: hidden;
     z-index: 500;
+
+    /* forces its own composite layer — no bleed from scrim */
+    transform: translate3d(-104%, 0, 0) translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    /* tell the browser this element contains its own paint */
+    contain: layout style paint;
   }
 
   .sx-aside.sx-ready {
@@ -442,21 +446,24 @@
   }
 
   .sx-aside.sx-open {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) translateZ(0);
     visibility: visible;
     box-shadow: 6px 0 0 var(--sx-ink);
     transition-delay: 0s;
   }
 
+  /* ── scrim — NO blur, just a soft dark veil ── */
   .sx-scrim {
     display: block;
     position: fixed;
     inset: 0;
     z-index: 490;
-    background: rgba(27, 42, 65, 0.48);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    background: rgba(27, 42, 65, 0.45);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     animation: sxScrimIn 0.3s ease;
+    /* isolate scrim too */
+    isolation: isolate;
   }
 
   .sx-close {
@@ -492,7 +499,6 @@
     animation: none;
   }
 
-  /* replay the stagger every time the drawer opens */
   .sx-open .sx-item {
     animation: sxItemIn 0.6s var(--sx-ease-out) backwards;
     animation-delay: calc(min(var(--i, 0), 14) * 34ms + 160ms);

@@ -1,12 +1,24 @@
 "use client";
 
-// src/legacy/SidePanel.js — Crayon · Clean · Playful
+import Image from "next/image";
+
+// src/legacy/SidePanel.js — SHARX · Crayon · Clean · Playful
+//
+// Auth side panel with:
+//   - Google OAuth entry
+//   - Passkey register (email + WebAuthn create)
+//   - Passkey login  (WebAuthn get)
+//
+// Passkey logic is preserved from baseline. Visual polish only.
+// No credential or token ever logged.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import { startOAuth } from "../lib/auth-session";
 import { API_BASE } from "../config";
-// ── helpers ──────────────────────────────────────────────
+
+/* ── WebAuthn helpers ─────────────────────────────────── */
 function base64urlToBuffer(base64url) {
   const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
   const binary = atob(base64);
@@ -19,7 +31,7 @@ function bufferToBase64url(buffer) {
   bytes.forEach((b) => (str += String.fromCharCode(b)));
   return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
-// ─────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────── */
 
 export default function SidePanel({ mode: initialMode, onClose }) {
   const router = useRouter();
@@ -32,7 +44,7 @@ export default function SidePanel({ mode: initialMode, onClose }) {
   const [passkeyEmail, setPasskeyEmail] = useState("");
   const [showEmailInput, setShowEmailInput] = useState(false);
 
-  // iOS-safe scroll lock
+  /* ── iOS-safe scroll lock ── */
   useEffect(() => {
     const scrollY = window.scrollY || window.pageYOffset;
     const { body } = document;
@@ -57,286 +69,214 @@ export default function SidePanel({ mode: initialMode, onClose }) {
     };
   }, []);
 
-  // ── PASSKEY REGISTER ────────────────────────────────────
- const handlePasskeyRegister = async () => {
-  setPasskeyError("");
+  /* ── PASSKEY REGISTER ─────────────────────────────────── */
+  const handlePasskeyRegister = async () => {
+    setPasskeyError("");
 
-  if (!passkeyEmail || !passkeyEmail.includes("@")) {
-    setShowEmailInput(true);
-    setPasskeyError("Enter your email to register a passkey.");
-    return;
-  }
+    if (!passkeyEmail || !passkeyEmail.includes("@")) {
+      setShowEmailInput(true);
+      setPasskeyError("Enter your email to register a passkey.");
+      return;
+    }
 
-  setPasskeyLoading(true);
+    setPasskeyLoading(true);
 
-  try {
-    const optRes = await fetch(
-      `${API_BASE}/passkey/register/options`,
-      {
+    try {
+      const optRes = await fetch(`${API_BASE}/passkey/register/options`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          email: passkeyEmail.trim(),
-        }),
+        body: JSON.stringify({ email: passkeyEmail.trim() }),
+      });
+
+      if (!optRes.ok) {
+        const err = await optRes.json().catch(() => ({}));
+        throw new Error(err.error || "Could not start passkey registration");
       }
-    );
 
-    if (!optRes.ok) {
-      const err = await optRes.json().catch(() => ({}));
+      const options = await optRes.json();
 
-      throw new Error(
-        err.error || "Could not start passkey registration"
-      );
-    }
+      options.challenge = base64urlToBuffer(options.challenge);
+      options.user.id = base64urlToBuffer(options.user.id);
 
-    const options = await optRes.json();
+      if (options.excludeCredentials) {
+        options.excludeCredentials = options.excludeCredentials.map(
+          (credential) => ({
+            ...credential,
+            id: base64urlToBuffer(credential.id),
+          })
+        );
+      }
 
-    options.challenge = base64urlToBuffer(
-      options.challenge
-    );
-
-    options.user.id = base64urlToBuffer(
-      options.user.id
-    );
-
-    if (options.excludeCredentials) {
-      options.excludeCredentials =
-        options.excludeCredentials.map((credential) => ({
-          ...credential,
-          id: base64urlToBuffer(credential.id),
-        }));
-    }
-
-    const credential =
-      await navigator.credentials.create({
+      const credential = await navigator.credentials.create({
         publicKey: options,
       });
 
-    if (!credential) {
-      throw new Error("Passkey registration was cancelled.");
-    }
+      if (!credential) {
+        throw new Error("Passkey registration was cancelled.");
+      }
 
-    const verifyRes = await fetch(
-      `${API_BASE}/passkey/register/verify`,
-      {
+      const verifyRes = await fetch(`${API_BASE}/passkey/register/verify`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           email: passkeyEmail.trim(),
           id: credential.id,
-          rawId: bufferToBase64url(
-            credential.rawId
-          ),
+          rawId: bufferToBase64url(credential.rawId),
           type: credential.type,
           response: {
-            clientDataJSON:
-              bufferToBase64url(
-                credential.response.clientDataJSON
-              ),
-            attestationObject:
-              bufferToBase64url(
-                credential.response.attestationObject
-              ),
+            clientDataJSON: bufferToBase64url(
+              credential.response.clientDataJSON
+            ),
+            attestationObject: bufferToBase64url(
+              credential.response.attestationObject
+            ),
           },
         }),
+      });
+
+      if (!verifyRes.ok) {
+        const err = await verifyRes.json().catch(() => ({}));
+        throw new Error(err.error || "Passkey registration failed");
       }
-    );
 
-    if (!verifyRes.ok) {
-      const err = await verifyRes
-        .json()
-        .catch(() => ({}));
+      const data = await verifyRes.json();
 
-      throw new Error(
-        err.error || "Passkey registration failed"
+      if (!data?.token) {
+        throw new Error(
+          "Registration verified but login failed. Try logging in."
+        );
+      }
+
+      /* Sync AuthContext + localStorage. */
+      login(data.token);
+
+      onClose();
+    } catch (err) {
+      /* Never log credentials. Only the safe error name. */
+      console.error(
+        "Passkey registration error:",
+        err?.name || "unknown"
       );
-    }
 
-    const data = await verifyRes.json();
-
-    if (!data?.token) {
-      throw new Error(
-        "Registration verified but login failed. Try logging in."
+      setPasskeyError(
+        err?.name === "NotAllowedError"
+          ? "Passkey cancelled. Try again."
+          : err?.message ||
+              "Passkey registration failed. Please try again."
       );
+    } finally {
+      setPasskeyLoading(false);
     }
+  };
 
-    // Keep AuthContext and localStorage synchronized.
-    login(data.token);
+  /* ── PASSKEY LOGIN ────────────────────────────────────── */
+  const handlePasskeyLogin = async () => {
+    setPasskeyError("");
+    setPasskeyLoading(true);
 
-    if (data.user) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify(data.user)
-      );
-    }
-
-    onClose();
-  } catch (err) {
-    console.error("Passkey registration error:", err);
-
-    setPasskeyError(
-      err?.name === "NotAllowedError"
-        ? "Passkey cancelled. Try again."
-        : err?.message ||
-            "Passkey registration failed. Please try again."
-    );
-  } finally {
-    setPasskeyLoading(false);
-  }
-};
-  // ── PASSKEY LOGIN ───────────────────────────────────────
-const handlePasskeyLogin = async () => {
-  setPasskeyError("");
-  setPasskeyLoading(true);
-
-  try {
-    const optRes = await fetch(
-      `${API_BASE}/passkey/login/options`,
-      {
+    try {
+      const optRes = await fetch(`${API_BASE}/passkey/login/options`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({}),
+      });
+
+      if (!optRes.ok) {
+        const err = await optRes.json().catch(() => ({}));
+        throw new Error(err.error || "Could not start passkey login");
       }
-    );
 
-    if (!optRes.ok) {
-      const err = await optRes.json().catch(() => ({}));
+      const options = await optRes.json();
 
-      throw new Error(
-        err.error || "Could not start passkey login"
-      );
-    }
+      options.challenge = base64urlToBuffer(options.challenge);
 
-    const options = await optRes.json();
+      if (options.allowCredentials) {
+        options.allowCredentials = options.allowCredentials.map(
+          (credential) => ({
+            ...credential,
+            id: base64urlToBuffer(credential.id),
+          })
+        );
+      }
 
-    options.challenge = base64urlToBuffer(
-      options.challenge
-    );
-
-    if (options.allowCredentials) {
-      options.allowCredentials =
-        options.allowCredentials.map((credential) => ({
-          ...credential,
-          id: base64urlToBuffer(credential.id),
-        }));
-    }
-
-    const assertion =
-      await navigator.credentials.get({
+      const assertion = await navigator.credentials.get({
         publicKey: options,
       });
 
-    if (!assertion) {
-      throw new Error("Passkey login was cancelled.");
-    }
+      if (!assertion) {
+        throw new Error("Passkey login was cancelled.");
+      }
 
-    const verifyRes = await fetch(
-      `${API_BASE}/passkey/login/verify`,
-      {
+      const verifyRes = await fetch(`${API_BASE}/passkey/login/verify`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           id: assertion.id,
-          rawId: bufferToBase64url(
-            assertion.rawId
-          ),
+          rawId: bufferToBase64url(assertion.rawId),
           type: assertion.type,
           response: {
-            clientDataJSON:
-              bufferToBase64url(
-                assertion.response.clientDataJSON
-              ),
-
-            authenticatorData:
-              bufferToBase64url(
-                assertion.response.authenticatorData
-              ),
-
-            signature:
-              bufferToBase64url(
-                assertion.response.signature
-              ),
-
-            userHandle:
-              assertion.response.userHandle
-                ? bufferToBase64url(
-                    assertion.response.userHandle
-                  )
-                : null,
+            clientDataJSON: bufferToBase64url(
+              assertion.response.clientDataJSON
+            ),
+            authenticatorData: bufferToBase64url(
+              assertion.response.authenticatorData
+            ),
+            signature: bufferToBase64url(assertion.response.signature),
+            userHandle: assertion.response.userHandle
+              ? bufferToBase64url(assertion.response.userHandle)
+              : null,
           },
         }),
+      });
+
+      if (!verifyRes.ok) {
+        const err = await verifyRes.json().catch(() => ({}));
+        throw new Error(err.error || "Passkey login failed");
       }
-    );
 
-    if (!verifyRes.ok) {
-      const err = await verifyRes
-        .json()
-        .catch(() => ({}));
+      const data = await verifyRes.json();
 
-      throw new Error(
-        err.error || "Passkey login failed"
+      if (!data?.token) {
+        throw new Error("Login failed. Please try again.");
+      }
+
+      /* IMPORTANT: Update AuthContext immediately. */
+      login(data.token);
+
+      onClose();
+    } catch (err) {
+      console.error("Passkey login error:", err?.name || "unknown");
+
+      setPasskeyError(
+        err?.name === "NotAllowedError"
+          ? "Passkey cancelled. Try again."
+          : err?.message || "Passkey login failed. Please try again."
       );
+    } finally {
+      setPasskeyLoading(false);
     }
-
-    const data = await verifyRes.json();
-
-    if (!data?.token) {
-      throw new Error(
-        "Login failed. Please try again."
-      );
-    }
-
-    // IMPORTANT:
-    // Update AuthContext immediately.
-    login(data.token);
-
-    if (data.user) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify(data.user)
-      );
-    }
-
-    onClose();
-  } catch (err) {
-    console.error("Passkey login error:", err);
-
-    setPasskeyError(
-      err?.name === "NotAllowedError"
-        ? "Passkey cancelled. Try again."
-        : err?.message ||
-            "Passkey login failed. Please try again."
-    );
-  } finally {
-    setPasskeyLoading(false);
-  }
-};
+  };
 
   const handlePasskey = () => {
+    if (typeof window === "undefined") return;
     if (!window.PublicKeyCredential) {
       setPasskeyError("Your browser doesn't support passkeys.");
       return;
     }
-    mode === "signup" ? handlePasskeyRegister() : handlePasskeyLogin();
+    if (mode === "signup") {
+      handlePasskeyRegister();
+    } else {
+      handlePasskeyLogin();
+    }
   };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700;800&display=swap');
-
         /* ── scoped reset ── */
         .pv-panel, .pv-panel *, .pv-panel *::before, .pv-panel *::after {
           margin: 0; padding: 0; box-sizing: border-box;
@@ -353,18 +293,15 @@ const handlePasskeyLogin = async () => {
           --mint: #7BE5B5;
           --lilac: #C7B4FF;
           --paper: #FFFDF7;
-          --cream: #FDFAF3;
           --border: 1.5px solid var(--ink);
           --shadow-sm: 2px 2px 0 var(--ink);
           --shadow-md: 3px 3px 0 var(--ink);
           --shadow-lg: 4px 4px 0 var(--ink);
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), 'Comfortaa', system-ui, sans-serif;
           color: var(--ink);
         }
 
-        /* ═══════════════════════════════════════════
-           Overlay
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Overlay ═══════════ */
         .pv-overlay {
           position: fixed; inset: 0;
           background: rgba(27, 42, 65, 0.42);
@@ -375,9 +312,7 @@ const handlePasskeyLogin = async () => {
         }
         @keyframes pv-fadeIn { from { opacity: 0 } to { opacity: 1 } }
 
-        /* ═══════════════════════════════════════════
-           Panel — soft crayon pastel aurora
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Panel ═══════════ */
         .pv-panel {
           position: fixed; left: 0; top: 0; bottom: 0;
           width: 500px; max-width: 100vw;
@@ -425,9 +360,7 @@ const handlePasskeyLogin = async () => {
           z-index: 0;
         }
 
-        /* ═══════════════════════════════════════════
-           Close button — crayon pill
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Close button ═══════════ */
         .pv-close {
           position: absolute; top: 22px; right: 22px;
           width: 42px; height: 42px; border-radius: 50%;
@@ -437,7 +370,10 @@ const handlePasskeyLogin = async () => {
           font-size: 15px; font-weight: 800;
           cursor: pointer;
           box-shadow: var(--shadow-sm);
-          transition: transform 0.24s cubic-bezier(.34,1.4,.4,1), box-shadow 0.24s, background 0.24s;
+          transition:
+            transform 0.24s cubic-bezier(.34,1.4,.4,1),
+            box-shadow 0.24s,
+            background 0.24s;
           z-index: 5;
           display: flex; align-items: center; justify-content: center;
           line-height: 1;
@@ -452,9 +388,7 @@ const handlePasskeyLogin = async () => {
           box-shadow: var(--shadow-sm);
         }
 
-        /* ═══════════════════════════════════════════
-           Card
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Card ═══════════ */
         .pv-card {
           width: 360px; max-width: 90%;
           position: relative; z-index: 2;
@@ -479,9 +413,40 @@ const handlePasskeyLogin = async () => {
           object-fit: contain;
         }
 
-        /* ═══════════════════════════════════════════
-           Tabs — crayon pill
-        ═══════════════════════════════════════════ */
+        /* Heading — changes with the Register / Login tab */
+        .pv-heading {
+          text-align: center;
+          margin: -6px 0 20px;
+        }
+        .pv-heading-in {
+          animation: pv-headSwap 0.35s cubic-bezier(.2,.9,.3,1.1) both;
+        }
+        @keyframes pv-headSwap {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .pv-heading-title {
+          margin: 0;
+          font-family: var(--font-comfortaa), Comfortaa, sans-serif;
+          font-size: 24px;
+          font-weight: 700;
+          line-height: 1.2;
+          letter-spacing: -0.01em;
+          color: #1B2A41;
+        }
+        .pv-heading-sub {
+          margin: 6px 0 0;
+          font-family: var(--font-comfortaa), Comfortaa, sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 1.4;
+          color: rgba(27, 42, 65, 0.6);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pv-heading-in { animation: none; }
+        }
+
+        /* ═══════════ Tabs ═══════════ */
         .pv-tabs {
           display: flex;
           background: var(--paper);
@@ -497,10 +462,13 @@ const handlePasskeyLogin = async () => {
           border-radius: 100px;
           background: transparent;
           color: var(--ink-soft);
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
           font-size: 14px; font-weight: 800;
           cursor: pointer;
-          transition: background 0.24s ease, color 0.24s ease, transform 0.22s cubic-bezier(.34,1.4,.4,1);
+          transition:
+            background 0.24s ease,
+            color 0.24s ease,
+            transform 0.22s cubic-bezier(.34,1.4,.4,1);
           letter-spacing: -0.1px;
         }
         .pv-tab.active {
@@ -515,9 +483,7 @@ const handlePasskeyLogin = async () => {
           transform: translateY(-1px);
         }
 
-        /* ═══════════════════════════════════════════
-           Buttons — crayon card style
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Buttons ═══════════ */
         .pv-btn {
           width: 100%; height: 56px;
           border-radius: 100px;
@@ -526,21 +492,23 @@ const handlePasskeyLogin = async () => {
           display: flex; align-items: center; justify-content: center;
           gap: 12px;
           color: var(--ink);
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
           font-size: 14.5px; font-weight: 800;
           cursor: pointer;
           margin-bottom: 12px;
           box-shadow: var(--shadow-sm);
-          transition: transform 0.24s cubic-bezier(.34,1.4,.4,1), box-shadow 0.24s, background 0.24s;
+          transition:
+            transform 0.24s cubic-bezier(.34,1.4,.4,1),
+            box-shadow 0.24s,
+            background 0.24s;
           letter-spacing: -0.1px;
-          will-change: transform;
         }
-        .pv-btn:hover {
+        .pv-btn:hover:not(:disabled) {
           background: var(--yellow);
           transform: translate3d(-2px, -2px, 0);
           box-shadow: var(--shadow-md);
         }
-        .pv-btn:active {
+        .pv-btn:active:not(:disabled) {
           transform: translate3d(0, 0, 0);
           box-shadow: var(--shadow-sm);
         }
@@ -552,22 +520,23 @@ const handlePasskeyLogin = async () => {
         }
         .pv-btn svg { flex-shrink: 0; }
 
-        /* ═══════════════════════════════════════════
-           Input — crayon pill
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Input ═══════════ */
         .pv-input {
           width: 100%; height: 54px;
           border-radius: 100px;
           border: var(--border);
           padding: 0 20px;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
           font-size: 14px; font-weight: 600;
           color: var(--ink);
           background: var(--paper);
           margin-bottom: 12px;
           outline: none;
           box-shadow: var(--shadow-sm);
-          transition: transform 0.22s cubic-bezier(.34,1.4,.4,1), box-shadow 0.22s, background 0.22s;
+          transition:
+            transform 0.22s cubic-bezier(.34,1.4,.4,1),
+            box-shadow 0.22s,
+            background 0.22s;
         }
         .pv-input:focus {
           background: #fff;
@@ -576,9 +545,7 @@ const handlePasskeyLogin = async () => {
         }
         .pv-input::placeholder { color: var(--ink-mute); font-weight: 600; }
 
-        /* ═══════════════════════════════════════════
-           Spinner
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Spinner ═══════════ */
         .pv-spin {
           width: 18px; height: 18px;
           border: 2.5px solid rgba(27, 42, 65, 0.2);
@@ -589,9 +556,7 @@ const handlePasskeyLogin = async () => {
         }
         @keyframes pv-spin { to { transform: rotate(360deg) } }
 
-        /* ═══════════════════════════════════════════
-           Error — crayon card
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Error ═══════════ */
         .pv-error {
           font-size: 12.5px; font-weight: 700;
           color: var(--ink);
@@ -603,17 +568,15 @@ const handlePasskeyLogin = async () => {
           border-radius: 100px;
           box-shadow: var(--shadow-sm);
           animation: pv-fadeUp 0.3s ease;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
         }
 
-        /* ═══════════════════════════════════════════
-           Footer — crayon link
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Footer ═══════════ */
         .pv-footer {
           margin-top: 14px; text-align: center;
           font-size: 12.5px; line-height: 1.7;
           color: var(--ink-soft); font-weight: 700;
-          font-family: 'Comfortaa', sans-serif;
+          font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
         }
         .pv-footer span {
           color: var(--ink); font-weight: 800; cursor: pointer;
@@ -626,9 +589,7 @@ const handlePasskeyLogin = async () => {
           border-color: var(--lilac);
         }
 
-        /* ═══════════════════════════════════════════
-           Mobile
-        ═══════════════════════════════════════════ */
+        /* ═══════════ Mobile ═══════════ */
         @media (max-width: 700px) {
           .pv-panel { width: 100%; border-radius: 0; }
           .pv-card  { width: 86%; }
@@ -636,7 +597,7 @@ const handlePasskeyLogin = async () => {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after {
+          .pv-root *, .pv-root *::before, .pv-root *::after {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
@@ -648,25 +609,64 @@ const handlePasskeyLogin = async () => {
         <div className="pv-overlay" onClick={onClose} />
 
         <div className="pv-panel">
-          <button className="pv-close" onClick={onClose} aria-label="Close">✕</button>
+          <button
+            className="pv-close"
+            onClick={onClose}
+            aria-label="Close"
+            type="button"
+          >
+            ✕
+          </button>
 
           <div className="pv-card">
-            {/* Logo — plain, no border */}
+            {/* Logo */}
             <div className="pv-logo" style={{ animationDelay: "0.06s" }}>
-              <img src="/sharx-logo.webp" alt="logo" />
+              <Image
+                src="/sharx-logo.webp"
+                alt="Sharx"
+                width={96}
+                height={96}
+                priority
+              />
+            </div>
+
+            {/* Heading — Welcome back (login) / Join Sharx (register) */}
+            <div className="pv-heading" style={{ animationDelay: "0.1s" }}>
+              <div key={mode} className="pv-heading-in">
+                <h2 className="pv-heading-title">
+                  {mode === "signup" ? "Join Sharx" : "Welcome back"}
+                </h2>
+                <p className="pv-heading-sub">
+                  {mode === "signup"
+                    ? "Create your free account in one tap."
+                    : "Pick up where you left off."}
+                </p>
+              </div>
             </div>
 
             {/* Tabs */}
             <div className="pv-tabs" style={{ animationDelay: "0.13s" }}>
               <button
+                type="button"
                 className={`pv-tab ${mode === "signup" ? "active" : ""}`}
-                onClick={() => { setMode("signup"); setPasskeyError(""); setShowEmailInput(false); setPasskeyEmail(""); }}
+                onClick={() => {
+                  setMode("signup");
+                  setPasskeyError("");
+                  setShowEmailInput(false);
+                  setPasskeyEmail("");
+                }}
               >
                 Register
               </button>
               <button
+                type="button"
                 className={`pv-tab ${mode === "login" ? "active" : ""}`}
-                onClick={() => { setMode("login"); setPasskeyError(""); setShowEmailInput(false); setPasskeyEmail(""); }}
+                onClick={() => {
+                  setMode("login");
+                  setPasskeyError("");
+                  setShowEmailInput(false);
+                  setPasskeyEmail("");
+                }}
               >
                 Login
               </button>
@@ -674,15 +674,30 @@ const handlePasskeyLogin = async () => {
 
             {/* Google */}
             <button
+              type="button"
               className="pv-btn"
               style={{ animationDelay: "0.2s" }}
-              onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+              onClick={() => {
+                startOAuth("google");
+              }}
             >
-              <svg width="22" height="22" viewBox="0 0 18 18">
-                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-                <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+              <svg width="22" height="22" viewBox="0 0 18 18" aria-hidden="true">
+                <path
+                  fill="#4285F4"
+                  d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"
+                />
               </svg>
               Continue with Google
             </button>
@@ -695,29 +710,69 @@ const handlePasskeyLogin = async () => {
                 type="email"
                 placeholder="Enter your email"
                 value={passkeyEmail}
-                onChange={(e) => { setPasskeyEmail(e.target.value); setPasskeyError(""); }}
-                onKeyDown={(e) => { if (e.key === "Enter") handlePasskeyRegister(); }}
+                onChange={(e) => {
+                  setPasskeyEmail(e.target.value);
+                  setPasskeyError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handlePasskeyRegister();
+                }}
                 autoFocus
+                autoComplete="email"
+                inputMode="email"
+                aria-label="Email for passkey registration"
               />
             )}
 
             {/* Passkey */}
             <button
+              type="button"
               className="pv-btn"
               style={{ animationDelay: "0.32s" }}
               onClick={handlePasskey}
               disabled={passkeyLoading}
             >
               {passkeyLoading ? (
-                <><span className="pv-spin" /> Verifying...</>
+                <>
+                  <span className="pv-spin" aria-hidden="true" /> Verifying...
+                </>
               ) : (
                 <>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <ellipse cx="12" cy="8.5" rx="3.5" ry="4" stroke="#1B2A41" strokeWidth="1.7"/>
-                    <path d="M5 20.5c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="#1B2A41" strokeWidth="1.7" strokeLinecap="round"/>
-                    <path d="M8.5 8.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5" stroke="#1B2A41" strokeWidth="1.7" strokeLinecap="round"/>
-                    <circle cx="18.5" cy="17.5" r="2.5" fill="#2E7FE8"/>
-                    <path d="M18.5 16v1.5l1 1" stroke="#fff" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <ellipse
+                      cx="12"
+                      cy="8.5"
+                      rx="3.5"
+                      ry="4"
+                      stroke="#1B2A41"
+                      strokeWidth="1.7"
+                    />
+                    <path
+                      d="M5 20.5c0-3.87 3.13-7 7-7s7 3.13 7 7"
+                      stroke="#1B2A41"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M8.5 8.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5"
+                      stroke="#1B2A41"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="18.5" cy="17.5" r="2.5" fill="#2E7FE8" />
+                    <path
+                      d="M18.5 16v1.5l1 1"
+                      stroke="#fff"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                   Continue with Passkey
                 </>
@@ -725,12 +780,25 @@ const handlePasskeyLogin = async () => {
             </button>
 
             {passkeyError && (
-              <div className="pv-error" style={{ animationDelay: "0.38s" }}>{passkeyError}</div>
+              <div
+                className="pv-error"
+                style={{ animationDelay: "0.38s" }}
+                role="alert"
+              >
+                {passkeyError}
+              </div>
             )}
 
             <div className="pv-footer" style={{ animationDelay: "0.44s" }}>
               By continuing you agree to our{" "}
-              <span onClick={() => { onClose(); router.push("/trust"); }}>Privacy Policy</span>
+              <span
+                onClick={() => {
+                  onClose();
+                  router.push("/trust");
+                }}
+              >
+                Privacy Policy
+              </span>
             </div>
           </div>
         </div>

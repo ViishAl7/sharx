@@ -1,0 +1,898 @@
+/* ══════════════════════════════════════════════════════════════
+   SHARX HOME — Extras (final)
+   Black crayon icons in circles · Search drop · Smooth event card ·
+   Chips · Horizontal rows · More-games button · Back-to-top
+══════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────
+   TOKENS
+─────────────────────────────────────────── */
+:root {
+  --sx-black: #111111;
+  --sx-black-shadow: rgba(17, 17, 17, 0.9);
+}
+[data-theme="dark"] {
+  --sx-black: #F2EFE8;
+  --sx-black-shadow: rgba(242, 239, 232, 0.85);
+}
+
+/* ───────────────────────────────────────────
+   CRAYON ICON WRAPPER (category icons: chips, headings, gift)
+─────────────────────────────────────────── */
+.crayon-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.crayon-ico svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* ───────────────────────────────────────────
+   CIRCLE BUTTONS — white circle + simple black icon
+   • ::before  = hard crayon shadow, NEVER moves
+   • ::after   = coloured face with ink border, lifts on hover
+   • icon      = lifts together with the face
+   (same feel as the "Vishal" card: it rises, its shadow stays)
+─────────────────────────────────────────── */
+.ink-ico {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--sx-black);
+  overflow: visible;
+}
+
+.main-col .topbar .hamburger-btn,
+.to-top {
+  --face: var(--paper);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  box-shadow: none;
+  color: var(--sx-black);
+  cursor: pointer;
+  overflow: visible;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* fixed shadow */
+.main-col .topbar .hamburger-btn::before,
+.to-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: 50%;
+  background: var(--sx-black);
+  transform: translate(2px, 3px);
+}
+
+/* lifting face */
+.main-col .topbar .hamburger-btn::after,
+.to-top::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 2px solid var(--sx-black);
+  border-radius: 50%;
+  background: var(--face);
+  transition: transform 0.3s var(--ease-pop), background 0.2s ease;
+}
+
+/* icon inside lifts with the face */
+.main-col .topbar .hamburger-btn > *,
+.to-top > * {
+  position: relative;
+  transition: transform 0.3s var(--ease-pop);
+}
+
+.main-col .topbar .hamburger-btn { --face: var(--paper); }
+.to-top { --face: var(--paper); }
+
+.ink-btn-ico {
+  display: block;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .main-col .topbar .hamburger-btn:hover::after,
+  .to-top.is-visible:hover::after,
+  .main-col .topbar .hamburger-btn:hover > *,
+  .to-top.is-visible:hover > * {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+.main-col .topbar .hamburger-btn:active::after,
+.to-top:active::after,
+.main-col .topbar .hamburger-btn:active > *,
+.to-top:active > * {
+  transform: translate3d(1px, 2px, 0);
+}
+
+.main-col .topbar .hamburger-btn:focus-visible,
+.to-top:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+}
+
+/* 3-line menu icon is gone: this grid button only exists on small screens
+   (it opens the category drawer there) */
+@media (min-width: 901px) {
+  .main-col .topbar .hamburger-btn { display: none; }
+}
+
+@media (max-width: 640px) {
+  .main-col .topbar .hamburger-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .ink-btn-ico { width: 19px; height: 19px; }
+}
+
+/* ───────────────────────────────────────────
+   TOPBAR fade strip so games never collide with icons
+─────────────────────────────────────────── */
+.main-col .topbar { isolation: isolate; }
+
+.main-col .topbar::before {
+  content: "";
+  position: absolute;
+  left: -28px;
+  right: -28px;
+  top: -34px;
+  bottom: -4px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #FFF9EC 0%,
+    #FFF9EC 70%,
+    rgba(255, 249, 236, 0) 100%
+  );
+}
+[data-theme="dark"] .main-col .topbar::before {
+  background: linear-gradient(
+    180deg,
+    #191d26 0%,
+    #191d26 70%,
+    rgba(25, 29, 38, 0) 100%
+  );
+}
+
+/* ───────────────────────────────────────────
+   SEARCH DROPDOWN
+─────────────────────────────────────────── */
+.topbar-search-drop {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 62px;
+  width: min(420px, calc(100vw - 24px));
+  z-index: 260;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 54px;
+  padding: 0 8px 0 14px;
+  background: var(--paper);
+  border: 2.5px solid var(--sx-black);
+  border-radius: 999px;
+  box-shadow: 3px 4px 0 var(--sx-black-shadow);
+  animation: searchDrop 0.2s var(--ease-pop);
+  transform-origin: top right;
+}
+
+.topbar-search-drop .ink-search-sm {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.topbar-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 0;
+}
+.topbar-search-input::placeholder {
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.topbar-search-input::-webkit-search-cancel-button { display: none; }
+
+.topbar-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--yellow-soft);
+  border: 2.5px solid var(--sx-black);
+  color: var(--sx-black);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease, transform 0.2s var(--ease-pop);
+}
+.topbar-search-clear .ink-ico { width: 18px; height: 18px; }
+.topbar-search-clear:hover { background: var(--coral); }
+.topbar-search-clear:active { transform: scale(0.92); }
+.topbar-search-clear:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .topbar-search-drop {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    height: 50px;
+  }
+}
+
+/* ───────────────────────────────────────────
+   MOBILE CATEGORY CHIPS
+─────────────────────────────────────────── */
+.chips-bar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .chips-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 0 -18px 16px;
+    padding: 4px 18px 10px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: relative;
+    z-index: 100;
+  }
+  .chips-bar::-webkit-scrollbar { display: none; }
+
+  .chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px 8px 8px;
+    border-radius: 999px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    font-family: var(--font-comfortaa), sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+    cursor: pointer;
+    scroll-snap-align: start;
+    white-space: nowrap;
+    transition: transform 0.2s var(--ease-pop), background 0.2s ease;
+  }
+
+  .chip:active { transform: scale(0.96); }
+
+  .chip.chip-on {
+    background: var(--yellow);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .chip-ico { width: 26px; height: 26px; flex-shrink: 0; }
+  .chip-label { line-height: 1; }
+}
+
+/* ───────────────────────────────────────────
+   EVENT CARD — strip + body merged into ONE card
+   Smooth open: pure CSS grid-rows (0fr → 1fr).
+   No JS measuring, no ResizeObserver, no re-render per frame.
+─────────────────────────────────────────── */
+.hero-wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 24px;
+}
+
+.event-card {
+  position: relative;
+  width: 100%;
+  background:
+    radial-gradient(circle at 96% 8%, rgba(255, 217, 102, 0.42), transparent 42%),
+    radial-gradient(circle at 4% 96%, rgba(199, 180, 255, 0.30), transparent 45%),
+    linear-gradient(120deg, #FFFDF7 0%, #FFF6E4 100%);
+  border: 2.5px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: 4px 4px 0 var(--ink);
+  color: var(--ink);
+  font-family: var(--font-comfortaa), "Comfortaa", sans-serif;
+  overflow: hidden;
+  isolation: isolate;
+  contain: layout style;
+  animation: fadeUp 0.4s var(--ease-pop) both;
+}
+.event-card.is-open {
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+/* dotted paper texture */
+.event-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(27, 42, 65, 0.05) 1px, transparent 1.4px);
+  background-size: 16px 16px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.event-card .event-strip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  cursor: pointer;
+  animation: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.event-card .event-strip::before { display: none; }
+
+.event-strip-ico {
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  transform-origin: 50% 80%;
+  animation: giftNudge 4.5s ease-in-out infinite;
+}
+.event-card.is-open .event-strip-ico { animation: none; }
+
+.event-strip-text {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-strip-title {
+  font-size: 14.5px;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.event-strip-sub {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* STARTING SOON pill — dark ink pill, yellow hard shadow, clock in a yellow circle */
+.event-strip-pill {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 15px 5px 5px;
+  background: var(--ink);
+  color: #FFF9EC;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 2.5px 2.5px 0 var(--yellow);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.event-strip-pill-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  background: var(--yellow);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+.event-strip-pill-ico svg { width: 15px; height: 15px; display: block; }
+.event-strip-pill-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.event-strip-pill.is-live .event-strip-pill-ico { background: var(--coral); }
+
+.event-cd {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+  flex-shrink: 0;
+}
+
+.event-cd-cell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 24px;
+  line-height: 1;
+}
+.event-cd-cell b {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--ink);
+}
+.event-cd-cell i {
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+  margin-top: 1px;
+  text-transform: uppercase;
+}
+
+/* Details / Hide button */
+.event-strip-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 8px 16px;
+  background: var(--ink);
+  color: var(--yellow);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 2.5px 2.5px 0 var(--yellow);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease-pop), box-shadow 0.2s ease;
+}
+.event-strip-btn:hover {
+  transform: translate3d(-2px, -2px, 0);
+  box-shadow: 4px 4px 0 var(--yellow);
+}
+.event-strip-btn:active {
+  transform: translate3d(0, 0, 0);
+  box-shadow: 1.5px 1.5px 0 var(--yellow);
+}
+.event-strip-btn:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.event-strip-chev {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  transition: transform 0.4s var(--ease-pop);
+}
+.event-strip-chev svg { width: 100%; height: 100%; display: block; }
+.event-card.is-open .event-strip-chev { transform: rotate(180deg); }
+
+/* BODY — grid rows 0fr → 1fr (smooth, GPU-friendly, zero JS) */
+.event-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.3s ease,
+    visibility 0s linear 0.42s;
+}
+.event-card.is-open .event-body {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.3s ease 0.06s,
+    visibility 0s;
+}
+
+.event-body-inner {
+  min-height: 0;
+  overflow: hidden;
+  border-top: 2px dashed rgba(27, 42, 65, 0.28);
+}
+
+/* nothing animates inside while the card is closed */
+.event-card:not(.is-open) .event-body *,
+.event-card:not(.is-open) .event-body *::before,
+.event-card:not(.is-open) .event-body *::after {
+  animation-play-state: paused !important;
+}
+
+@keyframes giftNudge {
+  0%, 82%, 100% { transform: rotate(0) scale(1); }
+  86% { transform: rotate(-12deg) scale(1.1); }
+  90% { transform: rotate(10deg) scale(1.1); }
+  94% { transform: rotate(-6deg) scale(1.05); }
+}
+
+@media (max-width: 640px) {
+  .event-card .event-strip {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .event-strip-text { flex-basis: calc(100% - 60px); }
+  .event-strip-pill,
+  .event-cd { order: 3; }
+  .event-strip-btn { order: 4; margin-left: auto; }
+  .event-strip-title { font-size: 13px; }
+  .event-strip-sub { font-size: 10.5px; }
+}
+
+/* ───────────────────────────────────────────
+   HORIZONTAL ROW (HRow)
+─────────────────────────────────────────── */
+.hrow {
+  position: relative;
+  padding-top: 4px;
+  margin-bottom: 26px;
+}
+.hrow:last-child { margin-bottom: 0; }
+
+.hrow .home-row-header {
+  margin-bottom: 14px;
+  gap: 12px;
+}
+
+.hrow-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(140px, 1fr);
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  /* room around the cards so the hover lift, shadow and badge are never
+     clipped by the scroll box; negative margin cancels the extra space */
+  padding: 20px 16px 20px;
+  margin: -16px -12px -6px;
+  scroll-padding-inline: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(27, 42, 65, 0.18) transparent;
+}
+.hrow-track::-webkit-scrollbar { height: 6px; }
+.hrow-track::-webkit-scrollbar-thumb {
+  background: rgba(27, 42, 65, 0.18);
+  border-radius: 100px;
+}
+
+.hrow-track > .row-card-link {
+  scroll-snap-align: start;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .hrow-track {
+    grid-auto-columns: minmax(120px, 1fr);
+    gap: 12px;
+    padding: 20px 12px 18px;
+    margin: -16px -8px -4px;
+    scroll-padding-inline: 12px;
+  }
+}
+
+/* ───────────────────────────────────────────
+   MORE GAMES BUTTON — pill + black arrow in a circle
+─────────────────────────────────────────── */
+.infinite-loader-wrap .load-more-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 10px 8px 26px;
+  background: linear-gradient(160deg, #fff2b8 0%, var(--yellow) 100%);
+  border: 2.5px solid var(--sx-black);
+  border-radius: 999px;
+  box-shadow: 4px 4px 0 var(--sx-black-shadow);
+  font-family: var(--font-comfortaa), sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s var(--ease-pop), box-shadow 0.22s ease;
+}
+
+.infinite-loader-wrap .load-more-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.65) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.infinite-loader-wrap .load-more-btn .load-more-label {
+  position: relative;
+  z-index: 1;
+}
+
+.infinite-loader-wrap .load-more-btn .more-circle {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 2px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.infinite-loader-wrap .load-more-btn .more-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: 50%;
+  background: var(--sx-black);
+  transform: translate(2px, 3px);
+}
+.infinite-loader-wrap .load-more-btn .more-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 2px solid var(--sx-black);
+  border-radius: 50%;
+  background: var(--paper);
+  transition: transform 0.3s var(--ease-pop);
+}
+.infinite-loader-wrap .load-more-btn .more-circle .ink-ico {
+  position: relative;
+  width: 17px;
+  height: 17px;
+  transition: transform 0.3s var(--ease-pop);
+}
+@media (hover: hover) and (pointer: fine) {
+  .infinite-loader-wrap .load-more-btn:hover .more-circle::after,
+  .infinite-loader-wrap .load-more-btn:hover .more-circle .ink-ico {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+.infinite-loader-wrap .load-more-btn:active .more-circle::after,
+.infinite-loader-wrap .load-more-btn:active .more-circle .ink-ico {
+  transform: translate3d(1px, 2px, 0);
+}
+
+.infinite-loader-wrap .load-more-btn:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+}
+
+/* ───────────────────────────────────────────
+   BACK TO TOP — black arrow in a circle
+─────────────────────────────────────────── */
+.to-top {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 20px, 0);
+  transition: opacity 0.28s ease, transform 0.35s var(--ease-pop);
+  z-index: 400;
+}
+.to-top .ink-btn-ico { width: 22px; height: 22px; }
+
+.to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0);
+}
+
+@media (max-width: 640px) {
+  .to-top { width: 40px; height: 40px; right: 12px; bottom: 12px; }
+  .to-top .ink-btn-ico { width: 22px; height: 22px; }
+}
+
+/* ───────────────────────────────────────────
+   MOBILE DRAWER OPEN — kill any blur bleed
+─────────────────────────────────────────── */
+.sx-scrim {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+body.drawer-open .main-col,
+body.drawer-open .main-col *,
+body.drawer-open .bg-scene {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body.drawer-open .main-col {
+  filter: none !important;
+}
+
+/* ───────────────────────────────────────────
+   REDUCED MOTION
+─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .event-card,
+  .event-strip-ico,
+  .event-strip-btn,
+  .event-strip-chev,
+  .event-body,
+  .main-col .topbar .hamburger-btn,
+  .infinite-loader-wrap .load-more-btn,
+  .to-top,
+  .chip {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SHARX BADGE BUTTONS (search · profile)
+   Circle face lifts up on hover, hard crayon shadow stays put.
+══════════════════════════════════════════════════════════════ */
+.topbar-r .sx-btn {
+  --tone: var(--paper);
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.topbar-r .sx-btn.is-search { --tone: var(--yellow); }
+.topbar-r .sx-btn.is-search.is-on { --tone: var(--coral); }
+.topbar-r .sx-btn.is-profile { --tone: #C7B4FF; }
+.topbar-r .sx-btn.is-user { --tone: var(--paper); }
+
+.sx-badge {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.sx-badge-shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  transform: translate(2.5px, 3.5px);
+}
+.sx-badge-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--tone);
+  transition: transform 0.3s var(--ease-pop);
+}
+.sx-art {
+  display: block;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .topbar-r .sx-btn:hover .sx-badge-face {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+.topbar-r .sx-btn:active .sx-badge-face {
+  transform: translate3d(1.5px, 2.5px, 0);
+}
+.topbar-r .sx-btn:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 5px;
+}
+
+@media (max-width: 640px) {
+  .topbar-r .sx-btn { width: 42px; height: 42px; }
+  .sx-art { width: 27px; height: 27px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sx-badge-face { transition: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GAME CARDS — never clip the hover lift
+   (wrapper boxes keep their old size but stop cutting what lifts
+   out of them: overflow / paint containment / content-visibility)
+══════════════════════════════════════════════════════════════ */
+.games-grid,
+.hrow-track {
+  overflow-clip-margin: 24px;
+}
+.games-grid > *,
+.hrow-track > * {
+  overflow: visible !important;
+  contain: none !important;
+  content-visibility: visible !important;
+}
+.games-grid {
+  padding-top: 14px;
+  margin-top: -14px;
+}
