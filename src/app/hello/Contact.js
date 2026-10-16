@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import React, {
   useEffect,
   useState,
@@ -23,6 +25,13 @@ import {
   Clock,
   Loader2,
   Home,
+  Shield,
+  Lightbulb,
+  Gamepad2,
+  Sparkles,
+  KeyRound,
+  AlertTriangle,
+  ZapOff,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -33,20 +42,78 @@ const ALT_EMAIL = "vishalxr92@gmail.com";
 const MIN_MESSAGE_LENGTH = 4;
 const MAX_MESSAGE_LENGTH = 2000;
 
+/* ─────────────────────────────────────────────────────────────
+   BugIcon
+   Same look as the lucide "bug" glyph, but the antennae and the
+   left / right legs are separate groups so the "Bug" category can
+   animate them (two-step crawl) without any emoji or new library.
+   Accepts no props on purpose: size / stroke come from the
+   existing .reason-chip-icon svg CSS, same as every other icon.
+───────────────────────────────────────────────────────────── */
+function BugIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <g className="bug-ant">
+        <path d="m8 2 1.88 1.88" />
+        <path d="M14.12 3.88 16 2" />
+      </g>
+      <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
+      <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" />
+      <path d="M12 20v-9" />
+      <g className="bug-legs-l">
+        <path d="M6.53 9C4.6 8.8 3 7.1 3 5" />
+        <path d="M6 13H2" />
+        <path d="M3 21c0-2.1 1.7-3.9 3.8-4" />
+      </g>
+      <g className="bug-legs-r">
+        <path d="M20.97 5c0 2.1-1.6 3.8-3.5 4" />
+        <path d="M22 13h-4" />
+        <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" />
+      </g>
+    </svg>
+  );
+}
+
+/* Reason chips: icon + contextual motion key (fx).
+   fx maps to the [data-fx="..."] rules in the CSS below. */
 const REASONS = [
-  { value: "general", label: "General question" },
-  { value: "account", label: "Account or login issue" },
-  { value: "broken-game", label: "Report a broken game" },
-  { value: "content", label: "Report inappropriate content" },
-  { value: "bug", label: "Bug or technical problem" },
-  { value: "feedback", label: "Feedback or suggestion" },
-  { value: "business", label: "Business inquiry" },
-  { value: "submission", label: "Game submission" },
-  { value: "other", label: "Other" },
+  { value: "general", label: "General", icon: MessageCircle, fx: "think" },
+  { value: "account", label: "Login issue", icon: KeyRound, fx: "key" },
+  { value: "broken-game", label: "Broken game", icon: ZapOff, fx: "glitch" },
+  { value: "content", label: "Bad content", icon: AlertTriangle, fx: "shield" },
+  { value: "bug", label: "Bug", icon: BugIcon, fx: "diag" },
+  { value: "feedback", label: "Feedback", icon: Lightbulb, fx: "idea" },
+  { value: "business", label: "Business", icon: Handshake, fx: "shake" },
+  { value: "submission", label: "Game submit", icon: Gamepad2, fx: "upload" },
+  { value: "other", label: "Other", icon: Sparkles, fx: "morph" },
 ];
 
 const REASON_LABEL = (value) =>
   REASONS.find((r) => r.value === value)?.label || value;
+
+/* Context colors for the selected reason chip.
+   These are intentionally restrained so the Contact page keeps its
+   existing SHARX visual language while each reason gets its own identity. */
+const REASON_COLORS = {
+  general: { bg: "#DDF5EA", accent: "#169B69", ring: "rgba(22,155,105,.20)" },
+  account: { bg: "#E8E1FF", accent: "#7357D6", ring: "rgba(115,87,214,.20)" },
+  "broken-game": { bg: "#FFE0DB", accent: "#E05243", ring: "rgba(224,82,67,.20)" },
+  content: { bg: "#FFE8D5", accent: "#D8792F", ring: "rgba(216,121,47,.20)" },
+  bug: { bg: "#FFF0B8", accent: "#B98500", ring: "rgba(185,133,0,.20)" },
+  feedback: { bg: "#DCEEFF", accent: "#3478C8", ring: "rgba(52,120,200,.20)" },
+  business: { bg: "#E8DFFF", accent: "#7651C7", ring: "rgba(118,81,199,.20)" },
+  submission: { bg: "#D9F2F4", accent: "#168C98", ring: "rgba(22,140,152,.20)" },
+  other: { bg: "#E7EAF0", accent: "#596579", ring: "rgba(89,101,121,.20)" },
+};
 
 const CONTACT_OPTIONS = [
   {
@@ -163,8 +230,10 @@ export default function ContactPage() {
 
   const [submitState, setSubmitState] = useState("idle");
   const [fallbackMailto, setFallbackMailto] = useState(null);
-  const [sentEmail, setSentEmail] = useState("");
   const statusRef = useRef(null);
+
+  /* Which chip just became selected (drives the one-shot micro-interaction) */
+  const [burst, setBurst] = useState(null);
 
   const handleBack = useCallback(() => {
     if (typeof window !== "undefined") router.back();
@@ -201,6 +270,7 @@ export default function ContactPage() {
       return next;
     });
     setSubmitState("idle");
+    setBurst(reason);
   }, []);
 
   const handleFaqToggle = useCallback((i) => {
@@ -333,8 +403,8 @@ export default function ContactPage() {
           throw new Error(data?.message || "Failed to send message");
         }
 
-        setSentEmail(email);
         setSubmitState("success");
+        setBurst(null);
         setFormData({
           name: "",
           email: "",
@@ -447,13 +517,17 @@ export default function ContactPage() {
           cursor: pointer;
           display: flex;
           align-items: center;
-          transition: transform 0.25s cubic-bezier(.34,1.3,.4,1);
           background: none;
           border: none;
           padding: 0;
+          line-height: 0;
         }
-        .nav-logo:hover { transform: scale(1.04); }
-        .nav-logo img { height: 62px; width: auto; display: block; filter: drop-shadow(2px 2px 0 rgba(27,42,65,0.12)); }
+        .nav-logo img {
+          height: 62px;
+          width: auto;
+          display: block;
+          filter: drop-shadow(2px 2px 0 rgba(27,42,65,0.12));
+        }
 
         .nav-back {
           height: 40px;
@@ -759,16 +833,35 @@ export default function ContactPage() {
         }
         .reason-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
         .reason-chip {
+          position: relative;
           font-family: var(--font-comfortaa), sans-serif;
           font-size: 12.5px;
           font-weight: 700;
-          padding: 8px 16px;
+          padding: 8px 14px;
           border-radius: 100px;
           background: var(--paper);
           border: var(--border);
           color: var(--ink-soft);
           cursor: pointer;
           transition: transform 0.2s cubic-bezier(.34,1.4,.4,1), box-shadow 0.2s, background 0.2s, color 0.2s;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+        }
+        .reason-chip .reason-chip-icon {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 15px;
+          height: 15px;
+          flex-shrink: 0;
+          transition: transform 0.25s cubic-bezier(.34,1.4,.4,1);
+        }
+        .reason-chip .reason-chip-icon svg {
+          width: 14px;
+          height: 14px;
+          stroke-width: 2.4;
         }
         .reason-chip:hover {
           background: var(--yellow-soft);
@@ -776,13 +869,369 @@ export default function ContactPage() {
           transform: translate3d(-2px, -2px, 0);
           box-shadow: var(--shadow-sm);
         }
+        .reason-chip:hover .reason-chip-icon {
+          transform: rotate(-10deg) scale(1.15);
+        }
         .reason-chip.active {
-          background: var(--yellow);
+          background: linear-gradient(180deg, var(--reason-bg), var(--reason-bg-deep));
           color: var(--ink);
-          box-shadow: var(--shadow-sm);
+          border-color: var(--reason-accent);
+          box-shadow:
+            0 3px 0 var(--reason-accent),
+            0 0 0 2px var(--reason-ring),
+            var(--shadow-sm);
           transform: translate3d(-2px, -2px, 0);
         }
+        .reason-chip.active .reason-chip-icon {
+          color: var(--reason-accent);
+          transform: scale(1.1);
+        }
+        .reason-chip.active .reason-chip-icon svg {
+          stroke: currentColor;
+        }
         .reason-chip:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+        /* ═══════════════════════════════════════════
+           CATEGORY CONTEXTUAL MICRO-INTERACTIONS
+           Same chip, same selected style. Only the motion differs.
+           All motion is one-shot, runs inside the chip, and never
+           touches layout (transform / opacity only, absolute overlays).
+        ═══════════════════════════════════════════ */
+
+        /* Glyph wrapper: animated instead of .reason-chip-icon so the
+           existing hover / active scale on the icon is never fought. */
+        .reason-chip .fx-glyph {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          transform-origin: 50% 50%;
+        }
+
+        /* Overlay layers: invisible by default, driven only by keyframes. */
+        .reason-chip .reason-chip-icon::before,
+        .reason-chip .reason-chip-icon::after,
+        .reason-chip::after {
+          content: "";
+          position: absolute;
+          pointer-events: none;
+          opacity: 0;
+        }
+
+        /* Keep every effect physically inside the pill while it plays. */
+        .reason-chip.fx-play { overflow: hidden; }
+
+        /* 1. GENERAL: question received (pop + soft ripple) */
+        .reason-chip.fx-play[data-fx="think"] .fx-glyph {
+          animation: fx-think 520ms cubic-bezier(.34,1.3,.4,1);
+        }
+        .reason-chip.fx-play[data-fx="think"] .reason-chip-icon::after {
+          inset: -2px;
+          border-radius: 50%;
+          border: 1.5px solid var(--ink);
+          animation: fx-ring-soft 620ms ease-out;
+        }
+        @keyframes fx-think {
+          0%   { transform: scale(.7) rotate(-12deg); }
+          45%  { transform: scale(1.2) rotate(7deg); }
+          72%  { transform: scale(.95) rotate(-3deg); }
+          100% { transform: scale(1) rotate(0); }
+        }
+        @keyframes fx-ring-soft {
+          0%   { opacity: .4; transform: scale(.6); }
+          100% { opacity: 0; transform: scale(1.9); }
+        }
+
+        /* 2. ACCOUNT: key turns, verification scan passes through */
+        .reason-chip.fx-play[data-fx="key"] .fx-glyph {
+          animation: fx-key 620ms cubic-bezier(.4,0,.2,1);
+        }
+        .reason-chip.fx-play[data-fx="key"]::after {
+          top: 0;
+          bottom: 0;
+          left: 0;
+          width: 38%;
+          background: linear-gradient(90deg, rgba(27,42,65,0) 0%, rgba(27,42,65,.16) 50%, rgba(27,42,65,0) 100%);
+          transform: translateX(-100%);
+          animation: fx-scan 560ms ease-in-out 120ms;
+        }
+        @keyframes fx-key {
+          0%   { transform: rotate(0); }
+          30%  { transform: rotate(-32deg) translateY(-1px); }
+          55%  { transform: rotate(14deg); }
+          78%  { transform: rotate(-5deg); }
+          100% { transform: rotate(0); }
+        }
+        @keyframes fx-scan {
+          0%   { opacity: 0; transform: translateX(-100%); }
+          15%  { opacity: 1; }
+          85%  { opacity: 1; }
+          100% { opacity: 0; transform: translateX(270%); }
+        }
+
+        /* 3. BROKEN GAME: one short glitch, then back to normal */
+        .reason-chip.fx-play[data-fx="glitch"] .fx-glyph {
+          animation: fx-glitch 440ms steps(1, end);
+        }
+        .reason-chip.fx-play[data-fx="glitch"] .reason-chip-icon::before {
+          left: -2px;
+          right: -2px;
+          top: 0;
+          height: 2px;
+          background: var(--coral-deep);
+          animation: fx-tear 440ms steps(1, end);
+        }
+        @keyframes fx-glitch {
+          0%   { transform: translate(0, 0); opacity: 1; color: var(--ink); }
+          10%  { transform: translate(-1.6px, .6px) skewX(-14deg); opacity: .45; color: var(--coral-deep); }
+          22%  { transform: translate(1.6px, -.6px) skewX(12deg); opacity: 1; color: var(--coral-deep); }
+          34%  { transform: translate(-1px, 0); opacity: .35; color: var(--coral-deep); }
+          46%  { transform: translate(1px, .5px) skewX(-8deg); opacity: 1; color: var(--coral-deep); }
+          58%  { transform: translate(0, 0); opacity: .6; color: var(--coral-deep); }
+          72%  { transform: none; opacity: 1; color: var(--coral-deep); }
+          86%  { transform: none; opacity: 1; color: var(--ink); }
+          100% { transform: none; opacity: 1; color: var(--ink); }
+        }
+        @keyframes fx-tear {
+          0%   { opacity: 0; transform: translateY(0); }
+          16%  { opacity: .9; transform: translateY(4px); }
+          28%  { opacity: 0; transform: translateY(4px); }
+          40%  { opacity: .9; transform: translateY(10px); }
+          52%  { opacity: 0; transform: translateY(10px); }
+          100% { opacity: 0; transform: translateY(0); }
+        }
+
+        /* 4. BAD CONTENT: restrained alert + two protective rings */
+        .reason-chip.fx-play[data-fx="shield"] .fx-glyph {
+          animation: fx-alert 560ms cubic-bezier(.34,1.3,.4,1);
+        }
+        .reason-chip.fx-play[data-fx="shield"] .reason-chip-icon::before,
+        .reason-chip.fx-play[data-fx="shield"] .reason-chip-icon::after {
+          inset: -1px;
+          border-radius: 6px 6px 9px 9px;
+          border: 1.5px solid var(--coral-deep);
+        }
+        .reason-chip.fx-play[data-fx="shield"] .reason-chip-icon::before {
+          animation: fx-ring-guard 640ms ease-out;
+        }
+        .reason-chip.fx-play[data-fx="shield"] .reason-chip-icon::after {
+          animation: fx-ring-guard 640ms ease-out 140ms;
+        }
+        @keyframes fx-alert {
+          0%   { transform: scale(1) rotate(0); }
+          25%  { transform: scale(1.18) rotate(-7deg); }
+          50%  { transform: scale(1.05) rotate(6deg); }
+          75%  { transform: scale(1.12) rotate(-2deg); }
+          100% { transform: scale(1) rotate(0); }
+        }
+        @keyframes fx-ring-guard {
+          0%   { opacity: .55; transform: scale(.8); }
+          100% { opacity: 0; transform: scale(2); }
+        }
+
+        /* 5. BUG: technical issue detected (two-step crawl, leg skitter,
+              antenna twitch, diagnostic flicker, status dot) */
+        .reason-chip .bug-ant,
+        .reason-chip .bug-legs-l,
+        .reason-chip .bug-legs-r {
+          transform-box: fill-box;
+        }
+        .reason-chip .bug-ant { transform-origin: 50% 100%; }
+        .reason-chip .bug-legs-l { transform-origin: 100% 50%; }
+        .reason-chip .bug-legs-r { transform-origin: 0% 50%; }
+
+        .reason-chip.fx-play[data-fx="diag"] .fx-glyph {
+          animation: fx-crawl 680ms cubic-bezier(.45,0,.25,1);
+        }
+        .reason-chip.fx-play[data-fx="diag"] .bug-legs-l {
+          animation: fx-legs-a 680ms ease-in-out;
+        }
+        .reason-chip.fx-play[data-fx="diag"] .bug-legs-r {
+          animation: fx-legs-b 680ms ease-in-out;
+        }
+        .reason-chip.fx-play[data-fx="diag"] .bug-ant {
+          animation: fx-ant 680ms ease-in-out;
+        }
+        .reason-chip.fx-play[data-fx="diag"] .reason-chip-icon::after {
+          top: -3px;
+          right: -4px;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: var(--coral-deep);
+          animation: fx-led 680ms ease-out;
+        }
+        @keyframes fx-crawl {
+          0%   { transform: translateX(0); opacity: .45; }
+          12%  { opacity: 1; }
+          20%  { transform: translateX(0); opacity: .55; }
+          30%  { transform: translateX(1.4px); opacity: 1; }
+          45%  { transform: translateX(.5px); }
+          65%  { transform: translateX(1.7px); }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fx-legs-a {
+          0%   { transform: rotate(0); }
+          18%  { transform: rotate(-16deg); }
+          36%  { transform: rotate(10deg); }
+          54%  { transform: rotate(-14deg); }
+          72%  { transform: rotate(8deg); }
+          100% { transform: rotate(0); }
+        }
+        @keyframes fx-legs-b {
+          0%   { transform: rotate(0); }
+          18%  { transform: rotate(10deg); }
+          36%  { transform: rotate(-16deg); }
+          54%  { transform: rotate(8deg); }
+          72%  { transform: rotate(-14deg); }
+          100% { transform: rotate(0); }
+        }
+        @keyframes fx-ant {
+          0%   { transform: rotate(0); }
+          25%  { transform: rotate(-12deg); }
+          45%  { transform: rotate(8deg); }
+          65%  { transform: rotate(-8deg); }
+          100% { transform: rotate(0); }
+        }
+        @keyframes fx-led {
+          0%   { opacity: 0; transform: scale(0); }
+          15%  { opacity: 1; transform: scale(1.3); }
+          30%  { opacity: .35; transform: scale(.8); }
+          45%  { opacity: 1; transform: scale(1.2); }
+          60%  { opacity: .35; transform: scale(.8); }
+          78%  { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(.6); }
+        }
+
+        /* 6. FEEDBACK: idea flick + a quick pen stroke under the icon */
+        .reason-chip.fx-play[data-fx="idea"] .fx-glyph {
+          animation: fx-idea 560ms cubic-bezier(.34,1.4,.4,1);
+        }
+        .reason-chip.fx-play[data-fx="idea"] .reason-chip-icon::after {
+          left: 1px;
+          right: 1px;
+          bottom: -3px;
+          height: 2px;
+          border-radius: 2px;
+          background: var(--ink);
+          transform-origin: left center;
+          transform: scaleX(0);
+          animation: fx-write 680ms ease-in-out;
+        }
+        @keyframes fx-idea {
+          0%   { transform: translateY(0) scale(.85) rotate(-8deg); }
+          40%  { transform: translateY(-2px) scale(1.2) rotate(5deg); }
+          70%  { transform: translateY(0) scale(.97) rotate(-2deg); }
+          100% { transform: none; }
+        }
+        @keyframes fx-write {
+          0%   { opacity: 1; transform: scaleX(0); }
+          55%  { opacity: 1; transform: scaleX(1); }
+          82%  { opacity: 1; transform: scaleX(1); }
+          100% { opacity: 0; transform: scaleX(1); }
+        }
+
+        /* 7. BUSINESS: deal-closing lift + one soft shine across the pill */
+        .reason-chip.fx-play[data-fx="shake"] .fx-glyph {
+          animation: fx-deal 600ms cubic-bezier(.34,1.3,.4,1);
+        }
+        .reason-chip.fx-play[data-fx="shake"]::after {
+          top: 0;
+          bottom: 0;
+          left: 0;
+          width: 60%;
+          background: linear-gradient(105deg, rgba(255,255,255,0) 20%, rgba(255,255,255,.65) 50%, rgba(255,255,255,0) 80%);
+          transform: translateX(-110%);
+          animation: fx-shine 640ms ease-in-out 80ms;
+        }
+        @keyframes fx-deal {
+          0%   { transform: translateY(0) rotate(0); }
+          22%  { transform: translateY(-2px) rotate(-5deg); }
+          42%  { transform: translateY(.5px) rotate(3deg); }
+          62%  { transform: translateY(-1.5px) rotate(-3deg); }
+          82%  { transform: translateY(0) rotate(1deg); }
+          100% { transform: none; }
+        }
+        @keyframes fx-shine {
+          0%   { opacity: 0; transform: translateX(-110%); }
+          12%  { opacity: 1; }
+          88%  { opacity: 1; }
+          100% { opacity: 0; transform: translateX(190%); }
+        }
+
+        /* 8. GAME SUBMIT: dip, lift off, thin progress line along the base */
+        .reason-chip.fx-play[data-fx="upload"] .fx-glyph {
+          animation: fx-upload 620ms cubic-bezier(.3,1.2,.4,1);
+        }
+        .reason-chip.fx-play[data-fx="upload"]::after {
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 2.5px;
+          background: var(--blue);
+          transform-origin: left center;
+          transform: scaleX(0);
+          animation: fx-progress 720ms ease-in-out;
+        }
+        @keyframes fx-upload {
+          0%   { transform: translateY(0); }
+          20%  { transform: translateY(2px) scale(.94); }
+          55%  { transform: translateY(-3px) scale(1.08); }
+          80%  { transform: translateY(.5px); }
+          100% { transform: none; }
+        }
+        @keyframes fx-progress {
+          0%   { opacity: 1; transform: scaleX(0); }
+          70%  { opacity: 1; transform: scaleX(1); }
+          85%  { opacity: 1; transform: scaleX(1); }
+          100% { opacity: 0; transform: scaleX(1); }
+        }
+
+        /* 9. OTHER: icon morphs into three dots, then twinkles back */
+        .reason-chip.fx-play[data-fx="morph"] .fx-glyph {
+          animation: fx-morph 700ms cubic-bezier(.34,1.4,.4,1);
+        }
+        .reason-chip.fx-play[data-fx="morph"] .reason-chip-icon::after {
+          top: 50%;
+          left: 50%;
+          width: 3px;
+          height: 3px;
+          margin: -1.5px 0 0 -1.5px;
+          border-radius: 50%;
+          opacity: 1;
+          background: transparent;
+          box-shadow: -5.5px 0 0 0 transparent, 5.5px 0 0 0 transparent;
+          animation: fx-dots 700ms ease-in-out;
+        }
+        @keyframes fx-morph {
+          0%   { opacity: 0; transform: scale(.4) rotate(-40deg); }
+          38%  { opacity: 0; transform: scale(.4) rotate(-40deg); }
+          70%  { opacity: 1; transform: scale(1.25) rotate(12deg); }
+          100% { opacity: 1; transform: none; }
+        }
+        @keyframes fx-dots {
+          0%   { background: transparent; box-shadow: -5.5px 0 0 0 transparent, 5.5px 0 0 0 transparent; }
+          10%  { background: transparent; box-shadow: -5.5px 0 0 0 var(--ink), 5.5px 0 0 0 transparent; }
+          22%  { background: var(--ink); box-shadow: -5.5px 0 0 0 var(--ink), 5.5px 0 0 0 transparent; }
+          34%  { background: var(--ink); box-shadow: -5.5px 0 0 0 var(--ink), 5.5px 0 0 0 var(--ink); }
+          52%  { background: var(--ink); box-shadow: -5.5px 0 0 0 var(--ink), 5.5px 0 0 0 var(--ink); }
+          62%  { background: transparent; box-shadow: -5.5px 0 0 0 transparent, 5.5px 0 0 0 transparent; }
+          100% { background: transparent; box-shadow: -5.5px 0 0 0 transparent, 5.5px 0 0 0 transparent; }
+        }
+
+        /* Reduced motion: no contextual movement, static selected state only */
+        @media (prefers-reduced-motion: reduce) {
+          .reason-chip.fx-play .fx-glyph,
+          .reason-chip.fx-play .reason-chip-icon::before,
+          .reason-chip.fx-play .reason-chip-icon::after,
+          .reason-chip.fx-play::after,
+          .reason-chip.fx-play .bug-ant,
+          .reason-chip.fx-play .bug-legs-l,
+          .reason-chip.fx-play .bug-legs-r {
+            animation: none !important;
+          }
+        }
 
         .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
         .field { display: flex; flex-direction: column; }
@@ -1054,7 +1503,7 @@ export default function ContactPage() {
         }
 
         /* ═══════════════════════════════════════════
-           FOOTER — perfectly aligned, single clean row
+           FOOTER
         ═══════════════════════════════════════════ */
         .site-footer {
           position: relative;
@@ -1076,7 +1525,6 @@ export default function ContactPage() {
           padding: 26px 40px 22px;
         }
 
-        /* ═════ ROW 1: logo · links · copyright — one aligned line ═════ */
         .footer-row {
           display: flex;
           align-items: center;
@@ -1085,7 +1533,6 @@ export default function ContactPage() {
           min-height: 56px;
         }
 
-        /* Logo — locked to a fixed height, perfectly centered */
         .footer-logo {
           display: inline-flex;
           align-items: center;
@@ -1095,11 +1542,9 @@ export default function ContactPage() {
           padding: 0;
           cursor: pointer;
           flex-shrink: 0;
-          transition: transform 0.25s cubic-bezier(.34,1.3,.4,1);
           line-height: 0;
           height: 46px;
         }
-        .footer-logo:hover { transform: scale(1.05); }
         .footer-logo img {
           height: 46px;
           width: auto;
@@ -1107,7 +1552,6 @@ export default function ContactPage() {
           object-fit: contain;
         }
 
-        /* Links — one flex line, centered vertically against the logo */
         .footer-links {
           display: flex;
           align-items: center;
@@ -1146,7 +1590,6 @@ export default function ContactPage() {
         .footer-link:hover { color: var(--coral-deep); }
         .footer-link:hover::after { transform: scaleX(1); }
 
-        /* Copyright — locked line-height so it centers against logo */
         .footer-copyright {
           font-family: var(--font-comfortaa), sans-serif;
           font-size: 12px;
@@ -1158,7 +1601,6 @@ export default function ContactPage() {
           flex-shrink: 0;
         }
 
-        /* ═════ ROW 2: Back to Home button, centered ═════ */
         .footer-home-row {
           display: flex;
           justify-content: center;
@@ -1276,7 +1718,7 @@ export default function ContactPage() {
               onClick={goHome}
               aria-label="Go to Sharx home"
             >
-              <img src="/sharx-logo.webp" alt="Sharx" width="62" height="62" />
+              <Image src="/sharx-logo.webp" alt="Sharx" width={62} height={62} />
             </button>
             <button className="nav-back" onClick={handleBack}>
               <ArrowLeft size={13} strokeWidth={2.6} /> Back
@@ -1399,20 +1841,41 @@ export default function ContactPage() {
                     id="reason-chips"
                     tabIndex={-1}
                   >
-                    {REASONS.map((r) => (
-                      <button
-                        type="button"
-                        key={r.value}
-                        role="radio"
-                        aria-checked={formData.reason === r.value}
-                        className={`reason-chip ${
-                          formData.reason === r.value ? "active" : ""
-                        }`}
-                        onClick={() => handleReasonSelect(r.value)}
-                      >
-                        {r.label}
-                      </button>
-                    ))}
+                    {REASONS.map((r) => {
+                      const ReasonIcon = r.icon;
+                      const isActive = formData.reason === r.value;
+                      const isPlaying = isActive && burst === r.value;
+                      return (
+                        <button
+                          type="button"
+                          key={r.value}
+                          role="radio"
+                          aria-checked={isActive}
+                          data-fx={r.fx}
+                          className={`reason-chip ${isActive ? "active" : ""} ${
+                            isPlaying ? "fx-play" : ""
+                          }`}
+                          style={
+                            isActive
+                              ? {
+                                  "--reason-bg": REASON_COLORS[r.value]?.bg || "var(--yellow)",
+                                  "--reason-bg-deep": REASON_COLORS[r.value]?.bg || "var(--yellow)",
+                                  "--reason-accent": REASON_COLORS[r.value]?.accent || "var(--ink)",
+                                  "--reason-ring": REASON_COLORS[r.value]?.ring || "rgba(27,42,65,.16)",
+                                }
+                              : undefined
+                          }
+                          onClick={() => handleReasonSelect(r.value)}
+                        >
+                          <span className="reason-chip-icon" aria-hidden="true">
+                            <span className="fx-glyph">
+                              <ReasonIcon />
+                            </span>
+                          </span>
+                          {r.label}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <div className="field-row">
@@ -1591,8 +2054,11 @@ export default function ContactPage() {
                           />
                           <div className="status-copy">
                             <span>
-                              Message sent successfully! We&apos;ll get back to
-                              you at <strong>{sentEmail || "your email address"}</strong> soon.
+                              <strong>Message sent successfully!</strong>
+                            </span>
+                            <span>
+                              Thanks for reaching out. We&apos;ll get back to
+                              you as soon as we can — usually within 24–48 hours.
                             </span>
                           </div>
                         </>
@@ -1657,7 +2123,6 @@ export default function ContactPage() {
           <footer className="site-footer">
             <div className="footer-body">
 
-              {/* Row 1: logo · links · copyright — all perfectly aligned on one line */}
               <div className="footer-row">
                 <button
                   type="button"
@@ -1665,7 +2130,7 @@ export default function ContactPage() {
                   onClick={goHome}
                   aria-label="Go to Sharx home"
                 >
-                  <img src="/sharx-logo.webp" alt="Sharx" draggable={false} />
+                  <Image src="/sharx-logo.webp" alt="Sharx" width={62} height={42} draggable={false} />
                 </button>
 
                 <nav className="footer-links" aria-label="Footer navigation">
@@ -1681,7 +2146,6 @@ export default function ContactPage() {
                 </span>
               </div>
 
-              {/* Row 2: Back to Home, centered */}
               <div className="footer-home-row">
                 <Link href="/" className="footer-home-btn">
                   <span className="footer-home-btn-ic" aria-hidden="true">
