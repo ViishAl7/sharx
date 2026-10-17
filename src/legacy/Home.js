@@ -1,7 +1,5 @@
 "use client";
 
-// src/legacy/Home.js — SHARX · Crayon · Clean · Playful
-
 import React, {
   useState,
   useEffect,
@@ -22,9 +20,12 @@ import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
 import { FounderNoteCard, FounderNoteModal } from "./FounderNote";
+import AnnouncementBanner from "./announcement"; // ✅ Component import kiya
 import "./Home.css";
 import "./Homeextras.css";
 import "./FounderNote.css";
+import "./announcement.css";
+// import "./announcement.js"; // ❌ Ye line hata do (JS ko CSS tarah import nahi karte)
 
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
 const SidePanel = lazy(() => import("./SidePanel"));
@@ -41,7 +42,6 @@ const ANIMATED_CARDS = 12;
 
 const TO_TOP_AT = 600;
 
-/* event strip */
 const EVENT_START_ISO = null;
 const HERO_DEFAULT_MIN = true;
 const HERO_KEY = "sharx:hero-min";
@@ -241,9 +241,6 @@ const HeadingIcon = memo(function HeadingIcon({ name }) {
   );
 });
 
-/* ─────────────────────────────────────────────
-   MINI AVATAR
-───────────────────────────────────────────── */
 const MiniAvatar = memo(function MiniAvatar({ profile }) {
   if (!profile) return <ProfileArt />;
   if (profile.avatarType === "google" && profile.avatarUrl) {
@@ -275,9 +272,6 @@ const MiniAvatar = memo(function MiniAvatar({ profile }) {
   );
 });
 
-/* ─────────────────────────────────────────────
-   GAMES GRID
-───────────────────────────────────────────── */
 const GamesGrid = memo(function GamesGrid({ games, onOpen, variant }) {
   return (
     <div className={`games-grid${variant ? ` games-grid-${variant}` : ""}`}>
@@ -294,9 +288,6 @@ const GamesGrid = memo(function GamesGrid({ games, onOpen, variant }) {
   );
 });
 
-/* ─────────────────────────────────────────────
-   HORIZONTAL ROW
-───────────────────────────────────────────── */
 const HRow = memo(function HRow({
   title,
   iconKey,
@@ -330,9 +321,6 @@ const HRow = memo(function HRow({
   );
 });
 
-/* ─────────────────────────────────────────────
-   COUNTDOWN
-───────────────────────────────────────────── */
 const useCountdown = (iso) => {
   const target = useMemo(() => (iso ? Date.parse(iso) : NaN), [iso]);
   const [now, setNow] = useState(null);
@@ -358,9 +346,6 @@ const useCountdown = (iso) => {
   };
 };
 
-/* ─────────────────────────────────────────────
-   EVENT CARD
-───────────────────────────────────────────── */
 const EventStrip = memo(function EventStrip({
   expanded,
   onToggle,
@@ -455,9 +440,6 @@ const EventStrip = memo(function EventStrip({
   );
 });
 
-/* ─────────────────────────────────────────────
-   INFINITE LOADER
-───────────────────────────────────────────── */
 const InfiniteLoader = memo(function InfiniteLoader({
   loading = false,
   error = null,
@@ -500,9 +482,6 @@ const InfiniteLoader = memo(function InfiniteLoader({
   );
 });
 
-/* ─────────────────────────────────────────────
-   FOOTER
-───────────────────────────────────────────── */
 const Footer = memo(function Footer() {
   const year = useMemo(() => new Date().getFullYear(), []);
 
@@ -539,9 +518,6 @@ const Footer = memo(function Footer() {
   );
 });
 
-/* ═══════════════════════════════════════════════
-   HOME
-═══════════════════════════════════════════════ */
 export default function Home({
   initialGames = [],
   initialActiveGame = null,
@@ -661,7 +637,6 @@ export default function Home({
     };
   }, [activeGame]);
 
-  /* Drawer scroll lock */
   useEffect(() => {
     if (!sidebarOpen || typeof document === "undefined") return undefined;
 
@@ -717,7 +692,6 @@ export default function Home({
     setHeroMin(readHeroMin());
   }, []);
 
-  /* back-to-top visibility */
   useEffect(() => {
     let raf = 0;
     const onScroll = () => {
@@ -1253,7 +1227,10 @@ export default function Home({
         <main className="page-content">
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
 
-          {/* FOUNDER NOTE — TOP OF PAGE */}
+          {/* ✅ ANNOUNCEMENT BANNER — TOP OF PAGE */}
+          <AnnouncementBanner />
+
+          {/* FOUNDER NOTE */}
           <FounderNoteCard onOpen={handleOpenFounderNote} />
 
           <OnboardingCard
