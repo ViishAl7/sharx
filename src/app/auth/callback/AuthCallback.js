@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
+import { consumeReturnTo } from "../../../lib/auth-session";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ||
@@ -78,9 +79,8 @@ export default function AuthCallback() {
           "/auth/callback"
         );
 
-        // Return to the same place where login
-        // is actually used.
-        router.replace("/home");
+        // Return to the page saved before OAuth login.
+        router.replace(consumeReturnTo("/home"));
       } catch (error) {
         console.error(
           "OAuth callback error:",

@@ -678,7 +678,19 @@ export default function SidePanel({ mode: initialMode, onClose }) {
               className="pv-btn"
               style={{ animationDelay: "0.2s" }}
               onClick={() => {
-                startOAuth("google");
+                startOAuth(
+                  "google",
+                  (() => {
+                    const params = new URLSearchParams(window.location.search);
+                    const next = params.get("next");
+                    return next && next.startsWith("/") &&
+                      !next.startsWith("//") &&
+                      !next.startsWith("/login") &&
+                      !next.startsWith("/auth/callback")
+                      ? next
+                      : undefined;
+                  })()
+                );
               }}
             >
               <svg width="22" height="22" viewBox="0 0 18 18" aria-hidden="true">
