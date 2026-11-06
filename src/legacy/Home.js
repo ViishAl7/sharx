@@ -577,9 +577,6 @@ export default function Home({
     return () => mq.removeListener(h);
   }, []);
 
-  useEffect(() => {
-    setHeroMin(readHeroMin());
-  }, []);
 
   /* back-to-top visibility */
   useEffect(() => {
