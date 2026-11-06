@@ -1111,6 +1111,8 @@ export default function Home({
             onPlayFirstGame={handlePlayFirstGame}
           />
 
+          <FounderNoteCard />
+
           {loading ? (
             <div className="rows-skel">
               <div className="row-skel-heading" />
