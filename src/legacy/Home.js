@@ -41,10 +41,7 @@ const ANIMATED_CARDS = 12;
 
 const TO_TOP_AT = 600;
 
-/* event strip */
-const EVENT_START_ISO = null;
-const HERO_DEFAULT_MIN = true;
-const HERO_KEY = "sharx:hero-min";
+
 
 /* ─────────────────────────────────────────────
    UTILITIES
@@ -71,22 +68,7 @@ const addToHistory = (game) => {
   } catch {}
 };
 
-const readHeroMin = () => {
-  if (typeof window === "undefined") return HERO_DEFAULT_MIN;
-  try {
-    const v = window.localStorage.getItem(HERO_KEY);
-    if (v === "1") return true;
-    if (v === "0") return false;
-  } catch {}
-  return HERO_DEFAULT_MIN;
-};
 
-const writeHeroMin = (value) => {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(HERO_KEY, value ? "1" : "0");
-  } catch {}
-};
 
 const NAMED_ENTITIES = {
   "&quot;": '"',
@@ -333,127 +315,9 @@ const HRow = memo(function HRow({
 /* ─────────────────────────────────────────────
    COUNTDOWN
 ───────────────────────────────────────────── */
-const useCountdown = (iso) => {
-  const target = useMemo(() => (iso ? Date.parse(iso) : NaN), [iso]);
-  const [now, setNow] = useState(null);
 
-  useEffect(() => {
-    if (!Number.isFinite(target)) return undefined;
-    setNow(Date.now());
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, [target]);
 
-  if (!Number.isFinite(target) || now == null) return null;
-  const diff = Math.max(0, target - now);
-  if (diff === 0) return { live: true };
 
-  const s = Math.floor(diff / 1000);
-  return {
-    live: false,
-    d: Math.floor(s / 86400),
-    h: Math.floor((s % 86400) / 3600),
-    m: Math.floor((s % 3600) / 60),
-    s: s % 60,
-  };
-};
-
-/* ─────────────────────────────────────────────
-   EVENT CARD
-───────────────────────────────────────────── */
-const EventStrip = memo(function EventStrip({
-  expanded,
-  onToggle,
-  children,
-}) {
-  const cd = useCountdown(EVENT_START_ISO);
-
-  const handleBtn = useCallback(
-    (e) => {
-      e.stopPropagation();
-      onToggle();
-    },
-    [onToggle]
-  );
-
-  return (
-    <div className={`event-card${expanded ? " is-open" : ""}`}>
-      <div className="event-strip" onClick={onToggle}>
-        <span className="event-strip-ico crayon-ico" aria-hidden="true">
-          {getCategoryIcon("gift")}
-        </span>
-
-        <div className="event-strip-text">
-          <span className="event-strip-title">SHARX First Event</span>
-          <span className="event-strip-sub">Play &amp; earn real rewards</span>
-        </div>
-
-        {cd && !cd.live ? (
-          <div className="event-cd" role="timer" aria-label="Time until event">
-            {[
-              ["d", cd.d],
-              ["h", cd.h],
-              ["m", cd.m],
-              ["s", cd.s],
-            ].map(([unit, value]) => (
-              <span key={unit} className="event-cd-cell">
-                <b>{String(value).padStart(2, "0")}</b>
-                <i>{unit}</i>
-              </span>
-            ))}
-          </div>
-        ) : (
-          <span className={`event-strip-pill${cd?.live ? " is-live" : ""}`}>
-            <span className="event-strip-pill-ico" aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="8" />
-                <path d="M12 7.6V12l3 2" />
-              </svg>
-            </span>
-            <span className="event-strip-pill-label">
-              {cd?.live ? "Live now" : "Starting soon"}
-            </span>
-          </span>
-        )}
-
-        <button
-          type="button"
-          className="event-strip-btn"
-          onClick={handleBtn}
-          aria-expanded={expanded}
-          aria-label={expanded ? "Hide event details" : "Show event details"}
-        >
-          <span className="event-strip-btn-label">
-            {expanded ? "Hide" : "Details"}
-          </span>
-          <span className="event-strip-chev" aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </span>
-        </button>
-      </div>
-
-      <div className="event-body" aria-hidden={!expanded}>
-        <div className="event-body-inner">{children}</div>
-      </div>
-    </div>
-  );
-});
 
 /* ─────────────────────────────────────────────
    INFINITE LOADER
@@ -570,7 +434,7 @@ export default function Home({
   const [error, setError] = useState(null);
   const [panelMode, setPanelMode] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [heroMin, setHeroMin] = useState(HERO_DEFAULT_MIN);
+
   const [showTop, setShowTop] = useState(false);
 
   const [founderNoteOpen, setFounderNoteOpen] = useState(false);
@@ -975,14 +839,6 @@ export default function Home({
     }
   }, [searchOpen]);
 
-  const toggleHero = useCallback(() => {
-    setHeroMin((prev) => {
-      const next = !prev;
-      writeHeroMin(next);
-      return next;
-    });
-  }, []);
-
   const scrollToTop = useCallback(() => {
     if (typeof window === "undefined") return;
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -1261,15 +1117,13 @@ export default function Home({
             onPlayFirstGame={handlePlayFirstGame}
           />
 
-          {/* EVENT — one merged card */}
+          {/* REWARDS BANNER */}
           <div className="hero-wrap">
-            <EventStrip expanded={!heroMin} onToggle={toggleHero}>
-              <Suspense
-                fallback={<div className="shrx-ev-skeleton" aria-hidden="true" />}
-              >
-                <RewardEventBanner />
-              </Suspense>
-            </EventStrip>
+            <Suspense
+              fallback={<div className="shrx-ev-skeleton" aria-hidden="true" />}
+            >
+              <RewardEventBanner />
+            </Suspense>
           </div>
 
           {loading ? (
