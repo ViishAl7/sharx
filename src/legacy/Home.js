@@ -1106,22 +1106,10 @@ export default function Home({
         <main className="page-content">
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
 
-          {/* FOUNDER NOTE — TOP OF PAGE */}
-          <FounderNoteCard onOpen={handleOpenFounderNote} />
-
           <OnboardingCard
             onOpenProfile={handleOpenProfileFromOnboarding}
             onPlayFirstGame={handlePlayFirstGame}
           />
-
-          {/* REWARDS BANNER */}
-          <div className="hero-wrap">
-            <Suspense
-              fallback={<div className="shrx-ev-skeleton" aria-hidden="true" />}
-            >
-              <RewardEventBanner />
-            </Suspense>
-          </div>
 
           {loading ? (
             <div className="rows-skel">
