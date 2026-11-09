@@ -21,10 +21,11 @@ import Sidebar, { getCategoryIcon } from "./Sidebar";
 import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
-import { FounderNoteCard, FounderNoteModal } from "./FounderNote";
+import BackInAction from "./BackInAction";
+import BeyondExpectations from "./BeyondExpectations";
 import "./Home.css";
 import "./Homeextras.css";
-import "./FounderNote.css";
+
 
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
 const SidePanel = lazy(() => import("./SidePanel"));
@@ -1111,7 +1112,8 @@ export default function Home({
             onPlayFirstGame={handlePlayFirstGame}
           />
 
-          <FounderNoteCard />
+          <BackInAction />
+          <BeyondExpectations />
 
           {loading ? (
             <div className="rows-skel">
@@ -1307,13 +1309,6 @@ export default function Home({
               onClose={handleCloseSocialModal}
             />
           </Suspense>
-        )}
-
-        {founderNoteOpen && (
-          <FounderNoteModal
-            open={founderNoteOpen}
-            onClose={handleCloseFounderNote}
-          />
         )}
 
         <Footer />
