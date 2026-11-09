@@ -1,0 +1,200 @@
+/* ══════════════════════════════════════════════════════════════
+   SHARX — Announcement Banner
+   Deep charcoal · subtle grain · editorial typography
+══════════════════════════════════════════════════════════════ */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.shx-ann-banner {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  margin: 0 0 24px;
+  padding: 36px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: radial-gradient(
+    ellipse 90% 140% at 50% 40%,
+    #16161a 0%,
+    #0f0f12 50%,
+    #0b0b0d 100%
+  );
+  border: 2.5px solid #1B2A41;
+  border-radius: 24px;
+  box-shadow:
+    5px 5px 0 #1B2A41,
+    0 22px 50px -32px rgba(0, 0, 0, 0.6);
+  animation: fadeUp 0.5s cubic-bezier(0.34, 1.4, 0.4, 1) both;
+  box-sizing: border-box;
+}
+
+/* warm depth glow */
+.shx-ann-banner-depth {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 45% 130% at 15% 100%,
+      rgba(255, 217, 102, 0.06) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 45% 130% at 85% 0%,
+      rgba(199, 180, 255, 0.05) 0%,
+      transparent 70%
+    );
+}
+
+/* film grain */
+.shx-ann-banner-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+/* vignette */
+.shx-ann-banner-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 95% 180% at 50% 50%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.22) 55%,
+    rgba(0, 0, 0, 0.65) 100%
+  );
+}
+
+/* ── HEADLINE ── */
+.shx-ann-banner-text {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-family:
+    "Helvetica Neue", "Inter", "Segoe UI", "Roboto",
+    -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  color: #F5F3EE;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.shx-ann-banner-line {
+  display: block;
+  white-space: nowrap;
+}
+
+/* ── PREMIUM TEXT ANIMATION ── */
+.shx-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* each letter: soft rise + blur clears, then a faint warm glow passes by */
+.shx-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em);
+  filter: blur(8px);
+  will-change: transform, opacity, filter;
+
+  animation:
+    shxCharIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    shxGlow 7s ease-in-out infinite;
+  animation-delay:
+    calc(var(--c) * 18ms + 150ms),
+    calc(var(--c) * 50ms + 2s);
+}
+
+@keyframes shxCharIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes shxGlow {
+  0%, 18%, 100% {
+    color: #F5F3EE;
+    text-shadow: 0 0 0 rgba(255, 217, 102, 0);
+  }
+  9% {
+    color: #FFF6DA;
+    text-shadow: 0 0 18px rgba(255, 217, 102, 0.28);
+  }
+}
+
+/* ── FULL STOP: plain gold, quick soft fade-in, then still ── */
+.shx-dot {
+  color: #FFD966;
+  margin-left: 2px;
+  animation: shxCharIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--c) * 18ms + 100ms);
+}
+
+/* ── Tablet ── */
+@media (max-width: 900px) {
+  .shx-ann-banner {
+    min-height: 160px;
+    padding: 28px 30px;
+    border-radius: 22px;
+    box-shadow:
+      4px 4px 0 #1B2A41,
+      0 18px 40px -28px rgba(0, 0, 0, 0.55);
+    margin-bottom: 20px;
+  }
+  .shx-ann-banner-text {
+    font-size: clamp(24px, 4.2vw, 34px);
+  }
+}
+
+/* ── Mobile ── */
+@media (max-width: 560px) {
+  .shx-ann-banner {
+    min-height: 130px;
+    padding: 22px 20px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+  }
+  .shx-ann-banner-text {
+    font-size: clamp(20px, 5.2vw, 26px);
+    line-height: 1.2;
+  }
+  .shx-ann-banner-line {
+    white-space: normal;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .shx-ann-banner {
+    animation: none !important;
+  }
+  .shx-char {
+    animation: none !important;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
