@@ -93,10 +93,10 @@ const extractUserFromPayload = (payload) => {
   if (!payload || typeof payload !== "object") return {};
   return {
     id:
-      payload.user_id ||
-      payload.id ||
-      payload.sub ||
-      Date.now().toString(),
+      payload.user_id ??
+      payload.id ??
+      payload.sub ??
+      null,
     name:
       payload.pv_un ||
       payload.name ||
@@ -182,8 +182,14 @@ export const ProfileProvider = ({ children }) => {
 
     const saved = safeJSONParse(readStorage(PROFILE_KEY));
 
-    if (saved && saved.stylishUsername) {
-      // Existing profile → only fill missing fields, never overwrite
+    const sameAccount =
+      saved &&
+      userData.id != null &&
+      saved.id != null &&
+      String(saved.id) === String(userData.id);
+
+    if (sameAccount && saved.stylishUsername) {
+      // Reuse saved profile only for the same authenticated account.
       const patched = {
         ...saved,
         status: saved.status || "online",
@@ -234,6 +240,7 @@ export const ProfileProvider = ({ children }) => {
     const token = readStorage("token");
 
     if (!token) {
+      setProfile(null);
       setIsProfileLoading(false);
       return;
     }
@@ -241,20 +248,15 @@ export const ProfileProvider = ({ children }) => {
     const payload = decodeJwtPayload(token);
 
     // Expired → clear
-    if (payload && payload.exp && payload.exp * 1000 < Date.now()) {
+    if (!payload || (payload.exp && payload.exp * 1000 <= Date.now())) {
       removeStorage("token");
+      setProfile(null);
+      removeStorage(PROFILE_KEY);
       setIsProfileLoading(false);
       return;
     }
 
-    if (payload) {
-      loadProfile(payload);
-    } else {
-      // Corrupt token → fall back to saved profile
-      const saved = safeJSONParse(readStorage(PROFILE_KEY));
-      if (saved) setProfile(saved);
-      setIsProfileLoading(false);
-    }
+    loadProfile(payload);
   }, [loadProfile]);
 
   /* ─── Cross-tab sync ─── */
@@ -262,12 +264,46 @@ export const ProfileProvider = ({ children }) => {
     if (typeof window === "undefined") return;
 
     const onStorage = (e) => {
+      if (e.key === "token") {
+        const payload = decodeJwtPayload(e.newValue);
+        if (!payload || (payload.exp && payload.exp * 1000 <= Date.now())) {
+          setProfile(null);
+          return;
+        }
+
+        const userData = extractUserFromPayload(payload);
+        const saved = safeJSONParse(readStorage(PROFILE_KEY));
+
+        if (
+          saved &&
+          userData.id != null &&
+          saved.id != null &&
+          String(saved.id) === String(userData.id)
+        ) {
+          setProfile(saved);
+        } else {
+          loadProfile(payload);
+        }
+        return;
+      }
+
       if (e.key !== PROFILE_KEY) return;
+
       const next = safeJSONParse(e.newValue);
-      if (next) {
+      const token = readStorage("token");
+      const payload = decodeJwtPayload(token);
+      const userData = extractUserFromPayload(payload);
+
+      if (
+        next &&
+        payload &&
+        (!payload.exp || payload.exp * 1000 > Date.now()) &&
+        userData.id != null &&
+        next.id != null &&
+        String(next.id) === String(userData.id)
+      ) {
         setProfile(next);
       } else if (e.newValue === null) {
-        // cleared in another tab
         setProfile(null);
       }
     };

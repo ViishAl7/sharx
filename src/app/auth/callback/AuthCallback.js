@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import { consumeReturnTo } from "../../../lib/auth-session";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ||
-  "https://sharx-backend.onrender.com";
+import { API_BASE } from "../../../config";
 
 export default function AuthCallback() {
   const router = useRouter();
