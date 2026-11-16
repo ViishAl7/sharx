@@ -21,6 +21,7 @@ import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
 import { FounderNoteCard, FounderNoteModal } from "./FounderNote";
 import AnnouncementBanner from "./announcement"; // ✅ Component import kiya
+import FeedbackModal from "./FeedbackModal";
 import "./Home.css";
 import "./Homeextras.css";
 import "./FounderNote.css";
@@ -482,7 +483,7 @@ const InfiniteLoader = memo(function InfiniteLoader({
   );
 });
 
-const Footer = memo(function Footer() {
+const Footer = memo(function Footer({ onFeedbackClick }) {
   const year = useMemo(() => new Date().getFullYear(), []);
 
   return (
@@ -507,6 +508,7 @@ const Footer = memo(function Footer() {
             <Link href="/trust" className="footer-link">Privacy Policy</Link>
             <Link href="/terms" className="footer-link">Terms of Service</Link>
             <Link href="/copyright" className="footer-link">Copyright</Link>
+            
           </nav>
 
           <span className="footer-copyright">
@@ -531,6 +533,36 @@ export default function Home({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  const openFeedback = useCallback(() => {
+    setFeedbackOpen(true);
+  }, []);
+
+  const closeFeedback = useCallback(() => {
+    try {
+      localStorage.setItem("sharx:feedback:lastPromptedAt", String(Date.now()));
+    } catch {}
+    setFeedbackOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    try {
+      const lastPrompted = Number(
+        localStorage.getItem("sharx:feedback:lastPromptedAt") || 0
+      );
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+
+      if (!lastPrompted || Date.now() - lastPrompted >= thirtyDays) {
+        setFeedbackOpen(true);
+      }
+    } catch {
+      setFeedbackOpen(true);
+    }
+  }, [mounted]);
 
   const [pageReady, setPageReady] = useState(false);
   const [allGames, setAllGames] = useState(() => prepareGames(initialGames));
@@ -1452,7 +1484,23 @@ export default function Home({
           />
         )}
 
-        <Footer />
+        <Footer onFeedbackClick={openFeedback} />
+
+        <button
+          type="button"
+          className="feedback-floating-button"
+          onClick={openFeedback}
+          aria-label="Give feedback"
+        >
+          <span aria-hidden="true">✦</span>
+          Feedback
+        </button>
+
+        <FeedbackModal
+          open={feedbackOpen}
+          onClose={closeFeedback}
+          onSubmitted={closeFeedback}
+        />
       </div>
 
       {/* BACK TO TOP */}
