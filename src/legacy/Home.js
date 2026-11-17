@@ -1,5 +1,7 @@
 "use client";
 
+// src/legacy/Home.js — SHARX · Crayon · Clean · Playful
+
 import React, {
   useState,
   useEffect,
@@ -19,14 +21,14 @@ import Sidebar, { getCategoryIcon } from "./Sidebar";
 import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
-import { FounderNoteCard, FounderNoteModal } from "./FounderNote";
-import AnnouncementBanner from "./announcement"; // ✅ Component import kiya
+import { FounderNoteCard } from "./FounderNote";
 import FeedbackModal from "./FeedbackModal";
-import "./Home.css";
-import "./Homeextras.css";
+import AnnouncementBanner from "./announcement";
 import "./FounderNote.css";
 import "./announcement.css";
-// import "./announcement.js"; // ❌ Ye line hata do (JS ko CSS tarah import nahi karte)
+import "./Home.css";
+import "./Homeextras.css";
+
 
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
 const SidePanel = lazy(() => import("./SidePanel"));
@@ -43,9 +45,7 @@ const ANIMATED_CARDS = 12;
 
 const TO_TOP_AT = 600;
 
-const EVENT_START_ISO = null;
-const HERO_DEFAULT_MIN = true;
-const HERO_KEY = "sharx:hero-min";
+
 
 /* ─────────────────────────────────────────────
    UTILITIES
@@ -72,22 +72,7 @@ const addToHistory = (game) => {
   } catch {}
 };
 
-const readHeroMin = () => {
-  if (typeof window === "undefined") return HERO_DEFAULT_MIN;
-  try {
-    const v = window.localStorage.getItem(HERO_KEY);
-    if (v === "1") return true;
-    if (v === "0") return false;
-  } catch {}
-  return HERO_DEFAULT_MIN;
-};
 
-const writeHeroMin = (value) => {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(HERO_KEY, value ? "1" : "0");
-  } catch {}
-};
 
 const NAMED_ENTITIES = {
   "&quot;": '"',
@@ -242,6 +227,9 @@ const HeadingIcon = memo(function HeadingIcon({ name }) {
   );
 });
 
+/* ─────────────────────────────────────────────
+   MINI AVATAR
+───────────────────────────────────────────── */
 const MiniAvatar = memo(function MiniAvatar({ profile }) {
   if (!profile) return <ProfileArt />;
   if (profile.avatarType === "google" && profile.avatarUrl) {
@@ -273,6 +261,9 @@ const MiniAvatar = memo(function MiniAvatar({ profile }) {
   );
 });
 
+/* ─────────────────────────────────────────────
+   GAMES GRID
+───────────────────────────────────────────── */
 const GamesGrid = memo(function GamesGrid({ games, onOpen, variant }) {
   return (
     <div className={`games-grid${variant ? ` games-grid-${variant}` : ""}`}>
@@ -289,6 +280,9 @@ const GamesGrid = memo(function GamesGrid({ games, onOpen, variant }) {
   );
 });
 
+/* ─────────────────────────────────────────────
+   HORIZONTAL ROW
+───────────────────────────────────────────── */
 const HRow = memo(function HRow({
   title,
   iconKey,
@@ -322,125 +316,16 @@ const HRow = memo(function HRow({
   );
 });
 
-const useCountdown = (iso) => {
-  const target = useMemo(() => (iso ? Date.parse(iso) : NaN), [iso]);
-  const [now, setNow] = useState(null);
+/* ─────────────────────────────────────────────
+   COUNTDOWN
+───────────────────────────────────────────── */
 
-  useEffect(() => {
-    if (!Number.isFinite(target)) return undefined;
-    setNow(Date.now());
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, [target]);
 
-  if (!Number.isFinite(target) || now == null) return null;
-  const diff = Math.max(0, target - now);
-  if (diff === 0) return { live: true };
 
-  const s = Math.floor(diff / 1000);
-  return {
-    live: false,
-    d: Math.floor(s / 86400),
-    h: Math.floor((s % 86400) / 3600),
-    m: Math.floor((s % 3600) / 60),
-    s: s % 60,
-  };
-};
 
-const EventStrip = memo(function EventStrip({
-  expanded,
-  onToggle,
-  children,
-}) {
-  const cd = useCountdown(EVENT_START_ISO);
-
-  const handleBtn = useCallback(
-    (e) => {
-      e.stopPropagation();
-      onToggle();
-    },
-    [onToggle]
-  );
-
-  return (
-    <div className={`event-card${expanded ? " is-open" : ""}`}>
-      <div className="event-strip" onClick={onToggle}>
-        <span className="event-strip-ico crayon-ico" aria-hidden="true">
-          {getCategoryIcon("gift")}
-        </span>
-
-        <div className="event-strip-text">
-          <span className="event-strip-title">SHARX First Event</span>
-          <span className="event-strip-sub">Play &amp; earn real rewards</span>
-        </div>
-
-        {cd && !cd.live ? (
-          <div className="event-cd" role="timer" aria-label="Time until event">
-            {[
-              ["d", cd.d],
-              ["h", cd.h],
-              ["m", cd.m],
-              ["s", cd.s],
-            ].map(([unit, value]) => (
-              <span key={unit} className="event-cd-cell">
-                <b>{String(value).padStart(2, "0")}</b>
-                <i>{unit}</i>
-              </span>
-            ))}
-          </div>
-        ) : (
-          <span className={`event-strip-pill${cd?.live ? " is-live" : ""}`}>
-            <span className="event-strip-pill-ico" aria-hidden="true">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="8" />
-                <path d="M12 7.6V12l3 2" />
-              </svg>
-            </span>
-            <span className="event-strip-pill-label">
-              {cd?.live ? "Live now" : "Starting soon"}
-            </span>
-          </span>
-        )}
-
-        <button
-          type="button"
-          className="event-strip-btn"
-          onClick={handleBtn}
-          aria-expanded={expanded}
-          aria-label={expanded ? "Hide event details" : "Show event details"}
-        >
-          <span className="event-strip-btn-label">
-            {expanded ? "Hide" : "Details"}
-          </span>
-          <span className="event-strip-chev" aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </span>
-        </button>
-      </div>
-
-      <div className="event-body" aria-hidden={!expanded}>
-        <div className="event-body-inner">{children}</div>
-      </div>
-    </div>
-  );
-});
-
+/* ─────────────────────────────────────────────
+   INFINITE LOADER
+───────────────────────────────────────────── */
 const InfiniteLoader = memo(function InfiniteLoader({
   loading = false,
   error = null,
@@ -483,7 +368,10 @@ const InfiniteLoader = memo(function InfiniteLoader({
   );
 });
 
-const Footer = memo(function Footer({ onFeedbackClick }) {
+/* ─────────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────────── */
+const Footer = memo(function Footer() {
   const year = useMemo(() => new Date().getFullYear(), []);
 
   return (
@@ -508,7 +396,6 @@ const Footer = memo(function Footer({ onFeedbackClick }) {
             <Link href="/trust" className="footer-link">Privacy Policy</Link>
             <Link href="/terms" className="footer-link">Terms of Service</Link>
             <Link href="/copyright" className="footer-link">Copyright</Link>
-            
           </nav>
 
           <span className="footer-copyright">
@@ -520,6 +407,9 @@ const Footer = memo(function Footer({ onFeedbackClick }) {
   );
 });
 
+/* ═══════════════════════════════════════════════
+   HOME
+═══════════════════════════════════════════════ */
 export default function Home({
   initialGames = [],
   initialActiveGame = null,
@@ -542,7 +432,10 @@ export default function Home({
 
   const closeFeedback = useCallback(() => {
     try {
-      localStorage.setItem("sharx:feedback:lastPromptedAt", String(Date.now()));
+      localStorage.setItem(
+        "sharx:feedback:lastPromptedAt",
+        String(Date.now())
+      );
     } catch {}
     setFeedbackOpen(false);
   }, []);
@@ -578,7 +471,7 @@ export default function Home({
   const [error, setError] = useState(null);
   const [panelMode, setPanelMode] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [heroMin, setHeroMin] = useState(HERO_DEFAULT_MIN);
+
   const [showTop, setShowTop] = useState(false);
 
   const [founderNoteOpen, setFounderNoteOpen] = useState(false);
@@ -669,6 +562,7 @@ export default function Home({
     };
   }, [activeGame]);
 
+  /* Drawer scroll lock */
   useEffect(() => {
     if (!sidebarOpen || typeof document === "undefined") return undefined;
 
@@ -720,10 +614,8 @@ export default function Home({
     return () => mq.removeListener(h);
   }, []);
 
-  useEffect(() => {
-    setHeroMin(readHeroMin());
-  }, []);
 
+  /* back-to-top visibility */
   useEffect(() => {
     let raf = 0;
     const onScroll = () => {
@@ -980,14 +872,6 @@ export default function Home({
       window.requestAnimationFrame(() => searchInputRef.current?.focus());
     }
   }, [searchOpen]);
-
-  const toggleHero = useCallback(() => {
-    setHeroMin((prev) => {
-      const next = !prev;
-      writeHeroMin(next);
-      return next;
-    });
-  }, []);
 
   const scrollToTop = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -1259,27 +1143,13 @@ export default function Home({
         <main className="page-content">
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
 
-          {/* ✅ ANNOUNCEMENT BANNER — TOP OF PAGE */}
           <AnnouncementBanner />
-
-          {/* FOUNDER NOTE */}
-          <FounderNoteCard onOpen={handleOpenFounderNote} />
+          <FounderNoteCard />
 
           <OnboardingCard
             onOpenProfile={handleOpenProfileFromOnboarding}
             onPlayFirstGame={handlePlayFirstGame}
           />
-
-          {/* EVENT — one merged card */}
-          <div className="hero-wrap">
-            <EventStrip expanded={!heroMin} onToggle={toggleHero}>
-              <Suspense
-                fallback={<div className="shrx-ev-skeleton" aria-hidden="true" />}
-              >
-                <RewardEventBanner />
-              </Suspense>
-            </EventStrip>
-          </div>
 
           {loading ? (
             <div className="rows-skel">
@@ -1477,14 +1347,7 @@ export default function Home({
           </Suspense>
         )}
 
-        {founderNoteOpen && (
-          <FounderNoteModal
-            open={founderNoteOpen}
-            onClose={handleCloseFounderNote}
-          />
-        )}
-
-        <Footer onFeedbackClick={openFeedback} />
+        <Footer />
 
         <button
           type="button"
