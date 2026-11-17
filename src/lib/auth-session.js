@@ -120,7 +120,13 @@ export function startOAuth(provider, returnTo) {
   rememberReturnTo(returnTo || fallback);
   // External backend URL (full-page OAuth redirect) — not a Next.js route.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-  window.location.href = `${API_BASE}/auth/${provider}`;
+const apiBase =
+  typeof window !== "undefined" &&
+  window.location.hostname === "10.56.178.92"
+    ? "http://10.56.178.92:5001"
+    : API_BASE;
+
+window.location.href = `${apiBase}/auth/${provider}`;
 }
 
 /* ─────────── authenticated fetch ─────────── */

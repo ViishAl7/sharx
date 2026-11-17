@@ -22,6 +22,7 @@ import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
 import { FounderNoteCard } from "./FounderNote";
+import FeedbackModal from "./FeedbackModal";
 import AnnouncementBanner from "./announcement";
 import "./FounderNote.css";
 import "./announcement.css";
@@ -422,6 +423,39 @@ export default function Home({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  const openFeedback = useCallback(() => {
+    setFeedbackOpen(true);
+  }, []);
+
+  const closeFeedback = useCallback(() => {
+    try {
+      localStorage.setItem(
+        "sharx:feedback:lastPromptedAt",
+        String(Date.now())
+      );
+    } catch {}
+    setFeedbackOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    try {
+      const lastPrompted = Number(
+        localStorage.getItem("sharx:feedback:lastPromptedAt") || 0
+      );
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+
+      if (!lastPrompted || Date.now() - lastPrompted >= thirtyDays) {
+        setFeedbackOpen(true);
+      }
+    } catch {
+      setFeedbackOpen(true);
+    }
+  }, [mounted]);
 
   const [pageReady, setPageReady] = useState(false);
   const [allGames, setAllGames] = useState(() => prepareGames(initialGames));
@@ -1314,6 +1348,22 @@ export default function Home({
         )}
 
         <Footer />
+
+        <button
+          type="button"
+          className="feedback-floating-button"
+          onClick={openFeedback}
+          aria-label="Give feedback"
+        >
+          <span aria-hidden="true">✦</span>
+          Feedback
+        </button>
+
+        <FeedbackModal
+          open={feedbackOpen}
+          onClose={closeFeedback}
+          onSubmitted={closeFeedback}
+        />
       </div>
 
       {/* BACK TO TOP */}

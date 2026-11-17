@@ -1,0 +1,835 @@
+/* =========================================
+   SHARX — CRAYON FEEDBACK (PERFECT)
+   Matches sharx.in · Comfortaa · cream paper · navy ink
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&display=swap');
+
+.feedback-overlay,
+.feedback-floating-button {
+  --fb-ink: #1a2744;
+  --fb-ink-soft: #5a6580;
+  --fb-paper: #fffdf8;
+  --fb-cream: #fff6e5;
+  --fb-yellow: #ffd966;
+  --fb-yellow-soft: #ffe9a0;
+  --fb-mint: #a8f0d0;
+  --fb-mint-soft: #dcf7ea;
+  --fb-lavender: #e4dcff;
+  --fb-coral: #ff9b8f;
+  --fb-coral-soft: #ffe3df;
+  --fb-danger: #c0392b;
+  --fb-font: 'Comfortaa', 'Nunito', system-ui, -apple-system, sans-serif;
+  --fb-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --fb-spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+/* ---------- Overlay ---------- */
+.feedback-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 20px
+    max(20px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: rgba(26, 39, 68, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-family: var(--fb-font);
+  color: var(--fb-ink);
+  animation: sharxFbFade 0.25s ease backwards;
+}
+
+.feedback-overlay *,
+.feedback-overlay *::before,
+.feedback-overlay *::after {
+  box-sizing: border-box;
+}
+
+.feedback-overlay.is-closing {
+  animation: sharxFbFadeOut 0.18s ease forwards;
+  pointer-events: none;
+}
+
+/* ---------- Card ---------- */
+.feedback-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 590px);
+  max-height: 92vh;
+  max-height: min(92dvh, 920px);
+  border: 3px solid var(--fb-ink);
+  border-radius: 32px;
+  background: var(--fb-paper);
+  color: var(--fb-ink);
+  box-shadow: 7px 8px 0 var(--fb-ink);
+  animation: sharxFbRise 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.12) backwards;
+}
+
+.feedback-modal:focus {
+  outline: none;
+}
+
+.feedback-overlay.is-closing .feedback-modal {
+  animation: sharxFbSink 0.18s ease forwards;
+}
+
+/* FIXED: Top doodle tab perfectly centered left */
+.feedback-modal::before {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: 40px;
+  width: 60px;
+  height: 32px;
+  border: 3px solid var(--fb-ink);
+  border-bottom: 0;
+  border-radius: 60px 60px 0 0;
+  background: var(--fb-yellow-soft);
+  pointer-events: none;
+}
+
+/* FIXED: Bottom doodle sticker perfectly aligned right */
+.feedback-modal::after {
+  content: "";
+  position: absolute;
+  right: 36px;
+  bottom: -14px;
+  width: 48px;
+  height: 18px;
+  border: 3px solid var(--fb-ink);
+  border-radius: 12px;
+  background: var(--fb-lavender);
+  transform: rotate(6deg);
+  pointer-events: none;
+}
+
+.feedback-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 40px 38px 34px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 29px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(26, 39, 68, 0.25) transparent;
+}
+
+.feedback-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.feedback-scroll::-webkit-scrollbar-thumb {
+  border: 3px solid var(--fb-paper);
+  border-radius: 99px;
+  background: rgba(26, 39, 68, 0.22);
+}
+
+.feedback-modal.is-nudge .feedback-scroll {
+  animation: sharxFbShake 0.4s ease;
+}
+
+.fb-reveal {
+  animation: sharxFbReveal 0.5s var(--fb-ease) backwards;
+  animation-delay: calc(var(--i, 0) * 55ms + 120ms);
+}
+
+/* ---------- Focus State (Fixed) ---------- */
+/* Removed the conflicting outline, added a solid 3D box-shadow */
+.feedback-overlay button:focus-visible,
+.feedback-overlay textarea:focus-visible {
+  outline: none !important;
+  box-shadow: 3px 4px 0 var(--fb-ink) !important;
+}
+
+/* ---------- Close ---------- */
+.feedback-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0 0 2px;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 50%;
+  background: var(--fb-paper);
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 2px 3px 0 var(--fb-ink);
+  transition: transform 0.25s var(--fb-spring), background 0.2s ease,
+    box-shadow 0.15s ease;
+}
+
+.feedback-close:hover:not(:disabled) {
+  transform: rotate(90deg);
+  background: var(--fb-coral-soft);
+}
+
+.feedback-close:active:not(:disabled) {
+  transform: rotate(90deg) translate(1px, 2px);
+  box-shadow: 0 0 0 var(--fb-ink);
+}
+
+.feedback-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Eyebrow ---------- */
+.feedback-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 99px;
+  background: var(--fb-paper);
+  color: var(--fb-ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  box-shadow: 2px 3px 0 var(--fb-ink);
+}
+
+.feedback-eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--fb-ink);
+  border-radius: 50%;
+  background: var(--fb-coral);
+}
+
+/* ---------- Heading ---------- */
+.feedback-modal h2 {
+  margin: 20px 44px 10px 0;
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  font-size: clamp(28px, 5.2vw, 40px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  text-shadow: 3px 3px 0 var(--fb-yellow);
+}
+
+.feedback-description {
+  max-width: 460px;
+  margin: 0 0 22px;
+  color: var(--fb-ink-soft);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
+/* ---------- Rating blocks ---------- */
+.feedback-rating {
+  min-width: 0;
+  margin: 0;
+  padding: 18px 0;
+  border: 0;
+  border-top: 2.5px dashed rgba(26, 39, 68, 0.16);
+}
+
+.feedback-rating legend,
+.feedback-recommend legend {
+  padding: 0;
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  font-size: 15px;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.feedback-rating legend span {
+  color: var(--fb-coral);
+}
+
+.feedback-rating.is-invalid legend,
+.feedback-recommend.is-invalid legend {
+  color: var(--fb-danger);
+}
+
+/* ---------- Stars ---------- */
+.feedback-stars {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.feedback-stars button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2.5px solid rgba(26, 39, 68, 0.2);
+  border-radius: 14px;
+  background: var(--fb-paper);
+  color: #d5d9e2;
+  cursor: pointer;
+  transition: transform 0.2s var(--fb-spring), background 0.15s ease,
+    border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feedback-stars svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.feedback-stars button.is-preview {
+  border-color: rgba(26, 39, 68, 0.55);
+  background: #fff6d0;
+  color: var(--fb-yellow);
+}
+
+.feedback-stars button.is-active {
+  border-color: var(--fb-ink);
+  background: var(--fb-yellow);
+  color: var(--fb-ink);
+  box-shadow: 2px 3px 0 var(--fb-ink);
+  animation: sharxFbStarPop 0.38s var(--fb-spring);
+}
+
+.feedback-stars button:active {
+  transform: translate(1px, 2px) scale(0.95);
+}
+
+@media (hover: hover) {
+  .feedback-stars button:hover {
+    transform: translateY(-3px) rotate(-5deg);
+  }
+}
+
+.feedback-rating.is-invalid .feedback-stars {
+  animation: sharxFbShake 0.4s ease;
+}
+
+.feedback-rating.is-invalid .feedback-stars button:not(.is-active) {
+  border-color: var(--fb-coral);
+}
+
+.feedback-star-hint {
+  display: block;
+  min-height: 20px;
+  margin-top: 10px;
+  color: var(--fb-ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+  animation: sharxFbHint 0.25s ease backwards;
+}
+
+/* ---------- Category grid ---------- */
+.feedback-category-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 26px;
+}
+
+.feedback-category-grid .feedback-stars {
+  gap: 7px;
+}
+
+.feedback-category-grid .feedback-stars button {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+
+.feedback-category-grid .feedback-stars svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Recommendation ---------- */
+.feedback-recommend {
+  min-width: 0;
+  margin: 6px 0 22px;
+  padding: 18px 0;
+  border: 0;
+  border-top: 2.5px dashed rgba(26, 39, 68, 0.16);
+  border-bottom: 2.5px dashed rgba(26, 39, 68, 0.16);
+}
+
+.feedback-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.feedback-recommend.is-invalid .feedback-options {
+  animation: sharxFbShake 0.4s ease;
+}
+
+.feedback-options button {
+  min-height: 50px;
+  padding: 10px 8px;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 99px;
+  background: var(--fb-paper);
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 2px 3px 0 var(--fb-ink);
+  transition: transform 0.18s var(--fb-spring), box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.feedback-options button:nth-child(1) { background: var(--fb-mint-soft); }
+.feedback-options button:nth-child(2) { background: #fff3cc; }
+.feedback-options button:nth-child(3) { background: var(--fb-coral-soft); }
+
+@media (hover: hover) {
+  .feedback-options button:hover {
+    transform: translate(-1px, -2px);
+    box-shadow: 3px 5px 0 var(--fb-ink);
+  }
+}
+
+.feedback-options button.is-selected {
+  transform: translate(2px, 3px);
+  box-shadow: 0 0 0 var(--fb-ink);
+  outline: 2.5px solid var(--fb-ink);
+  outline-offset: 3px;
+}
+
+.feedback-options button:nth-child(1).is-selected { background: var(--fb-mint); }
+.feedback-options button:nth-child(2).is-selected { background: var(--fb-yellow); }
+.feedback-options button:nth-child(3).is-selected { background: var(--fb-coral); }
+
+/* ---------- Message Textarea ---------- */
+.feedback-message {
+  display: block;
+  color: var(--fb-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.feedback-message > span {
+  color: var(--fb-ink-soft);
+  font-weight: 500;
+}
+
+.feedback-message textarea {
+  display: block;
+  width: 100%;
+  min-height: 110px;
+  max-height: 260px;
+  margin-top: 11px;
+  padding: 15px 16px;
+  resize: vertical;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 20px;
+  outline: none; /* Default outline removed */
+  background: var(--fb-cream);
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.feedback-message textarea::placeholder {
+  color: #9aa3b8;
+  font-weight: 500;
+}
+
+/* FIXED: Only hard shadow and clean border on focus */
+.feedback-message textarea:focus {
+  background: #ffffff;
+  border-color: var(--fb-ink);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 4px 0 var(--fb-ink);
+  outline: none; 
+}
+
+.feedback-message small {
+  display: block;
+  margin-top: 8px;
+  color: #8a93a8;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.feedback-message small.is-near {
+  color: var(--fb-danger);
+}
+
+/* ---------- Honeypot ---------- */
+.feedback-honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* ---------- Error ---------- */
+.feedback-error {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 16px;
+  background: var(--fb-coral-soft);
+  color: var(--fb-danger);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  box-shadow: 2px 3px 0 var(--fb-ink);
+  animation: sharxFbErrorIn 0.35s var(--fb-ease) backwards;
+}
+
+/* ---------- Main buttons ---------- */
+.feedback-submit,
+.feedback-success > button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px 18px;
+  border: 3px solid var(--fb-ink);
+  border-radius: 99px;
+  background: var(--fb-yellow);
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  font-size: 16.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 4px 5px 0 var(--fb-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+@media (hover: hover) {
+  .feedback-submit:hover:not(:disabled),
+  .feedback-success > button:hover {
+    transform: translate(-1px, -2px);
+    background: var(--fb-yellow-soft);
+    box-shadow: 5px 7px 0 var(--fb-ink);
+  }
+}
+
+.feedback-submit:active:not(:disabled),
+.feedback-success > button:active {
+  transform: translate(3px, 4px);
+  box-shadow: 1px 1px 0 var(--fb-ink);
+}
+
+.feedback-submit:disabled {
+  opacity: 0.8;
+  cursor: progress;
+}
+
+.feedback-spinner {
+  width: 17px;
+  height: 17px;
+  border: 3px solid rgba(26, 39, 68, 0.25);
+  border-top-color: var(--fb-ink);
+  border-radius: 50%;
+  animation: sharxFbSpin 0.7s linear infinite;
+}
+
+.feedback-privacy {
+  margin: 17px 0 0;
+  color: #8a93a8;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------- Success ---------- */
+.feedback-success {
+  padding: 40px 6px 8px;
+  text-align: center;
+}
+
+.feedback-success-visual {
+  position: relative;
+  display: grid;
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 24px;
+  place-items: center;
+}
+
+.feedback-success-icon {
+  display: grid;
+  width: 78px;
+  height: 78px;
+  place-items: center;
+  border: 3px solid var(--fb-ink);
+  border-radius: 26px;
+  background: var(--fb-mint);
+  box-shadow: 4px 5px 0 var(--fb-ink);
+  transform: rotate(-6deg);
+  animation: sharxFbPop 0.55s var(--fb-spring) backwards;
+}
+
+.feedback-success-icon svg {
+  width: 40px;
+  height: 40px;
+  fill: none;
+  stroke: var(--fb-ink);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.feedback-success-icon path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: sharxFbDraw 0.45s 0.25s ease-out backwards;
+}
+
+.feedback-confetti {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5px 0 0 -5px;
+  border: 2px solid var(--fb-ink);
+  border-radius: 50%;
+  background: var(--c);
+  opacity: 0;
+  animation: sharxFbConfetti 0.8s 0.2s var(--fb-ease) both;
+}
+
+.feedback-confetti:nth-child(even) {
+  border-radius: 3px;
+}
+
+.feedback-success h2 {
+  margin: 0 0 12px;
+  font-size: 36px;
+  animation: sharxFbReveal 0.5s 0.15s var(--fb-ease) backwards;
+}
+
+.feedback-success p {
+  max-width: 340px;
+  margin: 0 auto;
+  color: var(--fb-ink-soft);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.7;
+  animation: sharxFbReveal 0.5s 0.25s var(--fb-ease) backwards;
+}
+
+/* ---------- Floating button ---------- */
+.feedback-floating-button {
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border: 3px solid var(--fb-ink);
+  border-radius: 99px;
+  background: var(--fb-yellow);
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 3px 4px 0 var(--fb-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+  animation: sharxFbReveal 0.5s 0.6s var(--fb-ease) backwards;
+}
+
+@media (hover: hover) {
+  .feedback-floating-button:hover {
+    transform: translate(-1px, -2px);
+    background: var(--fb-yellow-soft);
+    box-shadow: 4px 6px 0 var(--fb-ink);
+  }
+}
+
+.feedback-floating-button:active {
+  transform: translate(2px, 3px);
+  box-shadow: 1px 1px 0 var(--fb-ink);
+}
+
+.feedback-floating-button:focus-visible {
+  outline: 3px solid var(--fb-ink);
+  outline-offset: 3px;
+}
+
+.feedback-floating-button span {
+  font-size: 16px;
+}
+
+/* ---------- Animations ---------- */
+@keyframes sharxFbFade {
+  from { opacity: 0; }
+}
+
+@keyframes sharxFbFadeOut {
+  to { opacity: 0; }
+}
+
+@keyframes sharxFbRise {
+  from { opacity: 0; transform: translateY(24px) scale(0.95); }
+}
+
+@keyframes sharxFbSink {
+  to { opacity: 0; transform: translateY(14px) scale(0.97); }
+}
+
+@keyframes sharxFbReveal {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+@keyframes sharxFbHint {
+  from { opacity: 0; transform: translateY(3px); }
+}
+
+@keyframes sharxFbStarPop {
+  0% { transform: scale(0.6) rotate(-14deg); }
+  60% { transform: scale(1.18) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes sharxFbShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes sharxFbErrorIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+}
+
+@keyframes sharxFbSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sharxFbPop {
+  from { opacity: 0; transform: rotate(-6deg) scale(0.4); }
+}
+
+@keyframes sharxFbDraw {
+  from { stroke-dashoffset: 1; }
+}
+
+@keyframes sharxFbConfetti {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  20% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) scale(1) rotate(120deg);
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .feedback-overlay {
+    padding: 12px;
+  }
+
+  .feedback-modal {
+    border-radius: 26px;
+    max-height: 94vh;
+    max-height: 94dvh;
+    box-shadow: 5px 6px 0 var(--fb-ink);
+  }
+
+  .feedback-modal::before {
+    left: 24px;
+  }
+  .feedback-modal::after {
+    right: 20px;
+    bottom: -14px;
+  }
+
+  .feedback-scroll {
+    padding: 34px 20px 28px;
+    border-radius: 23px;
+  }
+
+  .feedback-category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-stars {
+    gap: 8px;
+  }
+
+  .feedback-stars button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .feedback-category-grid .feedback-stars button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .feedback-category-grid .feedback-stars svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .feedback-options {
+    gap: 8px;
+  }
+
+  .feedback-options button {
+    padding: 10px 4px;
+    font-size: 12.5px;
+  }
+
+  .feedback-floating-button {
+    right: 14px;
+    bottom: 78px;
+    padding: 11px 17px;
+    font-size: 13.5px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .feedback-overlay,
+  .feedback-overlay *,
+  .feedback-overlay *::before,
+  .feedback-overlay *::after,
+  .feedback-floating-button {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .feedback-confetti {
+    display: none;
+  }
+}

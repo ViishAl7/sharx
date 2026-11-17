@@ -16,8 +16,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { startOAuth } from "../lib/auth-session";
-import { API_BASE } from "../config";
-
+import { API_BASE, COMMUNITY_API_BASE } from "../config";
 /* ── WebAuthn helpers ─────────────────────────────────── */
 function base64urlToBuffer(base64url) {
   const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
@@ -43,7 +42,12 @@ export default function SidePanel({ mode: initialMode, onClose }) {
 
   const [passkeyEmail, setPasskeyEmail] = useState("");
   const [showEmailInput, setShowEmailInput] = useState(false);
-
+const [signupEmail, setSignupEmail] = useState("");
+const [signupUsername, setSignupUsername] = useState("");
+const [signupPassword, setSignupPassword] = useState("");
+const [signupLoading, setSignupLoading] = useState(false);
+const [signupError, setSignupError] = useState("");
+const [signupSuccess, setSignupSuccess] = useState("");
   /* ── iOS-safe scroll lock ── */
   useEffect(() => {
     const scrollY = window.scrollY || window.pageYOffset;
@@ -70,6 +74,60 @@ export default function SidePanel({ mode: initialMode, onClose }) {
   }, []);
 
   /* ── PASSKEY REGISTER ─────────────────────────────────── */
+  const handleEmailSignup = async (e) => {
+  e.preventDefault();
+
+  setSignupError("");
+  setSignupSuccess("");
+
+  if (!signupEmail.trim() || !signupUsername.trim() || !signupPassword) {
+    setSignupError("Please fill in all fields.");
+    return;
+  }
+
+  if (signupPassword.length < 12) {
+    setSignupError("Password must be at least 12 characters.");
+    return;
+  }
+
+  setSignupLoading(true);
+
+  try {
+    const response = await fetch(
+      `${COMMUNITY_API_BASE}/api/v1/auth/signup`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: signupEmail.trim(),
+          username: signupUsername.trim(),
+          password: signupPassword,
+        }),
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to create your account.");
+    }
+
+    setSignupSuccess(
+      data.message || "Your account has been created successfully."
+    );
+
+    setSignupPassword("");
+  } catch (error) {
+    setSignupError(
+      error.message || "Unable to connect to the Community server."
+    );
+  } finally {
+    setSignupLoading(false);
+  }
+};
+
   const handlePasskeyRegister = async () => {
     setPasskeyError("");
 
@@ -672,13 +730,117 @@ export default function SidePanel({ mode: initialMode, onClose }) {
               </button>
             </div>
 
+{/* Email / Password Signup */}
+{mode === "signup" && (
+  <form
+    onSubmit={handleEmailSignup}
+    style={{ animationDelay: "0.18s" }}
+  >
+    <input
+      className="pv-input"
+      type="email"
+      placeholder="Email address"
+      value={signupEmail}
+      onChange={(e) => {
+        setSignupEmail(e.target.value);
+        setSignupError("");
+        setSignupSuccess("");
+      }}
+      autoComplete="email"
+      required
+      maxLength={254}
+      aria-label="Email address"
+    />
+
+    <input
+      className="pv-input"
+      type="text"
+      placeholder="Choose a username"
+      value={signupUsername}
+      onChange={(e) => {
+        setSignupUsername(e.target.value);
+        setSignupError("");
+        setSignupSuccess("");
+      }}
+      autoComplete="username"
+      required
+      minLength={3}
+      maxLength={30}
+      aria-label="Username"
+    />
+
+    <input
+      className="pv-input"
+      type="password"
+      placeholder="Create a password (12+ characters)"
+      value={signupPassword}
+      onChange={(e) => {
+        setSignupPassword(e.target.value);
+        setSignupError("");
+        setSignupSuccess("");
+      }}
+      autoComplete="new-password"
+      required
+      minLength={12}
+      maxLength={128}
+      aria-label="Password"
+    />
+
+    {signupError && (
+      <div className="pv-error" role="alert">
+        {signupError}
+      </div>
+    )}
+
+    {signupSuccess && (
+      <div
+        className="pv-error"
+        role="status"
+        style={{
+          background: "#7BE5B5",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {signupSuccess}
+      </div>
+    )}
+
+    <button
+      type="submit"
+      className="pv-btn"
+      disabled={signupLoading}
+    >
+      {signupLoading ? (
+        <>
+          <span className="pv-spin" aria-hidden="true" />
+          Creating account...
+        </>
+      ) : (
+        "Create Account"
+      )}
+    </button>
+  </form>
+)}
+
             {/* Google */}
             <button
               type="button"
               className="pv-btn"
               style={{ animationDelay: "0.2s" }}
               onClick={() => {
-                startOAuth("google");
+                startOAuth(
+                  "google",
+                  (() => {
+                    const params = new URLSearchParams(window.location.search);
+                    const next = params.get("next");
+                    return next && next.startsWith("/") &&
+                      !next.startsWith("//") &&
+                      !next.startsWith("/login") &&
+                      !next.startsWith("/auth/callback")
+                      ? next
+                      : undefined;
+                  })()
+                );
               }}
             >
               <svg width="22" height="22" viewBox="0 0 18 18" aria-hidden="true">

@@ -4,7 +4,7 @@
 
 const nextConfig = {
   // 📱 Phone / dusre device se dev server test karne ke liye
-  allowedDevOrigins: ["10.161.228.92"],
+ allowedDevOrigins: ["10.56.178.92"],
 
   // 🔗 Old URLs → new branded URLs (only ONE definition)
   async redirects() {
