@@ -22,7 +22,7 @@ import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
 import { FounderNoteCard } from "./FounderNote";
-import FeedbackModal from "./FeedbackModal";
+import FeedbackModal, { FeedbackToast } from "./FeedbackModal";
 import AnnouncementBanner from "./announcement";
 import "./FounderNote.css";
 import "./announcement.css";
@@ -45,6 +45,12 @@ const ANIMATED_CARDS = 12;
 
 const TO_TOP_AT = 600;
 
+/* Feedback popup timing / storage */
+const FEEDBACK_OPEN_DELAY_MS = 1200;
+const FEEDBACK_TOAST_MS = 4700;
+const FEEDBACK_SUBMITTED_KEY = "sharx:feedback:submittedAt";
+const FEEDBACK_SEEN_KEY = "sharx:feedback:seen";
+const FEEDBACK_QUIET_MS = 30 * 24 * 60 * 60 * 1000;
 
 
 /* ─────────────────────────────────────────────
@@ -317,13 +323,6 @@ const HRow = memo(function HRow({
 });
 
 /* ─────────────────────────────────────────────
-   COUNTDOWN
-───────────────────────────────────────────── */
-
-
-
-
-/* ─────────────────────────────────────────────
    INFINITE LOADER
 ───────────────────────────────────────────── */
 const InfiniteLoader = memo(function InfiniteLoader({
@@ -424,38 +423,78 @@ export default function Home({
     setMounted(true);
   }, []);
 
+  /* ───────── Feedback popup ─────────
+     - Opens by itself shortly after the site loads.
+     - After a successful submit it stays away for 30 days.
+     - If it is only closed, it stays away for the rest of that visit.
+     - Adding ?feedback=1 to the URL forces it open (handy for testing).
+     - After the popup closes following a submit, a confirmation toast appears. */
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackToast, setFeedbackToast] = useState(false);
+  const feedbackSubmittedRef = useRef(false);
+  const feedbackToastTimer = useRef(null);
 
-  const openFeedback = useCallback(() => {
-    setFeedbackOpen(true);
-  }, []);
+  const openFeedback = useCallback(() => setFeedbackOpen(true), []);
 
   const closeFeedback = useCallback(() => {
-    try {
-      localStorage.setItem(
-        "sharx:feedback:lastPromptedAt",
-        String(Date.now())
-      );
-    } catch {}
     setFeedbackOpen(false);
+
+    try {
+      sessionStorage.setItem(FEEDBACK_SEEN_KEY, "1");
+    } catch {}
+
+    if (feedbackSubmittedRef.current) {
+      feedbackSubmittedRef.current = false;
+      setFeedbackToast(true);
+      clearTimeout(feedbackToastTimer.current);
+      feedbackToastTimer.current = setTimeout(
+        () => setFeedbackToast(false),
+        FEEDBACK_TOAST_MS
+      );
+    }
+  }, []);
+
+  const handleFeedbackSubmitted = useCallback(() => {
+    feedbackSubmittedRef.current = true;
+    try {
+      localStorage.setItem(FEEDBACK_SUBMITTED_KEY, String(Date.now()));
+    } catch {}
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted) return undefined;
+
+    let skip = false;
 
     try {
-      const lastPrompted = Number(
-        localStorage.getItem("sharx:feedback:lastPromptedAt") || 0
-      );
-      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+      const forced =
+        new URLSearchParams(window.location.search).get("feedback") === "1";
 
-      if (!lastPrompted || Date.now() - lastPrompted >= thirtyDays) {
-        setFeedbackOpen(true);
+      if (!forced) {
+        const submittedAt = Number(
+          localStorage.getItem(FEEDBACK_SUBMITTED_KEY) || 0
+        );
+
+        if (submittedAt && Date.now() - submittedAt < FEEDBACK_QUIET_MS) {
+          skip = true;
+        }
+
+        if (sessionStorage.getItem(FEEDBACK_SEEN_KEY) === "1") skip = true;
       }
     } catch {
-      setFeedbackOpen(true);
+      /* storage blocked: just show it */
     }
+
+    if (skip) return undefined;
+
+    const timer = setTimeout(
+      () => setFeedbackOpen(true),
+      FEEDBACK_OPEN_DELAY_MS
+    );
+    return () => clearTimeout(timer);
   }, [mounted]);
+
+  useEffect(() => () => clearTimeout(feedbackToastTimer.current), []);
 
   const [pageReady, setPageReady] = useState(false);
   const [allGames, setAllGames] = useState(() => prepareGames(initialGames));
@@ -1362,8 +1401,10 @@ export default function Home({
         <FeedbackModal
           open={feedbackOpen}
           onClose={closeFeedback}
-          onSubmitted={closeFeedback}
+          onSubmitted={handleFeedbackSubmitted}
         />
+
+        {feedbackToast && <FeedbackToast />}
       </div>
 
       {/* BACK TO TOP */}

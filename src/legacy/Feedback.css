@@ -1,12 +1,13 @@
 /* =========================================
-   SHARX — CRAYON FEEDBACK (PERFECT)
+   SHARX — CRAYON FEEDBACK (premium)
    Matches sharx.in · Comfortaa · cream paper · navy ink
 ========================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&display=swap');
 
 .feedback-overlay,
-.feedback-floating-button {
+.feedback-floating-button,
+.feedback-toast {
   --fb-ink: #1a2744;
   --fb-ink-soft: #5a6580;
   --fb-paper: #fffdf8;
@@ -24,6 +25,13 @@
   --fb-spring: cubic-bezier(0.3, 1.5, 0.5, 1);
 }
 
+/* Snappy taps on phones, no grey flash */
+.feedback-overlay button,
+.feedback-floating-button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 /* ---------- Overlay ---------- */
 .feedback-overlay {
   position: fixed;
@@ -34,12 +42,12 @@
   padding: max(20px, env(safe-area-inset-top)) 20px
     max(20px, env(safe-area-inset-bottom));
   overflow-y: auto;
-  background: rgba(26, 39, 68, 0.5);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(26, 39, 68, 0.52);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   font-family: var(--fb-font);
   color: var(--fb-ink);
-  animation: sharxFbFade 0.25s ease backwards;
+  animation: sharxFbFade 0.22s ease backwards;
 }
 
 .feedback-overlay *,
@@ -63,10 +71,16 @@
   max-height: min(92dvh, 920px);
   border: 3px solid var(--fb-ink);
   border-radius: 32px;
-  background: var(--fb-paper);
+  background-color: var(--fb-paper);
+  /* faint paper dots */
+  background-image: radial-gradient(
+    rgba(26, 39, 68, 0.055) 1.1px,
+    transparent 1.3px
+  );
+  background-size: 18px 18px;
   color: var(--fb-ink);
   box-shadow: 7px 8px 0 var(--fb-ink);
-  animation: sharxFbRise 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.12) backwards;
+  animation: sharxFbRise 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.1) backwards;
 }
 
 .feedback-modal:focus {
@@ -77,42 +91,68 @@
   animation: sharxFbSink 0.18s ease forwards;
 }
 
-/* FIXED: Top doodle tab perfectly centered left */
+/* Sticker doodles sit fully outside the card, so scrolling content never meets them */
 .feedback-modal::before {
   content: "";
   position: absolute;
-  top: -16px;
-  left: 40px;
-  width: 60px;
-  height: 32px;
+  top: -18px;
+  left: 44px;
+  width: 54px;
+  height: 18px;
   border: 3px solid var(--fb-ink);
   border-bottom: 0;
-  border-radius: 60px 60px 0 0;
+  border-radius: 54px 54px 0 0;
   background: var(--fb-yellow-soft);
   pointer-events: none;
 }
 
-/* FIXED: Bottom doodle sticker perfectly aligned right */
 .feedback-modal::after {
   content: "";
   position: absolute;
-  right: 36px;
-  bottom: -14px;
-  width: 48px;
-  height: 18px;
+  right: 30px;
+  bottom: -19px;
+  width: 46px;
+  height: 16px;
   border: 3px solid var(--fb-ink);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--fb-lavender);
-  transform: rotate(6deg);
+  transform: rotate(4deg);
   pointer-events: none;
+}
+
+/* Soft fade hints that there is more to scroll */
+.feedback-fade {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 52px;
+  border-radius: 0 0 29px 29px;
+  background: linear-gradient(to top, var(--fb-paper) 18%, rgba(255, 253, 248, 0));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.feedback-fade.is-top {
+  top: 3px;
+  bottom: auto;
+  height: 34px;
+  border-radius: 29px 29px 0 0;
+  background: linear-gradient(to bottom, var(--fb-paper) 22%, rgba(255, 253, 248, 0));
+}
+
+.feedback-fade.is-visible {
+  opacity: 1;
 }
 
 .feedback-scroll {
   flex: 1;
   min-height: 0;
-  padding: 40px 38px 34px;
+  padding: 36px 38px 34px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border-radius: 29px;
   scrollbar-width: thin;
   scrollbar-color: rgba(26, 39, 68, 0.25) transparent;
@@ -132,17 +172,21 @@
   animation: sharxFbShake 0.4s ease;
 }
 
+/* Gentle staggered entrance for each block */
 .fb-reveal {
-  animation: sharxFbReveal 0.5s var(--fb-ease) backwards;
-  animation-delay: calc(var(--i, 0) * 55ms + 120ms);
+  animation: sharxFbReveal 0.45s var(--fb-ease) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms + 100ms);
 }
 
-/* ---------- Focus State (Fixed) ---------- */
-/* Removed the conflicting outline, added a solid 3D box-shadow */
-.feedback-overlay button:focus-visible,
+/* ---------- Keyboard focus ---------- */
+.feedback-overlay button:focus-visible {
+  outline: 3px solid var(--fb-ink);
+  outline-offset: 3px;
+}
+
+/* the textarea has its own focus style, so no extra ring */
 .feedback-overlay textarea:focus-visible {
-  outline: none !important;
-  box-shadow: 3px 4px 0 var(--fb-ink) !important;
+  outline: none;
 }
 
 /* ---------- Close ---------- */
@@ -185,6 +229,36 @@
   cursor: not-allowed;
 }
 
+/* ---------- Announcement line ---------- */
+.feedback-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 46px 18px 0;
+  color: var(--fb-ink);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.feedback-notice-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 50%;
+  background: var(--fb-mint);
+  box-shadow: 1.5px 2px 0 var(--fb-ink);
+}
+
+.feedback-notice-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--fb-ink);
+}
+
 /* ---------- Eyebrow ---------- */
 .feedback-eyebrow {
   display: inline-flex;
@@ -209,6 +283,7 @@
   border: 2px solid var(--fb-ink);
   border-radius: 50%;
   background: var(--fb-coral);
+  animation: sharxFbPulse 2.4s ease-in-out infinite;
 }
 
 /* ---------- Heading ---------- */
@@ -220,6 +295,7 @@
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.5px;
+  text-wrap: balance;
   text-shadow: 3px 3px 0 var(--fb-yellow);
 }
 
@@ -241,14 +317,24 @@
   border-top: 2.5px dashed rgba(26, 39, 68, 0.16);
 }
 
+/* A floated legend stops the browser from drawing it on top of the border line */
 .feedback-rating legend,
 .feedback-recommend legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 14px;
   padding: 0;
   color: var(--fb-ink);
   font-family: var(--fb-font);
   font-size: 15px;
   font-weight: 700;
+  line-height: 1.4;
   transition: color 0.2s ease;
+}
+
+.feedback-rating legend + *,
+.feedback-recommend legend + * {
+  clear: both;
 }
 
 .feedback-rating legend span {
@@ -265,7 +351,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 13px;
+  margin: 0;
 }
 
 .feedback-stars button {
@@ -325,14 +411,30 @@
   border-color: var(--fb-coral);
 }
 
+/* Hint sits right beside the stars, so the block never has an empty gap */
 .feedback-star-hint {
-  display: block;
-  min-height: 20px;
-  margin-top: 10px;
+  margin-left: 6px;
   color: var(--fb-ink-soft);
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
   animation: sharxFbHint 0.25s ease backwards;
+}
+
+/* Error text shown right under the field that needs attention */
+.feedback-field-error {
+  clear: both;
+  margin: 12px 0 0;
+  color: var(--fb-danger);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  animation: sharxFbErrorIn 0.3s var(--fb-ease) backwards;
+}
+
+.feedback-field-error::before {
+  content: "! ";
+  font-weight: 700;
 }
 
 /* ---------- Category grid ---------- */
@@ -371,7 +473,8 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 11px;
-  margin-top: 14px;
+  margin: 0;
+  padding-bottom: 5px;
 }
 
 .feedback-recommend.is-invalid .feedback-options {
@@ -408,15 +511,13 @@
 .feedback-options button.is-selected {
   transform: translate(2px, 3px);
   box-shadow: 0 0 0 var(--fb-ink);
-  outline: 2.5px solid var(--fb-ink);
-  outline-offset: 3px;
 }
 
 .feedback-options button:nth-child(1).is-selected { background: var(--fb-mint); }
 .feedback-options button:nth-child(2).is-selected { background: var(--fb-yellow); }
 .feedback-options button:nth-child(3).is-selected { background: var(--fb-coral); }
 
-/* ---------- Message Textarea ---------- */
+/* ---------- Message ---------- */
 .feedback-message {
   display: block;
   color: var(--fb-ink);
@@ -439,11 +540,12 @@
   resize: vertical;
   border: 2.5px solid var(--fb-ink);
   border-radius: 20px;
-  outline: none; /* Default outline removed */
+  outline: none;
   background: var(--fb-cream);
   color: var(--fb-ink);
   font-family: var(--fb-font);
-  font-size: 14.5px;
+  /* 16px stops iOS from zooming in when the field is tapped */
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.6;
   transition: transform 0.15s ease, box-shadow 0.15s ease,
@@ -455,13 +557,10 @@
   font-weight: 500;
 }
 
-/* FIXED: Only hard shadow and clean border on focus */
 .feedback-message textarea:focus {
   background: #ffffff;
-  border-color: var(--fb-ink);
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 4px 0 var(--fb-ink);
-  outline: none; 
+  transform: translate(-1px, -2px);
+  box-shadow: 3px 5px 0 var(--fb-ink);
 }
 
 .feedback-message small {
@@ -625,6 +724,22 @@
   border-radius: 3px;
 }
 
+.feedback-success-tag {
+  display: inline-block;
+  margin: 0 0 16px;
+  padding: 6px 14px;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 99px;
+  background: var(--fb-mint-soft);
+  color: var(--fb-ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  box-shadow: 2px 3px 0 var(--fb-ink);
+  animation: sharxFbReveal 0.5s 0.1s var(--fb-ease) backwards;
+}
+
 .feedback-success h2 {
   margin: 0 0 12px;
   font-size: 36px;
@@ -688,6 +803,65 @@
   font-size: 16px;
 }
 
+/* ---------- Success toast (shown after the popup closes) ---------- */
+.feedback-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  z-index: 13000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(92vw, 380px);
+  padding: 14px 18px;
+  border: 3px solid var(--fb-ink);
+  border-radius: 22px;
+  background: var(--fb-paper);
+  color: var(--fb-ink);
+  font-family: var(--fb-font);
+  box-shadow: 4px 5px 0 var(--fb-ink);
+  transform: translateX(-50%);
+  animation: sharxFbToast 4.6s var(--fb-ease) forwards;
+}
+
+.feedback-toast-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 2.5px solid var(--fb-ink);
+  border-radius: 14px;
+  background: var(--fb-mint);
+  transform: rotate(-6deg);
+}
+
+.feedback-toast-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--fb-ink);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.feedback-toast strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.feedback-toast span {
+  display: block;
+  margin-top: 2px;
+  color: var(--fb-ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 /* ---------- Animations ---------- */
 @keyframes sharxFbFade {
   from { opacity: 0; }
@@ -743,6 +917,11 @@
   from { stroke-dashoffset: 1; }
 }
 
+@keyframes sharxFbPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
 @keyframes sharxFbConfetti {
   0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
   20% { opacity: 1; }
@@ -750,6 +929,13 @@
     opacity: 0;
     transform: translate(var(--x), var(--y)) scale(1) rotate(120deg);
   }
+}
+
+@keyframes sharxFbToast {
+  0% { opacity: 0; transform: translate(-50%, 24px) scale(0.96); }
+  8% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  90% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, 12px) scale(0.98); }
 }
 
 /* ---------- Responsive ---------- */
@@ -765,17 +951,39 @@
     box-shadow: 5px 6px 0 var(--fb-ink);
   }
 
-  .feedback-modal::before {
-    left: 24px;
-  }
-  .feedback-modal::after {
-    right: 20px;
-    bottom: -14px;
+  .feedback-scroll {
+    padding: 32px 20px 28px;
+    border-radius: 23px;
   }
 
-  .feedback-scroll {
-    padding: 34px 20px 28px;
-    border-radius: 23px;
+  .feedback-modal::before {
+    left: 28px;
+  }
+
+  .feedback-fade {
+    border-radius: 0 0 23px 23px;
+  }
+
+  .feedback-fade.is-top {
+    border-radius: 23px 23px 0 0;
+  }
+
+  .feedback-notice {
+    font-size: 12.5px;
+  }
+
+  /* On phones the hint drops under the stars in space that is always reserved */
+  .feedback-rating[data-field="overall"] .feedback-stars {
+    position: relative;
+    margin-bottom: 30px;
+  }
+
+  .feedback-star-hint {
+    position: absolute;
+    top: 100%;
+    left: 2px;
+    margin: 9px 0 0;
+    font-size: 12.5px;
   }
 
   .feedback-category-grid {
@@ -818,13 +1026,37 @@
   }
 }
 
+/* ---------- Very small phones ---------- */
+@media (max-width: 380px) {
+  .feedback-eyebrow {
+    max-width: calc(100% - 54px);
+    padding: 6px 12px;
+    font-size: 10px;
+    letter-spacing: 1.6px;
+  }
+
+  .feedback-scroll {
+    padding: 30px 16px 26px;
+  }
+
+  .feedback-modal h2 {
+    margin-right: 0;
+    font-size: 27px;
+  }
+
+  .feedback-options button {
+    font-size: 12px;
+  }
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .feedback-overlay,
   .feedback-overlay *,
   .feedback-overlay *::before,
   .feedback-overlay *::after,
-  .feedback-floating-button {
+  .feedback-floating-button,
+  .feedback-toast {
     animation: none !important;
     transition: none !important;
   }
