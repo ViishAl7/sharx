@@ -1,11 +1,10 @@
-
 .shx-ann-banner {
   position: relative;
   isolation: isolate;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  padding: clamp(48px, 7vw, 78px) 24px;
+  padding: clamp(60px, 8vw, 110px) 24px;
   border: 2.5px solid #1B2A41;
   border-radius: 0;
   color: #F5F3EE;
@@ -22,11 +21,34 @@
     ),
     #101010;
   box-shadow: 5px 5px 0 #1B2A41;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Continuous ambient light rotating slowly behind */
+.shx-ann-banner::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  z-index: -1;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    rgba(197, 165, 106, 0.025) 60deg,
+    transparent 120deg,
+    transparent 240deg,
+    rgba(164, 145, 190, 0.025) 300deg,
+    transparent 360deg
+  );
+  animation: shxAmbientRotate 30s linear infinite;
+  pointer-events: none;
 }
 
 .shx-ann-banner-depth,
 .shx-ann-banner-grain,
-.shx-ann-banner-vignette {
+.shx-ann-banner-vignette,
+.shx-ann-banner-sweep {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -34,12 +56,11 @@
 
 .shx-ann-banner-depth {
   z-index: -3;
-  background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(255, 255, 255, 0.035),
-      transparent 55%
-    );
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(255, 255, 255, 0.035),
+    transparent 55%
+  );
 }
 
 .shx-ann-banner-grain {
@@ -57,177 +78,33 @@
   );
 }
 
-.shx-ann-inner {
-  position: relative;
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
+/* Premium golden light sweep across the banner */
+.shx-ann-banner-sweep {
+  z-index: 2;
+  overflow: hidden;
+  mix-blend-mode: screen;
 }
 
-/* Original headline typography */
-
-.shx-ann-banner-text {
-  margin: 0;
-  text-align: center;
-  font-family:
-    "Helvetica Neue",
-    "Inter",
-    "Segoe UI",
-    "Roboto",
-    -apple-system,
-    BlinkMacSystemFont,
-    Arial,
-    sans-serif;
-  font-weight: 700;
-  font-size: clamp(28px, 3.4vw, 44px);
-  line-height: 1.22;
-  letter-spacing: -0.022em;
-  color: #F5F3EE;
-  animation: shxGlow 7s ease-in-out infinite;
+.shx-ann-banner-sweep::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: -60%;
+  width: 40%;
+  height: 300%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(197, 165, 106, 0.05) 35%,
+    rgba(255, 230, 170, 0.22) 50%,
+    rgba(197, 165, 106, 0.05) 65%,
+    transparent 100%
+  );
+  filter: blur(30px);
+  transform: rotate(18deg);
+  animation: shxLightSweep 8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-.shx-ann-banner-line {
-  display: block;
-}
-
-.shx-word {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.shx-char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(0.4em);
-  filter: blur(8px);
-  animation:
-    shxCharIn 0.7s cubic-bezier(0.22, 1, 0.36, 1)
-    calc(var(--c) * 18ms + 150ms) forwards;
-}
-
-.shx-dot {
-  color: #C5A56A;
-}
-
-@keyframes shxCharIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-
-@keyframes shxGlow {
-  0%, 100% {
-    text-shadow: 0 0 0 rgba(197, 165, 106, 0);
-  }
-  50% {
-    text-shadow:
-      0 0 24px rgba(197, 165, 106, 0.10),
-      0 0 38px rgba(164, 145, 190, 0.07);
-  }
-}
-
-/* Message — same typography family, no separate card */
-
-.shx-ann-message {
-  width: 100%;
-  max-width: 700px;
-  margin: clamp(32px, 4.5vw, 48px) auto 0;
-  font-family:
-    "Helvetica Neue",
-    "Inter",
-    "Segoe UI",
-    "Roboto",
-    -apple-system,
-    BlinkMacSystemFont,
-    Arial,
-    sans-serif;
-  text-align: left;
-}
-
-.shx-ann-paragraph {
-  margin: 0 0 17px;
-  color: rgba(245, 243, 238, 0.76);
-  font-size: 15px;
-  line-height: 1.85;
-  font-weight: 400;
-  letter-spacing: -0.008em;
-  opacity: 0;
-  transform: translateY(7px);
-  animation: shxMessageIn 0.65s ease forwards;
-  animation-delay: calc(var(--p) * 50ms + 2s);
-}
-
-.shx-ann-greeting {
-  color: #F5F3EE;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 19px;
-}
-
-.shx-ann-signature {
-  margin: 25px 0 0;
-  color: #F5F3EE;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  opacity: 0;
-  animation: shxMessageIn 0.65s ease forwards;
-  animation-delay: 2.65s;
-}
-
-@keyframes shxMessageIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive */
-
-@media (max-width: 600px) {
-  .shx-ann-banner {
-    padding: 42px 20px;
-    box-shadow: 3px 3px 0 #1B2A41;
-  }
-
-  .shx-ann-banner-text {
-    font-size: clamp(27px, 7.5vw, 36px);
-    line-height: 1.25;
-  }
-
-  .shx-ann-message {
-    margin-top: 30px;
-  }
-
-  .shx-ann-paragraph {
-    font-size: 14px;
-    line-height: 1.8;
-    margin-bottom: 15px;
-  }
-
-  .shx-ann-greeting {
-    font-size: 15px;
-  }
-}
-
-/* Reduced motion */
-
-@media (prefers-reduced-motion: reduce) {
-  .shx-ann-banner-text,
-  .shx-char,
-  .shx-ann-paragraph,
-  .shx-ann-signature {
-    animation: none;
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/* ── ANNOUNCEMENT MESSAGE ── */
 .shx-ann-content {
   position: relative;
   z-index: 3;
@@ -236,45 +113,218 @@
   margin: auto;
 }
 
-.shx-ann-message {
-  max-width: 760px;
-  margin: 30px auto 0;
-  color: rgba(245, 243, 238, 0.78);
+/* Headline Typography */
+.shx-ann-banner-text {
+  margin: 0;
   text-align: center;
-  font-family: inherit;
-  font-size: 15px;
-  line-height: 1.85;
-  letter-spacing: 0.005em;
-  animation: fadeUp 0.8s ease both;
-  animation-delay: 0.7s;
-}
-
-.shx-ann-message p {
-  margin: 0 0 17px;
-}
-
-.shx-ann-message .shx-ann-greeting {
+  font-family: "Helvetica Neue", "Inter", "Segoe UI", "Roboto", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.35;
+  letter-spacing: -0.022em;
   color: #F5F3EE;
+}
+
+.shx-ann-banner-line {
+  display: block;
+}
+
+/* Premium Golden Sign-off Line */
+.shx-ann-banner-line:nth-child(3) {
+  margin-top: 28px;
+  font-size: 0.55em;
   font-weight: 600;
-  font-size: 17px;
+  color: #C5A56A;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  animation: shxGoldPulse 5s ease-in-out infinite;
 }
 
-.shx-ann-message .shx-ann-closing {
-  color: #F5F3EE;
-  margin-top: 25px;
+.shx-word {
+  display: inline-block;
+  white-space: nowrap;
 }
 
-.shx-ann-message .shx-ann-signature {
-  color: #FFD966;
-  font-weight: 600;
-  margin-top: 8px;
-  margin-bottom: 0;
+/* Character Reveal + Continuous Text Shimmer */
+.shx-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em);
+  filter: blur(8px);
+  background: linear-gradient(
+    100deg,
+    #F5F3EE 0%,
+    #F5F3EE 40%,
+    #FFE6AA 50%,
+    #F5F3EE 60%,
+    #F5F3EE 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: 
+    shxCharIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--c) * 18ms + 150ms) forwards,
+    shxTextShimmer 7s ease-in-out calc(var(--c) * 18ms + 1s) infinite;
 }
 
-@media (max-width: 560px) {
-  .shx-ann-message {
-    margin-top: 24px;
-    font-size: 14px;
-    line-height: 1.75;
+/* Golden line characters shimmer */
+.shx-ann-banner-line:nth-child(3) .shx-char {
+  background: linear-gradient(
+    100deg,
+    #C5A56A 0%,
+    #C5A56A 40%,
+    #FFF3D4 50%,
+    #C5A56A 60%,
+    #C5A56A 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: 
+    shxCharIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--c) * 18ms + 150ms) forwards,
+    shxGoldShimmer 5s ease-in-out calc(var(--c) * 18ms + 1s) infinite;
+}
+
+/* ── SIGNATURE (Bottom-Right Corner) ── */
+.shx-ann-signature {
+  position: absolute;
+  right: clamp(24px, 5vw, 48px);
+  bottom: clamp(24px, 5vw, 40px);
+  z-index: 4;
+  font-family: "Helvetica Neue", "Inter", "Segoe UI", "Roboto", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-size: clamp(11px, 1.1vw, 14px);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: linear-gradient(
+    100deg,
+    rgba(245, 243, 238, 0.85) 0%,
+    rgba(245, 243, 238, 0.85) 40%,
+    #FFFFFF 50%,
+    rgba(245, 243, 238, 0.85) 60%,
+    rgba(245, 243, 238, 0.85) 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* Fully visible immediately, only the shimmer animates continuously */
+  opacity: 1;
+  animation: shxSigShimmer 8s ease-in-out infinite;
+}
+
+@keyframes shxCharIn {
+  0% {
+    opacity: 0;
+    transform: translateY(0.4em);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes shxTextShimmer {
+  0% { background-position: 200% 0; }
+  60%, 100% { background-position: -200% 0; }
+}
+
+@keyframes shxGoldShimmer {
+  0% { background-position: 200% 0; }
+  60%, 100% { background-position: -200% 0; }
+}
+
+@keyframes shxGoldPulse {
+  0%, 100% {
+    text-shadow: 0 0 12px rgba(197, 165, 106, 0.15);
+  }
+  50% {
+    text-shadow: 
+      0 0 20px rgba(197, 165, 106, 0.35),
+      0 0 40px rgba(197, 165, 106, 0.12);
+  }
+}
+
+@keyframes shxSigShimmer {
+  0% { background-position: 200% 0; }
+  60%, 100% { background-position: -200% 0; }
+}
+
+@keyframes shxLightSweep {
+  0% { left: -60%; }
+  100% { left: 160%; }
+}
+
+@keyframes shxAmbientRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .shx-ann-banner {
+    padding: 60px 20px 80px;
+    box-shadow: 3px 3px 0 #1B2A41;
+  }
+
+  .shx-ann-banner-text {
+    font-size: clamp(28px, 7.5vw, 36px);
+    line-height: 1.4;
+  }
+  
+  .shx-ann-banner-line:nth-child(3) {
+    margin-top: 22px;
+    font-size: 0.6em;
+    letter-spacing: 0.03em;
+  }
+
+  .shx-ann-signature {
+    right: 20px;
+    bottom: 20px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+  }
+
+  .shx-ann-banner-sweep::after {
+    filter: blur(20px);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .shx-ann-banner::before,
+  .shx-ann-banner-sweep::after,
+  .shx-ann-banner-line:nth-child(3),
+  .shx-ann-signature,
+  .shx-char {
+    animation: none;
+  }
+
+  .shx-char {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    -webkit-text-fill-color: #F5F3EE;
+    background: none;
+  }
+
+  .shx-ann-banner-line:nth-child(3) .shx-char {
+    -webkit-text-fill-color: #C5A56A;
+    background: none;
+  }
+
+  .shx-ann-signature {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    -webkit-text-fill-color: rgba(245, 243, 238, 0.85);
+    background: none;
   }
 }
