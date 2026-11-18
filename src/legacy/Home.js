@@ -21,10 +21,8 @@ import Sidebar, { getCategoryIcon } from "./Sidebar";
 import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
-import { FounderNoteCard } from "./FounderNote";
 import FeedbackModal, { FeedbackToast } from "./FeedbackModal";
 import AnnouncementBanner from "./announcement";
-import "./FounderNote.css";
 import "./announcement.css";
 import "./Home.css";
 import "./Homeextras.css";
@@ -1183,7 +1181,6 @@ export default function Home({
           <h1 className="sr-only">Sharx — Play Free Online Games</h1>
 
           <AnnouncementBanner />
-          <FounderNoteCard />
 
           <OnboardingCard
             onOpenProfile={handleOpenProfileFromOnboarding}
