@@ -48,10 +48,22 @@ const CONFETTI = [
   { x: "34px", y: "-68px", c: "#e4dcff" },
 ];
 
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+
 function StarIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
+function SparkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 1.5c.5 4.6 2.4 7.6 6 9 .6.3.6 1.2 0 1.5-3.6 1.4-5.5 4.4-6 9-.5-4.6-2.4-7.6-6-9-.6-.3-.6-1.2 0-1.5 3.6-1.4 5.5-4.4 6-9z" />
     </svg>
   );
 }
@@ -63,6 +75,8 @@ function StarRating({
   required = false,
   showHint = false,
   invalid = false,
+  errorText = "",
+  field,
   className = "",
   style,
 }) {
@@ -95,6 +109,7 @@ function StarRating({
     <fieldset
       className={`feedback-rating ${invalid ? "is-invalid" : ""} ${className}`}
       style={style}
+      data-field={field}
     >
       <legend>
         {label}
@@ -132,12 +147,18 @@ function StarRating({
             </button>
           );
         })}
+
+        {showHint && display > 0 && (
+          <span key={display} className="feedback-star-hint" aria-hidden="true">
+            {HINTS[display]}
+          </span>
+        )}
       </div>
 
-      {showHint && (
-        <span key={display} className="feedback-star-hint" aria-hidden="true">
-          {HINTS[display]}
-        </span>
+      {errorText && (
+        <p className="feedback-field-error" role="alert">
+          {errorText}
+        </p>
       )}
     </fieldset>
   );
@@ -155,11 +176,14 @@ function FeedbackDialog({ onClose, onSubmitted }) {
   const [success, setSuccess] = useState(false);
   const [closing, setClosing] = useState(false);
   const [nudge, setNudge] = useState(false);
+  const [canScroll, setCanScroll] = useState({ top: false, bottom: false });
 
   const dialogRef = useRef(null);
+  const scrollRef = useRef(null);
   const onCloseRef = useRef(onClose);
   const closeTimer = useRef(null);
   const nudgeTimer = useRef(null);
+  const failTimer = useRef(null);
   const abortRef = useRef(null);
 
   useEffect(() => {
@@ -171,21 +195,48 @@ function FeedbackDialog({ onClose, onSubmitted }) {
     Boolean(recommendation) ||
     message.trim().length > 0;
 
+  /* Smooth exit, then tell the parent to unmount us */
   const requestClose = useCallback(() => {
     if (loading || closing) return;
 
     setClosing(true);
 
-    const reduceMotion = window.matchMedia?.(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
     closeTimer.current = setTimeout(
       () => onCloseRef.current?.(),
-      reduceMotion ? 0 : EXIT_MS
+      prefersReducedMotion() ? 0 : EXIT_MS
     );
   }, [loading, closing]);
 
+  /* Show a soft fade at the edges while there is more to scroll */
+  const updateScrollCue = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const top = el.scrollTop > 8;
+    const bottom = el.scrollHeight - el.scrollTop - el.clientHeight > 8;
+
+    setCanScroll((current) =>
+      current.top === top && current.bottom === bottom
+        ? current
+        : { top, bottom }
+    );
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+
+    updateScrollCue();
+
+    if (typeof ResizeObserver === "undefined") return undefined;
+
+    const observer = new ResizeObserver(updateScrollCue);
+    observer.observe(el);
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
+
+    return () => observer.disconnect();
+  }, [updateScrollCue, success]);
+
+  /* Focus, scroll lock and cleanup */
   useEffect(() => {
     const previouslyFocused = document.activeElement;
     const { overflow, paddingRight } = document.body.style;
@@ -197,21 +248,23 @@ function FeedbackDialog({ onClose, onSubmitted }) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
-    dialogRef.current?.focus();
+    dialogRef.current?.focus({ preventScroll: true });
 
     return () => {
       document.body.style.overflow = overflow;
       document.body.style.paddingRight = paddingRight;
       clearTimeout(closeTimer.current);
       clearTimeout(nudgeTimer.current);
+      clearTimeout(failTimer.current);
       abortRef.current?.abort();
 
       if (previouslyFocused instanceof HTMLElement) {
-        previouslyFocused.focus();
+        previouslyFocused.focus({ preventScroll: true });
       }
     };
   }, []);
 
+  /* Escape closes the dialog */
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === "Escape") requestClose();
@@ -221,6 +274,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [requestClose]);
 
+  /* Keep Tab inside the dialog */
   const trapFocus = (event) => {
     if (event.key !== "Tab") return;
 
@@ -249,6 +303,19 @@ function FeedbackDialog({ onClose, onSubmitted }) {
     setError(text);
     setInvalid(field);
     setErrorTick((tick) => tick + 1);
+
+    /* Bring the problem into view, whatever the scroll position */
+    clearTimeout(failTimer.current);
+    failTimer.current = setTimeout(() => {
+      const target = field
+        ? dialogRef.current?.querySelector(`[data-field="${field}"]`)
+        : dialogRef.current?.querySelector(".feedback-error");
+
+      target?.scrollIntoView({
+        block: "center",
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+      });
+    }, 60);
   };
 
   const clearFail = () => {
@@ -269,6 +336,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
   const handleBackdrop = (event) => {
     if (event.target !== event.currentTarget || loading) return;
 
+    /* Don't throw away typed feedback on a stray click */
     if (success || !isDirty) {
       requestClose();
       return;
@@ -361,7 +429,11 @@ function FeedbackDialog({ onClose, onSubmitted }) {
           ×
         </button>
 
-        <div className="feedback-scroll">
+        <div
+          ref={scrollRef}
+          className="feedback-scroll"
+          onScroll={updateScrollCue}
+        >
           {success ? (
             <div className="feedback-success" role="status">
               <div className="feedback-success-visual">
@@ -383,23 +455,34 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 </div>
               </div>
 
+              <span className="feedback-success-tag">Feedback submitted</span>
               <h2 id="feedback-title">Thank you!</h2>
-              <p>Your feedback helps us make SHARX better, one day at a time.</p>
+              <p>
+                Your feedback was received successfully. It helps us make
+                SHARX better, one day at a time.
+              </p>
               <button type="button" onClick={requestClose}>
                 Done
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <span className="feedback-eyebrow fb-reveal" style={reveal(0)}>
+              <p className="feedback-notice fb-reveal" style={reveal(0)}>
+                <span className="feedback-notice-icon">
+                  <SparkIcon />
+                </span>
+                You can now share your feedback with us.
+              </p>
+
+              <span className="feedback-eyebrow fb-reveal" style={reveal(1)}>
                 Your voice matters
               </span>
 
-              <h2 id="feedback-title" className="fb-reveal" style={reveal(1)}>
+              <h2 id="feedback-title" className="fb-reveal" style={reveal(2)}>
                 Help us improve SHARX.
               </h2>
 
-              <p className="feedback-description fb-reveal" style={reveal(2)}>
+              <p className="feedback-description fb-reveal" style={reveal(3)}>
                 Tell us about your experience. Every response counts.
               </p>
 
@@ -410,11 +493,13 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 required
                 showHint
                 invalid={invalid === "overall"}
+                errorText={invalid === "overall" ? error : ""}
+                field="overall"
                 className="fb-reveal"
-                style={reveal(3)}
+                style={reveal(4)}
               />
 
-              <div className="feedback-category-grid fb-reveal" style={reveal(4)}>
+              <div className="feedback-category-grid fb-reveal" style={reveal(5)}>
                 {CATEGORIES.map(([key, label]) => (
                   <StarRating
                     key={key}
@@ -429,7 +514,8 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 className={`feedback-recommend fb-reveal ${
                   invalid === "recommend" ? "is-invalid" : ""
                 }`}
-                style={reveal(5)}
+                style={reveal(6)}
+                data-field="recommend"
               >
                 <legend>Would you recommend SHARX to a friend?</legend>
                 <div className="feedback-options" role="radiogroup">
@@ -446,9 +532,15 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                     </button>
                   ))}
                 </div>
+
+                {invalid === "recommend" && error && (
+                  <p className="feedback-field-error" role="alert">
+                    {error}
+                  </p>
+                )}
               </fieldset>
 
-              <label className="feedback-message fb-reveal" style={reveal(6)}>
+              <label className="feedback-message fb-reveal" style={reveal(7)}>
                 Anything you'd like us to know? <span>(Optional)</span>
                 <textarea
                   value={message}
@@ -477,7 +569,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 </label>
               </div>
 
-              {error && (
+              {error && !invalid && (
                 <p key={errorTick} className="feedback-error" role="alert">
                   {error}
                 </p>
@@ -485,7 +577,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
 
               <button
                 className="feedback-submit fb-reveal"
-                style={reveal(7)}
+                style={reveal(8)}
                 type="submit"
                 disabled={loading}
               >
@@ -499,20 +591,50 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 )}
               </button>
 
-              <p className="feedback-privacy fb-reveal" style={reveal(8)}>
+              <p className="feedback-privacy fb-reveal" style={reveal(9)}>
                 Your feedback is handled securely.
               </p>
             </form>
           )}
         </div>
+
+        <div
+          className={`feedback-fade is-top ${canScroll.top ? "is-visible" : ""}`}
+          aria-hidden="true"
+        />
+        <div
+          className={`feedback-fade ${canScroll.bottom ? "is-visible" : ""}`}
+          aria-hidden="true"
+        />
       </section>
     </div>
+  );
+}
+
+/* Small confirmation toast, shown by the page after the popup closes */
+export function FeedbackToast() {
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="feedback-toast" role="status" aria-live="polite">
+      <div className="feedback-toast-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+      </div>
+      <div>
+        <strong>Feedback submitted</strong>
+        <span>Thank you for helping us improve SHARX.</span>
+      </div>
+    </div>,
+    document.body
   );
 }
 
 export default function FeedbackModal({ open, onClose, onSubmitted }) {
   if (!open || typeof document === "undefined") return null;
 
+  /* Remounting on every open resets the form automatically */
   return createPortal(
     <FeedbackDialog onClose={onClose} onSubmitted={onSubmitted} />,
     document.body

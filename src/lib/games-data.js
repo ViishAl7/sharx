@@ -4,23 +4,26 @@ import { getImageProps } from "next/image";
 import { GAMES_BASE } from "../config";
 
 /* ═══════════════════════════════════════════════════════════════
-   WHY THIS FILE CHANGED (LCP 16.5s → fast)
+   PERFORMANCE NOTES
 
-   BEFORE:
-   - cache:"no-store" on every fetch  → page could not be static,
-     server called the Render backend on EVERY visit.
-   - Loop of 60 pages (6 batches x 10) before sending any HTML.
-     Render free tier sleeps → 30-50s cold start → blank screen.
-   - Build log showed "Dynamic server usage" for every page.
-
-   NOW:
    - ISR: `next: { revalidate }` → HTML is built once, served from
      cache instantly, refreshed in the background every 5 min.
-   - Server sends ONLY the first page (60 games). Home shows 12
+   - Server sends ONLY the first page(s) (60 games). Home shows 12
      trending + 48 all-games, so 60 is exactly what's needed.
      "Load More" fetches the rest from the client.
    - If the backend is asleep/down, Next keeps serving the last
      good cached page instead of an empty one.
+
+   BACKEND PATH FIX ("Games API returned 404")
+
+   The server used to call `${GAMES_BASE}/games` directly. If the
+   backend actually lives under a prefix (for example /api/v1/games),
+   that call returns 404 while the browser route /api/games works.
+
+   fetchFromBackend() now tries the common prefixes once, remembers
+   the one that works, and logs the exact URLs if every one fails.
+   Once you know the right prefix you can pin it with the env var
+   GAMES_API_PREFIX (for example GAMES_API_PREFIX=/api/v1).
 ═══════════════════════════════════════════════════════════════ */
 
 /* Seconds. Games list changes slowly → 5 min is plenty. */
@@ -58,13 +61,68 @@ export function dedupeGamesById(list) {
 }
 
 function getGamesApiBase() {
-  return GAMES_BASE.replace(/\/+$/, "");
+  return String(GAMES_BASE || "").replace(/\/+$/, "");
 }
 
 function toPositiveInt(value, fallback, max) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return Math.min(parsed, max);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Backend path resolver
+═══════════════════════════════════════════════════════════════ */
+const normalizePrefix = (value) => {
+  const trimmed = String(value ?? "").trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+};
+
+const PINNED_PREFIX =
+  process.env.GAMES_API_PREFIX !== undefined
+    ? normalizePrefix(process.env.GAMES_API_PREFIX)
+    : null;
+
+/* Order matters: the configured base as-is first, then common prefixes. */
+const CANDIDATE_PREFIXES = ["", "/api/v1", "/api"];
+
+/* Remembered after the first successful call, so later calls make one request. */
+let workingPrefix = PINNED_PREFIX;
+
+function buildUrl(prefix, path, params) {
+  const url = new URL(`${getGamesApiBase()}${prefix}${path}`);
+  for (const [key, value] of Object.entries(params || {})) {
+    url.searchParams.set(key, String(value));
+  }
+  return url;
+}
+
+/*
+  Returns { response, url }.
+  A 404 is treated as "wrong path" only while the right prefix is unknown.
+  Network errors are thrown to the caller as usual.
+*/
+async function fetchFromBackend(path, params, init) {
+  const prefixes = workingPrefix !== null ? [workingPrefix] : CANDIDATE_PREFIXES;
+  const tried = [];
+  let last = null;
+
+  for (const prefix of prefixes) {
+    const url = buildUrl(prefix, path, params);
+    const response = await fetch(url.toString(), init);
+
+    if (response.status !== 404) {
+      workingPrefix = prefix;
+      return { response, url };
+    }
+
+    tried.push(url.toString());
+    last = { response, url };
+  }
+
+  console.error("[games-data] 404 for every known path:", tried.join("  |  "));
+  return last;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -76,15 +134,15 @@ export async function getGamesPage(page = 1, limit = DEFAULT_LIMIT) {
   const safePage = toPositiveInt(page, 1, 10000);
   const safeLimit = toPositiveInt(limit, DEFAULT_LIMIT, 100);
 
-  const url = new URL(`${getGamesApiBase()}/games`);
-  url.searchParams.set("page", String(safePage));
-  url.searchParams.set("limit", String(safeLimit));
-
-  const response = await fetch(url.toString(), {
-    method: "GET",
-    headers: { Accept: "application/json" },
-    next: { revalidate: GAMES_REVALIDATE },
-  });
+  const { response, url } = await fetchFromBackend(
+    "/games",
+    { page: safePage, limit: safeLimit },
+    {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      next: { revalidate: GAMES_REVALIDATE },
+    }
+  );
 
   let payload = null;
   try {
@@ -94,7 +152,10 @@ export async function getGamesPage(page = 1, limit = DEFAULT_LIMIT) {
   }
 
   if (!response.ok) {
-    throw new Error(payload?.error || `Games API returned ${response.status}.`);
+    throw new Error(
+      payload?.error ||
+        `Games API returned ${response.status} for ${url.toString()}`
+    );
   }
 
   const games = Array.isArray(payload)
@@ -126,14 +187,17 @@ export async function getGamesPage(page = 1, limit = DEFAULT_LIMIT) {
 export async function getInitialGames() {
   try {
     const pagesNeeded = Math.ceil(INITIAL_SERVER_GAMES / PAGE_SIZE); // 2
-    const results = await Promise.allSettled(
-      Array.from({ length: pagesNeeded }, (_, i) =>
-        getGamesPage(i + 1, PAGE_SIZE)
+
+    /* The first request learns the working path; the rest reuse it. */
+    const first = await Promise.allSettled([getGamesPage(1, PAGE_SIZE)]);
+    const rest = await Promise.allSettled(
+      Array.from({ length: pagesNeeded - 1 }, (_, i) =>
+        getGamesPage(i + 2, PAGE_SIZE)
       )
     );
 
     const all = [];
-    for (const r of results) {
+    for (const r of [...first, ...rest]) {
       if (r.status === "fulfilled") all.push(...(r.value?.games || []));
       else console.error("[getInitialGames] page failed:", r.reason);
     }
@@ -156,19 +220,22 @@ export async function getAllGames() {
 ═══════════════════════════════════════════════════════════════ */
 export async function getTrendingGames(limit = 12) {
   try {
-    const url = new URL(`${getGamesApiBase()}/games/trending`);
-    url.searchParams.set("limit", String(limit));
+    const result = await fetchFromBackend(
+      "/games/trending",
+      { limit },
+      {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        next: { revalidate: GAMES_REVALIDATE },
+      }
+    );
 
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      next: { revalidate: GAMES_REVALIDATE },
-    });
+    if (!result?.response?.ok) return [];
 
-    if (!res.ok) return [];
-
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
+    const data = await result.response.json();
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.games)) return data.games;
+    return [];
   } catch {
     return [];
   }
@@ -181,13 +248,15 @@ export async function getGameById(id) {
   if (id == null) return null;
 
   try {
-    const res = await fetch(`${GAMES_BASE}/games/${encodeURIComponent(id)}`, {
-      next: { revalidate: 60 },
-    });
+    const result = await fetchFromBackend(
+      `/games/${encodeURIComponent(id)}`,
+      null,
+      { next: { revalidate: 60 } }
+    );
 
-    if (!res.ok) return null;
+    if (!result?.response?.ok) return null;
 
-    const data = await res.json();
+    const data = await result.response.json();
     if (!data || typeof data !== "object" || data.error) return null;
     return data;
   } catch {
