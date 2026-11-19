@@ -1,6 +1,6 @@
 "use client";
 
-// src/legacy/Home.js — SHARX · Crayon · Clean · Playful
+// src/legacy/Home.js — SHARX · Crayon · Clean · Playful (performance build)
 
 import React, {
   useState,
@@ -8,6 +8,7 @@ import React, {
   useCallback,
   useRef,
   useMemo,
+  useDeferredValue,
   lazy,
   Suspense,
   memo,
@@ -21,35 +22,37 @@ import Sidebar, { getCategoryIcon } from "./Sidebar";
 import { RowCard } from "./Homerows";
 import SharxAvatar from "./SharxAvatar";
 import OnboardingCard from "./OnboardingCard";
-import FeedbackModal, { FeedbackToast } from "./FeedbackModal";
 import AnnouncementBanner from "./announcement";
 import "./announcement.css";
 import "./Home.css";
 import "./Homeextras.css";
 
-
 const ProfileSidePanel = lazy(() => import("./ProfileSidePanel"));
 const SidePanel = lazy(() => import("./SidePanel"));
 const GameModal = lazy(() => import("./GameModal"));
 const SocialComingSoonModal = lazy(() => import("./SocialComingSoonModal"));
-const RewardEventBanner = lazy(() => import("./RewardEventBanner"));
+
+/* Feedback popup is loaded ONLY when needed (JS + CSS stay out of first load) */
+const FeedbackModal = lazy(() => import("./FeedbackModal"));
+const FeedbackToast = lazy(() =>
+  import("./FeedbackModal").then((m) => ({ default: m.FeedbackToast }))
+);
 
 const HISTORY_KEY = "pv_history";
 const MAX_HISTORY = 12;
 const TRENDING_LIMIT = 12;
 const ALL_PAGE_SIZE = 24;
 const PAGE_SIZE = 50;
-const ANIMATED_CARDS = 12;
+const ANIMATED_CARDS = 8;
 
 const TO_TOP_AT = 600;
 
 /* Feedback popup timing / storage */
-const FEEDBACK_OPEN_DELAY_MS = 1200;
+const FEEDBACK_OPEN_DELAY_MS = 6000;
 const FEEDBACK_TOAST_MS = 4700;
 const FEEDBACK_SUBMITTED_KEY = "sharx:feedback:submittedAt";
 const FEEDBACK_SEEN_KEY = "sharx:feedback:seen";
 const FEEDBACK_QUIET_MS = 30 * 24 * 60 * 60 * 1000;
-
 
 /* ─────────────────────────────────────────────
    UTILITIES
@@ -75,8 +78,6 @@ const addToHistory = (game) => {
     );
   } catch {}
 };
-
-
 
 const NAMED_ENTITIES = {
   "&quot;": '"',
@@ -421,8 +422,44 @@ export default function Home({
     setMounted(true);
   }, []);
 
+  /* ───────── LITE MODE ─────────
+     Weak phones (<=2GB RAM, <=4 cores, or Data Saver on) get the class "lite"
+     on <html>. The CSS then switches off decorative animations / effects.
+     Test it anywhere with  ?lite=1   (force on)  or  ?lite=0  (force off). */
+  useEffect(() => {
+    try {
+      const nav = navigator;
+      const forced = new URLSearchParams(window.location.search).get("lite");
+      const lowMem =
+        typeof nav.deviceMemory === "number" && nav.deviceMemory <= 2;
+      const lowCpu =
+        typeof nav.hardwareConcurrency === "number" &&
+        nav.hardwareConcurrency <= 4;
+      const saveData = Boolean(nav.connection?.saveData);
+
+      const on =
+        forced === "1" || (forced !== "0" && (lowMem || lowCpu || saveData));
+
+      document.documentElement.classList.toggle("lite", on);
+    } catch {}
+  }, []);
+
+  /* Warm up the game player in idle time so the first game opens instantly */
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const run = () => {
+      import("./GameModal").catch(() => {});
+    };
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(run, { timeout: 5000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const t = window.setTimeout(run, 3000);
+    return () => window.clearTimeout(t);
+  }, []);
+
   /* ───────── Feedback popup ─────────
-     - Opens by itself shortly after the site loads.
+     - Opens by itself a few seconds after the site loads (never over a game).
      - After a successful submit it stays away for 30 days.
      - If it is only closed, it stays away for the rest of that visit.
      - Adding ?feedback=1 to the URL forces it open (handy for testing).
@@ -433,6 +470,10 @@ export default function Home({
   const feedbackToastTimer = useRef(null);
 
   const openFeedback = useCallback(() => setFeedbackOpen(true), []);
+
+  const prefetchFeedback = useCallback(() => {
+    import("./FeedbackModal").catch(() => {});
+  }, []);
 
   const closeFeedback = useCallback(() => {
     setFeedbackOpen(false);
@@ -463,9 +504,10 @@ export default function Home({
     if (!mounted) return undefined;
 
     let skip = false;
+    let forced = false;
 
     try {
-      const forced =
+      forced =
         new URLSearchParams(window.location.search).get("feedback") === "1";
 
       if (!forced) {
@@ -486,15 +528,18 @@ export default function Home({
     if (skip) return undefined;
 
     const timer = setTimeout(
-      () => setFeedbackOpen(true),
-      FEEDBACK_OPEN_DELAY_MS
+      () => {
+        /* don't pop over a game that is being played */
+        if (!forced && document.body.classList.contains("modal-open")) return;
+        setFeedbackOpen(true);
+      },
+      forced ? 800 : FEEDBACK_OPEN_DELAY_MS
     );
     return () => clearTimeout(timer);
   }, [mounted]);
 
   useEffect(() => () => clearTimeout(feedbackToastTimer.current), []);
 
-  const [pageReady, setPageReady] = useState(false);
   const [allGames, setAllGames] = useState(() => prepareGames(initialGames));
   const [trendingGames] = useState(() => prepareGames(initialTrendingGames));
   const [loading, setLoading] = useState(initialGames.length === 0);
@@ -510,13 +555,6 @@ export default function Home({
   const [showProfile, setShowProfile] = useState(false);
 
   const [showTop, setShowTop] = useState(false);
-
-  const [founderNoteOpen, setFounderNoteOpen] = useState(false);
-  const handleOpenFounderNote = useCallback(() => setFounderNoteOpen(true), []);
-  const handleCloseFounderNote = useCallback(
-    () => setFounderNoteOpen(false),
-    []
-  );
 
   useEffect(() => {
     if (authLoading || !user) return undefined;
@@ -546,7 +584,8 @@ export default function Home({
   const pushedOwnHistoryRef = useRef(false);
   const fetchInFlightRef = useRef(false);
   const fetchAbortRef = useRef(null);
-  const allGamesRef = useRef(prepareGames(initialGames));
+  /* reuse the already-prepared list (no second prepareGames pass) */
+  const allGamesRef = useRef(allGames);
   const currentPageRef = useRef(
     Math.max(1, Math.ceil(initialGames.length / PAGE_SIZE))
   );
@@ -558,28 +597,6 @@ export default function Home({
   const searchInputRef = useRef(null);
   const baseTitleRef = useRef(null);
   const scrollLockRef = useRef(null);
-
-  useEffect(() => {
-    let raf = 0;
-    let timeout = 0;
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(() => setPageReady(true), {
-        timeout: 300,
-      });
-      return () => {
-        if (typeof window.cancelIdleCallback === "function") {
-          window.cancelIdleCallback(id);
-        }
-      };
-    }
-    raf = window.requestAnimationFrame(() => {
-      timeout = window.setTimeout(() => setPageReady(true), 0);
-    });
-    return () => {
-      window.cancelAnimationFrame(raf);
-      window.clearTimeout(timeout);
-    };
-  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -650,7 +667,6 @@ export default function Home({
     mq.addListener(h);
     return () => mq.removeListener(h);
   }, []);
-
 
   /* back-to-top visibility */
   useEffect(() => {
@@ -884,7 +900,6 @@ export default function Home({
     setPanelMode(null);
   }, []);
   const handleShowProfile = useCallback(() => setShowProfile(true), []);
-  const handleSocialClick = useCallback((p) => setSocialModal(p), []);
   const handleCloseSocialModal = useCallback(() => setSocialModal(null), []);
   const handleRetry = useCallback(() => {
     void fetchGames(1, true);
@@ -923,10 +938,6 @@ export default function Home({
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") {
-        if (founderNoteOpen) {
-          setFounderNoteOpen(false);
-          return;
-        }
         if (sidebarOpen) setSidebarOpen(false);
         else if (searchOpen || search) {
           setSearchOpen(false);
@@ -947,7 +958,7 @@ export default function Home({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleCloseModal, sidebarOpen, searchOpen, search, activeGame, founderNoteOpen]);
+  }, [handleCloseModal, sidebarOpen, searchOpen, search, activeGame]);
 
   useEffect(() => {
     const onPop = () => {
@@ -1009,7 +1020,13 @@ export default function Home({
     return () => window.cancelAnimationFrame(frame);
   }, [allGames, initialActiveGame]);
 
-  const searchLower = useMemo(() => search.trim().toLowerCase(), [search]);
+  /* Search filtering runs on a deferred value: typing stays instant even on
+     slow phones, the grid catches up right after. */
+  const deferredSearch = useDeferredValue(search);
+  const searchLower = useMemo(
+    () => deferredSearch.trim().toLowerCase(),
+    [deferredSearch]
+  );
 
   const categories = useMemo(() => {
     const u = new Set();
@@ -1079,7 +1096,7 @@ export default function Home({
   const topVisible = showTop && !activeGame;
 
   return (
-    <div className={`app-shell${pageReady ? " page-ready" : ""}`}>
+    <div className="app-shell">
       <div className="bg-scene" aria-hidden="true" />
 
       <Sidebar
@@ -1192,11 +1209,7 @@ export default function Home({
               <div className="row-skel-heading" />
               <div className="row-skel-strip">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="row-skel-card"
-                    style={{ animationDelay: `${i * 60}ms` }}
-                  />
+                  <div key={i} className="row-skel-card" />
                 ))}
               </div>
             </div>
@@ -1226,7 +1239,7 @@ export default function Home({
                     <h2 className="home-row-heading">
                       <HeadingIcon name="search" />
                       <span className="home-row-title">
-                        Results for &ldquo;{search.trim()}&rdquo;
+                        Results for &ldquo;{deferredSearch.trim()}&rdquo;
                       </span>
                     </h2>
                     <span className="home-row-count">
@@ -1389,19 +1402,30 @@ export default function Home({
           type="button"
           className="feedback-floating-button"
           onClick={openFeedback}
+          onPointerEnter={prefetchFeedback}
+          onFocus={prefetchFeedback}
+          onTouchStart={prefetchFeedback}
           aria-label="Give feedback"
         >
           <span aria-hidden="true">✦</span>
           Feedback
         </button>
 
-        <FeedbackModal
-          open={feedbackOpen}
-          onClose={closeFeedback}
-          onSubmitted={handleFeedbackSubmitted}
-        />
+        {feedbackOpen && (
+          <Suspense fallback={null}>
+            <FeedbackModal
+              open
+              onClose={closeFeedback}
+              onSubmitted={handleFeedbackSubmitted}
+            />
+          </Suspense>
+        )}
 
-        {feedbackToast && <FeedbackToast />}
+        {feedbackToast && (
+          <Suspense fallback={null}>
+            <FeedbackToast />
+          </Suspense>
+        )}
       </div>
 
       {/* BACK TO TOP */}

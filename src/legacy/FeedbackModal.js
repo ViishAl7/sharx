@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { COMMUNITY_API_BASE } from "../config";
 import "./Feedback.css";
@@ -48,6 +48,9 @@ const CONFETTI = [
   { x: "34px", y: "-68px", c: "#e4dcff" },
 ];
 
+/* Stable style objects (new objects every render would defeat memo) */
+const REVEAL = Array.from({ length: 10 }, (_, i) => ({ "--i": i }));
+
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
@@ -68,8 +71,10 @@ function SparkIcon() {
   );
 }
 
-function StarRating({
+/* memo = typing in the textarea no longer re-renders all the star rows */
+const StarRating = memo(function StarRating({
   label,
+  name,
   value,
   onChange,
   required = false,
@@ -99,7 +104,7 @@ function StarRating({
     if (next === null) return;
 
     event.preventDefault();
-    onChange(next);
+    onChange(name, next);
     event.currentTarget.parentElement
       .querySelectorAll("button")
       [next - 1]?.focus();
@@ -137,7 +142,7 @@ function StarRating({
               className={
                 isActive ? "is-active" : isPreview ? "is-preview" : ""
               }
-              onClick={() => onChange(star)}
+              onClick={() => onChange(name, star)}
               onKeyDown={handleKeyDown}
               onPointerEnter={(event) => {
                 if (event.pointerType === "mouse") setHover(star);
@@ -162,7 +167,7 @@ function StarRating({
       )}
     </fieldset>
   );
-}
+});
 
 function FeedbackDialog({ onClose, onSubmitted }) {
   const [ratings, setRatings] = useState(initialRatings);
@@ -185,6 +190,8 @@ function FeedbackDialog({ onClose, onSubmitted }) {
   const nudgeTimer = useRef(null);
   const failTimer = useRef(null);
   const abortRef = useRef(null);
+  const invalidRef = useRef("");
+  invalidRef.current = invalid;
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -318,15 +325,21 @@ function FeedbackDialog({ onClose, onSubmitted }) {
     }, 60);
   };
 
-  const clearFail = () => {
+  const clearFail = useCallback(() => {
     setError("");
     setInvalid("");
-  };
+  }, []);
 
-  const updateRating = (key, value) => {
-    setRatings((current) => ({ ...current, [key]: value }));
-    if (key === "overallRating" && invalid === "overall") clearFail();
-  };
+  /* Stable callback so memo'd StarRating rows don't re-render on every keystroke */
+  const updateRating = useCallback(
+    (key, value) => {
+      setRatings((current) => ({ ...current, [key]: value }));
+      if (key === "overallRating" && invalidRef.current === "overall") {
+        clearFail();
+      }
+    },
+    [clearFail]
+  );
 
   const chooseRecommendation = (value) => {
     setRecommendation(value);
@@ -403,8 +416,6 @@ function FeedbackDialog({ onClose, onSubmitted }) {
     }
   };
 
-  const reveal = (index) => ({ "--i": index });
-
   return (
     <div
       className={`feedback-overlay ${closing ? "is-closing" : ""}`}
@@ -467,45 +478,47 @@ function FeedbackDialog({ onClose, onSubmitted }) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <p className="feedback-notice fb-reveal" style={reveal(0)}>
+              <p className="feedback-notice fb-reveal" style={REVEAL[0]}>
                 <span className="feedback-notice-icon">
                   <SparkIcon />
                 </span>
                 You can now share your feedback with us.
               </p>
 
-              <span className="feedback-eyebrow fb-reveal" style={reveal(1)}>
+              <span className="feedback-eyebrow fb-reveal" style={REVEAL[1]}>
                 Your voice matters
               </span>
 
-              <h2 id="feedback-title" className="fb-reveal" style={reveal(2)}>
+              <h2 id="feedback-title" className="fb-reveal" style={REVEAL[2]}>
                 Help us improve SHARX.
               </h2>
 
-              <p className="feedback-description fb-reveal" style={reveal(3)}>
+              <p className="feedback-description fb-reveal" style={REVEAL[3]}>
                 Tell us about your experience. Every response counts.
               </p>
 
               <StarRating
                 label="How would you rate SHARX overall?"
+                name="overallRating"
                 value={ratings.overallRating}
-                onChange={(value) => updateRating("overallRating", value)}
+                onChange={updateRating}
                 required
                 showHint
                 invalid={invalid === "overall"}
                 errorText={invalid === "overall" ? error : ""}
                 field="overall"
                 className="fb-reveal"
-                style={reveal(4)}
+                style={REVEAL[4]}
               />
 
-              <div className="feedback-category-grid fb-reveal" style={reveal(5)}>
+              <div className="feedback-category-grid fb-reveal" style={REVEAL[5]}>
                 {CATEGORIES.map(([key, label]) => (
                   <StarRating
                     key={key}
                     label={label}
+                    name={key}
                     value={ratings[key]}
-                    onChange={(value) => updateRating(key, value)}
+                    onChange={updateRating}
                   />
                 ))}
               </div>
@@ -514,7 +527,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 className={`feedback-recommend fb-reveal ${
                   invalid === "recommend" ? "is-invalid" : ""
                 }`}
-                style={reveal(6)}
+                style={REVEAL[6]}
                 data-field="recommend"
               >
                 <legend>Would you recommend SHARX to a friend?</legend>
@@ -540,7 +553,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 )}
               </fieldset>
 
-              <label className="feedback-message fb-reveal" style={reveal(7)}>
+              <label className="feedback-message fb-reveal" style={REVEAL[7]}>
                 Anything you'd like us to know? <span>(Optional)</span>
                 <textarea
                   value={message}
@@ -577,7 +590,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
 
               <button
                 className="feedback-submit fb-reveal"
-                style={reveal(8)}
+                style={REVEAL[8]}
                 type="submit"
                 disabled={loading}
               >
@@ -591,7 +604,7 @@ function FeedbackDialog({ onClose, onSubmitted }) {
                 )}
               </button>
 
-              <p className="feedback-privacy fb-reveal" style={reveal(9)}>
+              <p className="feedback-privacy fb-reveal" style={REVEAL[9]}>
                 Your feedback is handled securely.
               </p>
             </form>

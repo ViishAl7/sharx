@@ -1,6 +1,13 @@
 /* ════════════════════════════════════════════════════════════════════
-   SHARX HOME — Crayon · Clean · Fast · Smooth
-   Mobile-first · no jank · enhanced crayon vibe
+   SHARX HOME — Crayon · Clean · Fast · Smooth  (performance build)
+
+   What changed vs the old file:
+   - Page is visible immediately (old one stayed opacity:0 until JS finished)
+   - Skeleton loaders use opacity pulse (old one repainted every frame)
+   - Removed will-change / speckle overlays from the circle buttons
+   - Removed footer slide-in animation
+   - Feedback floating button styles live here (popup CSS loads lazily)
+   - html.lite  = weak phones: decorative animations / effects switched off
 ════════════════════════════════════════════════════════════════════ */
 
 /* ════════════ TOKENS ════════════ */
@@ -98,7 +105,8 @@ textarea {
   border: 0;
 }
 
-/* ════════════ ANIMATIONS ════════════ */
+/* ════════════ ANIMATIONS ════════════
+   (keyframes kept even if unused here — other CSS files may reference them) */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 @keyframes fadeUp {
@@ -117,6 +125,12 @@ textarea {
   100% { background-position: 600px 0; }
 }
 
+/* cheap loading animation: only opacity changes (GPU), no repaint */
+@keyframes skelPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
 @keyframes footerRise {
   0%   { opacity: 0; transform: translate3d(0, 40px, 0); }
   100% { opacity: 1; transform: translate3d(0, 0, 0); }
@@ -132,11 +146,15 @@ textarea {
   35%           { transform: translateY(-6px) rotate(-8deg) scale(1.08); }
 }
 
-/* crayon squiggle underline — subtle hand-drawn vibe */
 @keyframes crayonWiggle {
   0%, 100% { transform: translateX(0) rotate(0); }
   25%      { transform: translateX(-1px) rotate(-0.4deg); }
   75%      { transform: translateX(1px) rotate(0.4deg); }
+}
+
+@keyframes fbBtnIn {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 /* ════════════ BACKGROUND ════════════ */
@@ -149,7 +167,6 @@ textarea {
   z-index: -1;
   pointer-events: none;
   contain: strict;
-  transform: translateZ(0);
   background:
     radial-gradient(ellipse 70% 50% at 15% 10%, rgba(255, 246, 217, 0.55), transparent 65%),
     radial-gradient(ellipse 60% 45% at 88% 15%, rgba(226, 248, 239, 0.5), transparent 65%),
@@ -166,7 +183,8 @@ textarea {
   opacity: 0.5;
 }
 
-/* ════════════ APP SHELL ════════════ */
+/* ════════════ APP SHELL ════════════
+   Visible straight away (no opacity gate) so the page paints sooner. */
 .app-shell {
   display: flex;
   align-items: flex-start;
@@ -175,11 +193,7 @@ textarea {
   max-width: 100%;
   min-height: 100vh;
   overflow: visible;
-  opacity: 0;
-  transition: opacity 0.4s var(--ease-soft);
 }
-
-.app-shell.page-ready { opacity: 1; }
 
 .app-shell > .main-col {
   flex: 1 1 0%;
@@ -229,7 +243,7 @@ textarea {
     inset 0 -3px 0 rgba(27, 42, 65, 0.06),
     inset 0 3px 0 rgba(255, 255, 255, 0.65);
   transition:
-    transform 0.25s cubic-bezier(0.34, 1.4, 0.4, 1),
+    transform 0.25s var(--ease-pop),
     box-shadow 0.25s ease,
     background 0.25s ease;
   -webkit-tap-highlight-color: transparent;
@@ -270,11 +284,11 @@ textarea {
     inset 0 -3px 0 rgba(27, 42, 65, 0.14),
     inset 0 3px 0 rgba(255, 255, 255, 0.7);
   transition:
-    transform 0.25s cubic-bezier(0.34, 1.4, 0.4, 1),
-    box-shadow 0.25s cubic-bezier(0.34, 1.4, 0.4, 1);
-  will-change: transform;
+    transform 0.25s var(--ease-pop),
+    box-shadow 0.25s var(--ease-pop);
 }
 
+/* glossy highlight (one overlay only) */
 .topbar-search-icon-btn::before,
 .crayon-profile-btn::before {
   content: "";
@@ -294,22 +308,6 @@ textarea {
   z-index: 1;
 }
 
-.topbar-search-icon-btn::after,
-.crayon-profile-btn::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background-image:
-    radial-gradient(circle at 30% 70%, rgba(27, 42, 65, 0.09) 0.6px, transparent 1.2px),
-    radial-gradient(circle at 70% 30%, rgba(27, 42, 65, 0.07) 0.6px, transparent 1.2px),
-    radial-gradient(circle at 55% 82%, rgba(255, 255, 255, 0.4) 0.5px, transparent 1px);
-  background-size: 10px 10px, 11px 11px, 9px 9px;
-  opacity: 0.75;
-  pointer-events: none;
-  z-index: 1;
-}
-
 .topbar-search-icon-btn {
   background:
     radial-gradient(circle at 32% 28%,
@@ -325,8 +323,7 @@ textarea {
   width: 28px;
   height: 28px;
   display: block;
-  filter: drop-shadow(0.6px 1px 0 rgba(27, 42, 65, 0.25));
-  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.4, 1);
+  transition: transform 0.3s var(--ease-pop);
 }
 
 .topbar-search-icon-btn[aria-expanded="true"] {
@@ -364,15 +361,14 @@ textarea {
   height: 30px;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.4, 1);
+  transition: transform 0.3s var(--ease-pop);
 }
 
 .crayon-profile-icon svg {
   width: 100%;
   height: 100%;
   display: block;
-  filter: drop-shadow(0.6px 1px 0 rgba(27, 42, 65, 0.25));
-  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.4, 1);
+  transition: transform 0.3s var(--ease-pop);
 }
 
 .crayon-profile-inner {
@@ -388,7 +384,7 @@ textarea {
   border: 1.5px solid var(--ink);
   background: #FFFDF2;
   box-shadow: 0 1px 0 rgba(27, 42, 65, 0.15);
-  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.4, 1);
+  transition: transform 0.3s var(--ease-pop);
 }
 
 .crayon-profile-inner img,
@@ -397,7 +393,6 @@ textarea {
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.4, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -471,7 +466,7 @@ textarea {
   border-radius: 26px;
   padding: 24px 26px 26px;
   box-shadow: var(--shadow-md);
-  animation: fadeUp 0.4s var(--ease-pop) both;
+  animation: fadeUp 0.35s var(--ease-soft) both;
   width: 100%;
   max-width: 100%;
   overflow: visible;
@@ -483,7 +478,7 @@ textarea {
   content-visibility: auto;
   contain-intrinsic-size: auto 900px;
 }
-.section-panel:nth-child(2) { animation-delay: 0.06s; }
+.section-panel:nth-child(2) { animation-delay: 0.05s; }
 .section-panel + .section-panel { margin-top: 0; }
 
 .home-row { width: 100%; max-width: 100%; }
@@ -537,7 +532,7 @@ textarea {
 }
 
 .row-card.card-anim {
-  animation: cardPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation: cardPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
 .row-card-link:nth-child(1) .row-card.card-anim { animation-delay: 0s; }
@@ -847,10 +842,12 @@ textarea {
 
 .load-more-arrow svg { width: 100%; height: 100%; display: block; }
 
-.load-more-btn:hover {
-  transform: translate(-2px, -2px);
-  background: var(--coral);
-  box-shadow: 5px 5px 0 var(--ink);
+@media (hover: hover) and (pointer: fine) {
+  .load-more-btn:hover {
+    transform: translate(-2px, -2px);
+    background: var(--coral);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
 }
 
 .load-more-btn:active {
@@ -871,16 +868,15 @@ textarea {
   cursor: pointer;
 }
 
-/* ════════════ SKELETONS ════════════ */
+/* ════════════ SKELETONS (opacity pulse = no repaint) ════════════ */
 .rows-skel { display: flex; flex-direction: column; gap: 24px; }
 
 .row-skel-heading {
   width: 180px;
   height: 28px;
   border-radius: 10px;
-  background: linear-gradient(90deg, rgba(46,127,232,.08) 25%, rgba(46,127,232,.22) 50%, rgba(46,127,232,.08) 75%);
-  background-size: 600px 100%;
-  animation: shimmer 1.5s ease infinite;
+  background: rgba(46, 127, 232, 0.14);
+  animation: skelPulse 1.4s ease-in-out infinite;
   margin-bottom: 12px;
 }
 
@@ -894,19 +890,21 @@ textarea {
   width: 100%;
   aspect-ratio: 1;
   border-radius: 22px;
-  background: linear-gradient(90deg, rgba(46,127,232,.08) 25%, rgba(46,127,232,.18) 50%, rgba(46,127,232,.08) 75%);
-  background-size: 600px 100%;
-  animation: shimmer 1.5s ease infinite;
+  background: rgba(46, 127, 232, 0.12);
+  animation: skelPulse 1.4s ease-in-out infinite;
   border: var(--border);
   border-color: rgba(27, 42, 65, 0.15);
 }
+
+.row-skel-card:nth-child(2n) { animation-delay: 0.15s; }
+.row-skel-card:nth-child(3n) { animation-delay: 0.3s; }
 
 /* ════════════ EMPTY STATE ════════════ */
 .empty {
   text-align: center;
   padding: 4rem 2rem;
   color: var(--ink-soft);
-  animation: fadeUp 0.4s ease;
+  animation: fadeUp 0.35s ease;
 }
 
 .empty-t {
@@ -944,10 +942,6 @@ textarea {
   z-index: 10;
   opacity: 1;
   transform: none;
-}
-
-.site-footer.footer-in {
-  animation: footerRise 0.7s var(--ease-pop) both;
 }
 
 .footer-body {
@@ -1052,6 +1046,64 @@ textarea {
   .footer-copyright:hover { color: var(--ink); }
 }
 
+/* ════════════ FEEDBACK FLOATING BUTTON ════════════
+   (lives here so it shows instantly; the popup itself loads on demand) */
+.feedback-floating-button {
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border: 3px solid var(--ink);
+  border-radius: 99px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: var(--font-comfortaa), "Comfortaa", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 3px 4px 0 var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  animation: fbBtnIn 0.4s var(--ease-soft) 0.6s backwards;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (hover: hover) {
+  .feedback-floating-button:hover {
+    transform: translate(-1px, -2px);
+    background: var(--yellow-soft);
+    box-shadow: 4px 6px 0 var(--ink);
+  }
+}
+
+.feedback-floating-button:active {
+  transform: translate(2px, 3px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.feedback-floating-button:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.feedback-floating-button span {
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .feedback-floating-button {
+    right: 14px;
+    bottom: 78px;
+    padding: 11px 17px;
+    font-size: 13.5px;
+  }
+}
+
 /* ════════════ FOCUS ════════════ */
 .load-more-btn:focus-visible,
 .empty-b:focus-visible,
@@ -1094,7 +1146,7 @@ html:has(body.modal-open) { overflow: hidden; }
   .crayon-profile-icon { width: 26px; height: 26px; }
   .crayon-profile-inner { width: 28px; height: 28px; }
   .hamburger-btn svg { width: 18px; height: 18px; }
-  .row-card.card-anim { animation: fadeUp 0.32s ease backwards; }
+  .row-card.card-anim { animation: fadeUp 0.3s ease backwards; }
 }
 
 @media (max-width: 420px) {
@@ -1145,7 +1197,7 @@ html:has(body.modal-open) { overflow: hidden; }
   color: var(--ink);
   font-family: var(--font-comfortaa), 'Comfortaa', system-ui, sans-serif;
   overflow: hidden;
-  animation: fadeUp 0.42s cubic-bezier(.34,1.4,.4,1) both;
+  animation: fadeUp 0.4s var(--ease-soft) both;
   isolation: isolate;
 }
 
@@ -1178,7 +1230,7 @@ html:has(body.modal-open) { overflow: hidden; }
   justify-content: center;
   box-shadow: 1.5px 1.5px 0 var(--ink);
   z-index: 3;
-  transition: transform 0.2s cubic-bezier(.34,1.4,.4,1), background 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s var(--ease-pop), background 0.2s ease, box-shadow 0.2s ease;
   padding: 0;
 }
 
@@ -1266,7 +1318,7 @@ html:has(body.modal-open) { overflow: hidden; }
   font-family: inherit;
   color: inherit;
   width: 100%;
-  transition: transform 0.2s cubic-bezier(.34,1.4,.4,1), box-shadow 0.2s ease, background 0.2s ease;
+  transition: transform 0.2s var(--ease-pop), box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .shx-onb-step:hover:not(:disabled) {
@@ -1373,16 +1425,55 @@ html:has(body.modal-open) { overflow: hidden; }
   margin: 0 0 20px;
   border-radius: 28px;
   background: var(--paper);
-  background-image:
-    radial-gradient(circle, rgba(27, 42, 65, 0.045) 1px, transparent 1.4px),
-    linear-gradient(90deg, rgba(46, 127, 232, 0.04) 25%, rgba(46, 127, 232, 0.1) 50%, rgba(46, 127, 232, 0.04) 75%);
-  background-size: 18px 18px, 600px 100%;
-  animation: shimmer 1.5s ease infinite;
+  background-image: radial-gradient(circle, rgba(27, 42, 65, 0.045) 1px, transparent 1.4px);
+  background-size: 18px 18px;
+  animation: skelPulse 1.4s ease-in-out infinite;
   border: 2.5px solid rgba(27, 42, 65, 0.15);
 }
 
 @media (max-width: 760px) { .shrx-ev-skeleton { min-height: 260px; } }
 @media (max-width: 480px) { .shrx-ev-skeleton { min-height: 240px; border-radius: 22px; } }
+
+/* ════════════════════════════════════════════════════════════════════
+   LITE MODE — added to <html> by Home.js on weak phones
+   (<=2GB RAM, <=4 CPU cores, or Data Saver on). Test with ?lite=1
+   Keeps the look, drops the extras: no entrance animations, no bg dots,
+   no smooth-scroll, no hover tilt, simpler transitions.
+════════════════════════════════════════════════════════════════════ */
+html.lite { scroll-behavior: auto; }
+
+html.lite .bg-scene::before { display: none; }
+
+html.lite .section-panel,
+html.lite .row-card.card-anim,
+html.lite .empty,
+html.lite .feedback-floating-button {
+  animation: none !important;
+}
+
+html.lite .row-card-link,
+html.lite .row-card-thumb,
+html.lite .row-card-thumb img,
+html.lite .row-card-img {
+  transition: none !important;
+}
+
+html.lite .row-card-link:hover { transform: none; }
+html.lite .row-card-link:hover .row-card-thumb img { transform: none; }
+
+html.lite .footer-body,
+html.lite .shx-onb::before {
+  background-image: none;
+}
+
+html.lite .topbar-search-icon-btn,
+html.lite .crayon-profile-btn,
+html.lite .hamburger-btn,
+html.lite .load-more-btn,
+html.lite .footer-link,
+html.lite .footer-link::after {
+  transition-duration: 0.1s;
+}
 
 /* ════════════ REDUCED MOTION ════════════ */
 @media (prefers-reduced-motion: reduce) {
@@ -1399,13 +1490,11 @@ html:has(body.modal-open) { overflow: hidden; }
 
   .row-card-link,
   .section-panel,
-  .app-shell,
   .shx-onb {
     animation: none !important;
     transition: none !important;
   }
 
-  .app-shell { opacity: 1 !important; }
   .crayon-loader span { animation: none; }
 
   .topbar-search-icon-btn,

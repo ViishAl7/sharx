@@ -1,12 +1,15 @@
 /* =========================================
-   SHARX — CRAYON FEEDBACK (premium)
-   Matches sharx.in · Comfortaa · cream paper · navy ink
+   SHARX — CRAYON FEEDBACK (light version)
+   Comfortaa · cream paper · navy ink
+
+   Changes vs old file:
+   - No @import of Google Fonts (it blocked rendering and duplicated next/font)
+   - No backdrop-filter blur (very heavy on cheap GPUs)
+   - Floating button styles moved to Home.css (so this file loads only when popup opens)
+   - "lite" mode switches off decorative animations
 ========================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&display=swap');
-
 .feedback-overlay,
-.feedback-floating-button,
 .feedback-toast {
   --fb-ink: #1a2744;
   --fb-ink-soft: #5a6580;
@@ -20,14 +23,14 @@
   --fb-coral: #ff9b8f;
   --fb-coral-soft: #ffe3df;
   --fb-danger: #c0392b;
-  --fb-font: 'Comfortaa', 'Nunito', system-ui, -apple-system, sans-serif;
+  --fb-font: var(--font-comfortaa), 'Comfortaa', 'Nunito', system-ui,
+    -apple-system, sans-serif;
   --fb-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --fb-spring: cubic-bezier(0.3, 1.5, 0.5, 1);
 }
 
 /* Snappy taps on phones, no grey flash */
-.feedback-overlay button,
-.feedback-floating-button {
+.feedback-overlay button {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -42,12 +45,10 @@
   padding: max(20px, env(safe-area-inset-top)) 20px
     max(20px, env(safe-area-inset-bottom));
   overflow-y: auto;
-  background: rgba(26, 39, 68, 0.52);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(26, 39, 68, 0.6);
   font-family: var(--fb-font);
   color: var(--fb-ink);
-  animation: sharxFbFade 0.22s ease backwards;
+  animation: sharxFbFade 0.2s ease backwards;
 }
 
 .feedback-overlay *,
@@ -72,7 +73,6 @@
   border: 3px solid var(--fb-ink);
   border-radius: 32px;
   background-color: var(--fb-paper);
-  /* faint paper dots */
   background-image: radial-gradient(
     rgba(26, 39, 68, 0.055) 1.1px,
     transparent 1.3px
@@ -80,7 +80,7 @@
   background-size: 18px 18px;
   color: var(--fb-ink);
   box-shadow: 7px 8px 0 var(--fb-ink);
-  animation: sharxFbRise 0.4s cubic-bezier(0.2, 0.9, 0.25, 1.1) backwards;
+  animation: sharxFbRise 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.1) backwards;
 }
 
 .feedback-modal:focus {
@@ -91,7 +91,7 @@
   animation: sharxFbSink 0.18s ease forwards;
 }
 
-/* Sticker doodles sit fully outside the card, so scrolling content never meets them */
+/* Sticker doodles sit fully outside the card */
 .feedback-modal::before {
   content: "";
   position: absolute;
@@ -174,8 +174,8 @@
 
 /* Gentle staggered entrance for each block */
 .fb-reveal {
-  animation: sharxFbReveal 0.45s var(--fb-ease) backwards;
-  animation-delay: calc(var(--i, 0) * 45ms + 100ms);
+  animation: sharxFbReveal 0.4s var(--fb-ease) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms + 80ms);
 }
 
 /* ---------- Keyboard focus ---------- */
@@ -184,7 +184,6 @@
   outline-offset: 3px;
 }
 
-/* the textarea has its own focus style, so no extra ring */
 .feedback-overlay textarea:focus-visible {
   outline: none;
 }
@@ -317,7 +316,6 @@
   border-top: 2.5px dashed rgba(26, 39, 68, 0.16);
 }
 
-/* A floated legend stops the browser from drawing it on top of the border line */
 .feedback-rating legend,
 .feedback-recommend legend {
   float: left;
@@ -411,7 +409,6 @@
   border-color: var(--fb-coral);
 }
 
-/* Hint sits right beside the stars, so the block never has an empty gap */
 .feedback-star-hint {
   margin-left: 6px;
   color: var(--fb-ink-soft);
@@ -421,7 +418,6 @@
   animation: sharxFbHint 0.25s ease backwards;
 }
 
-/* Error text shown right under the field that needs attention */
 .feedback-field-error {
   clear: both;
   margin: 12px 0 0;
@@ -756,53 +752,6 @@
   animation: sharxFbReveal 0.5s 0.25s var(--fb-ease) backwards;
 }
 
-/* ---------- Floating button ---------- */
-.feedback-floating-button {
-  position: fixed;
-  right: 24px;
-  bottom: 88px;
-  z-index: 900;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 13px 22px;
-  border: 3px solid var(--fb-ink);
-  border-radius: 99px;
-  background: var(--fb-yellow);
-  color: var(--fb-ink);
-  font-family: var(--fb-font);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 3px 4px 0 var(--fb-ink);
-  transition: transform 0.15s ease, box-shadow 0.15s ease,
-    background 0.15s ease;
-  animation: sharxFbReveal 0.5s 0.6s var(--fb-ease) backwards;
-}
-
-@media (hover: hover) {
-  .feedback-floating-button:hover {
-    transform: translate(-1px, -2px);
-    background: var(--fb-yellow-soft);
-    box-shadow: 4px 6px 0 var(--fb-ink);
-  }
-}
-
-.feedback-floating-button:active {
-  transform: translate(2px, 3px);
-  box-shadow: 1px 1px 0 var(--fb-ink);
-}
-
-.feedback-floating-button:focus-visible {
-  outline: 3px solid var(--fb-ink);
-  outline-offset: 3px;
-}
-
-.feedback-floating-button span {
-  font-size: 16px;
-}
-
 /* ---------- Success toast (shown after the popup closes) ---------- */
 .feedback-toast {
   position: fixed;
@@ -1017,13 +966,6 @@
     padding: 10px 4px;
     font-size: 12.5px;
   }
-
-  .feedback-floating-button {
-    right: 14px;
-    bottom: 78px;
-    padding: 11px 17px;
-    font-size: 13.5px;
-  }
 }
 
 /* ---------- Very small phones ---------- */
@@ -1049,13 +991,21 @@
   }
 }
 
+/* ---------- Lite mode (weak phones): no decorative animation ---------- */
+html.lite .feedback-overlay,
+html.lite .feedback-overlay *:not(.feedback-spinner),
+html.lite .feedback-overlay *::before,
+html.lite .feedback-overlay *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .feedback-overlay,
   .feedback-overlay *,
   .feedback-overlay *::before,
   .feedback-overlay *::after,
-  .feedback-floating-button,
   .feedback-toast {
     animation: none !important;
     transition: none !important;
